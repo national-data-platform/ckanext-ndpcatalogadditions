@@ -1,0 +1,14 @@
+# ndpcatalogadditions-js:
+#   filter: rjsmin
+#   output: ckanext-ndpcatalogadditions/%(version)s-ndpcatalogadditions.js
+#   contents:
+#     - js/ndpcatalogadditions.js
+#   extra:
+#     preload:
+#       - base/main
+
+# ndpcatalogadditions-css:
+#   filter: cssrewrite
+#   output: ckanext-ndpcatalogadditions/%(version)s-ndpcatalogadditions.css
+#   contents:
+#     - css/ndpcatalogadditions.css

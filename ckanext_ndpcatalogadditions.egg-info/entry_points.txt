@@ -1,0 +1,5 @@
+[babel.extractors]
+ckan = ckan.lib.extract:extract_ckan
+
+[ckan.plugins]
+ndpcatalogadditions = ckanext.ndpcatalogadditions.plugin:NdpcatalogadditionsPlugin
