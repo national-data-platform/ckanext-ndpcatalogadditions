@@ -43,6 +43,8 @@ When a user includes the organization to which the dataset belongs in a request 
 
 ### For Users Reviewing Datasets
 
+Only users with admin or review identities can use the following endpoints:
+
 * ##### POST <CKAN_URL>/ndp/package_approve
 
   Approve a dataset in Prekan by submitting a JSON string with the fields specified in this link:
