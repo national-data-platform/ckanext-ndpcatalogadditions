@@ -190,6 +190,8 @@ def create_package():
             if 'owner_org' in dataset_dict.keys():
                 organization = process_user_and_organization(user, dataset_dict['owner_org'])
                 dataset_dict['owner_org'] = organization.name
+            if not 'name' in dataset_dict.keys():
+                dataset_dict['name'] = munge_title_to_name(dataset_dict['title'])
             context = {'user': user.name}
             dataset = logic.get_action('package_create')(context, dataset_dict)                
             return dataset
