@@ -11,7 +11,7 @@ import ckan.logic as logic
 from ckan.plugins import toolkit
 from ckan.authz import is_sysadmin
 from ckan.lib.munge import munge_title_to_name
-from ckanext.ndp.keycloak_token import get_user_info
+from ckanext.ndpcatalogadditions.keycloak_token import get_user_info
 from flask import request, jsonify
 
 
