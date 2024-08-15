@@ -1,7 +1,7 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 from flask import Blueprint
-from ckanext.ndp.controller import create_package, update_package, delete_package, purge_package, list_my_packages, approve_package, reject_package
+from ckanext.ndpcatalogadditions.controller import create_package, update_package, delete_package, purge_package, list_my_packages, approve_package, reject_package
 
 
 class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
