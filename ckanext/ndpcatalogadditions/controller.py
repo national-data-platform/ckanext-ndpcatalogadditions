@@ -31,8 +31,18 @@ def generate_random_password(length=32):
     return ''.join(random.choice(characters) for i in range(length))
 
 
-def is_reviewer(username):
-    return username in [ "klin_sdsc_edu", "segurvich_sdsc_edu", "kbolaughlin_ucsd_edu", "jjl053_ucsd_edu", "pkarmakar_ucsd_edu" ] 
+def is_reviewer():
+    # Get the Authorization header
+    auth_header = request.headers.get('Authorization')
+
+    # Extract the Bearer Token if the header exists
+    if auth_header and auth_header.startswith('Bearer '):
+        bearer_token = auth_header[len('Bearer '):]
+    else:
+        raise ValueError('Missing or invalid KeyCloak token')
+
+    user_info = get_user_info(bearer_token)
+    return "data_approver" in user_info['roles']
 
 
 def get_or_create_user():
@@ -271,7 +281,7 @@ def approve_package():
             user = get_or_create_user()
             dataset_dict = request.get_json()
 
-            if not user.sysadmin and not is_reviewer(user.name):
+            if not user.sysadmin and not is_reviewer():
                 return "Not authorized to approve this dataset.", 401
     
             # actions in the production catalog
@@ -347,7 +357,7 @@ def reject_package():
             user = get_or_create_user()
             dataset_dict = request.get_json()
 
-            if not user.sysadmin and not is_reviewer(user.name):
+            if not user.sysadmin and not is_reviewer():
                 return "Not authorized to approve this dataset.", 401
             
             # Note that the reviewer may not has the permission to view this package if it is private
@@ -363,4 +373,25 @@ def reject_package():
             return f'Error: {str(e)}', 401
 
     return "Method not allowed", 405  # For unsupported methods
+
+
+def list_all_packages():
+    if request.method == 'POST' or request.method == 'GET':
+        try:
+            user = get_or_create_user()
+            if not user.sysadmin and not is_reviewer():
+                return "Not authorized to list all datasets.", 401
+
+            context = {'user': 'ckan_admin'}
+            search_dict = {
+                'q': '*:*',
+                'rows': 1000  
+            }
+            result = logic.get_action('package_search')(context, search_dict)
+            return result
+        except Exception as e:
+            return f'Error: {str(e)}', 401
+
+    return "Method not allowed", 405  # For unsupported methods
+
 
