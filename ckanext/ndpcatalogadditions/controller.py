@@ -73,12 +73,24 @@ def get_or_create_user():
 def process_user_and_organization(user, org_name):
     organization = model.Group.get(munge_title_to_name(org_name))
     if not organization:
-        # Create the organization object
-        organization = model.Group(name=munge_title_to_name(org_name),
-                                   title=org_name,
-                                   description="Created by admin when creating a new dataset",
-                                   type='organization',
-                                   is_organization=True)
+        # Check remote site                                                                                                                                                  
+        data = { 'id': org_name }
+        response = requests.post(f'{ckan_url}/api/3/action/organization_show', headers=headers, json=data)
+        if response.status_code == 200:
+            remote_organization = response.json()['result']
+            del remote_organization['id']
+            organization = model.Group(name=remote_organization['name'],
+                                       title=remote_organization['title'],
+                                       description=remote_organization['description'],
+                                       type='organization',
+                                       is_organization=True)
+        else:    
+            # Create the organization object
+            organization = model.Group(name=munge_title_to_name(org_name),
+                                       title=org_name,
+                                       description="Created by admin when creating a new dataset",
+                                       type='organization',
+                                       is_organization=True)
         model.Session.add(organization)
         model.Session.commit()        
 
@@ -86,8 +98,8 @@ def process_user_and_organization(user, org_name):
     model.Session.add(member)
     model.Session.commit()   
     return organization
-    
 
+    
 def get_or_create_remote_user(username, email, fullname):
 
     user_show_url = f'{ckan_url}/api/3/action/user_show'
