@@ -214,6 +214,13 @@ def create_package():
                 dataset_dict['owner_org'] = organization.name
             if not 'name' in dataset_dict.keys():
                 dataset_dict['name'] = munge_title_to_name(dataset_dict['title'])
+
+            # check if the name is used in the NDP catalog
+            data = { 'id': dataset_dict['name'] }
+            response = requests.post(f'{ckan_url}/api/3/action/package_show', headers=headers, json=data)
+            if response.status_code == 200:
+                raise ValueError(f"The dataset name is used in the NDP catalog: {dataset_dict['name']}.")
+            
             context = {'user': user.name}
             dataset = logic.get_action('package_create')(context, dataset_dict)                
             return dataset
