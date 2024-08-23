@@ -353,8 +353,19 @@ def approve_package():
             remote_dataset = save_remote_dataset(remote_user, dataset)
                 
             # action in the local catalog
-            #    1. delete the dataset
-            
+            #    1. add the approval information to the dataset
+            #    2. delete the dataset
+
+            update_dict = {
+                'id': dataset_dict['id'],
+                'extras': [
+                    {'key': 'approval_status', 'value': 'approved'},
+                    {'key': 'approval_user', 'value': user.name},
+                    {'key': 'approval_time', 'value': datetime.now().isoformat()},
+                ]
+            }
+            logic.get_action('package_patch')(context, update_dict)
+
             # delete this dataset with ignore_auth context
             logic.get_action('package_delete')(context, dataset_dict)
 
@@ -382,8 +393,17 @@ def reject_package():
             
             # Note that the reviewer may not has the permission to view this package if it is private
             context = {'ignore_auth': True}
-            logic.get_action('dataset_purge')(context, {'id': dataset_dict['id']})
-
+            update_dict = {
+                'id': dataset_dict['id'],
+                'extras': [
+                    {'key': 'approval_status', 'value': 'rejected'},
+                    {'key': 'approval_user', 'value': user.name},
+                    {'key': 'approval_time', 'value': datetime.now().isoformat()},
+                ]
+            }
+            logic.get_action('package_patch')(context, update_dict)
+		
+            logic.get_action('package_delete')(context, {'id': dataset_dict['id']})
             return f"The dataset '{dataset_dict['id']}' is rejected and purged."
         except logic.NotAuthorized:
             traceback.print_exc()
