@@ -58,7 +58,8 @@ def get_or_create_user():
 
     user_info = get_user_info(bearer_token)
     username = user_info['username'].replace('.', '_').replace('@', '_')
-    user = model.User.get(username)
+    # user = model.User.get(username)
+    user = model.User.by_email(user_info['email'])
     if not user:
         # Create a new user
         user = model.User(name=username, email=user_info['email'])
