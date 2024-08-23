@@ -407,8 +407,19 @@ def list_all_packages():
                 'q': '*:*',
                 'rows': 1000  
             }
-            result = logic.get_action('package_search')(context, search_dict)
-            return result
+            results = logic.get_action('package_search')(context, search_dict)
+
+            # add the creator fullname and email to each dataset
+            package_list = results["results"]
+            for package in package_list:
+                creator_id = package.get('creator_user_id')
+                if creator_id:
+                    user = model.Session.query(model.User).filter(model.User.id == creator_id).first()
+                    if user:
+                        package['creator_fullname'] = user.fullname
+			            package['creator_email'] = user.email
+                        
+            return results
         except Exception as e:
             return f'Error: {str(e)}', 401
 
