@@ -489,26 +489,28 @@ def list_all_packages():
             if not user.sysadmin and not is_reviewer():
                 return "Not authorized to list all datasets.", 401
 
-            context = {'user': 'ckan_admin'}
+            context = {'user': 'ckan_admin', 'ignore_auth': True}
             search_dict = {
                 'q': '*:*',
-                'rows': 1000  
+                'rows': 1000,
+                'include_private': True 
             }
             results = logic.get_action('package_search')(context, search_dict)
-
-            # add the creator fullname and email to each dataset
-            package_list = results["results"]
+            # return results
+        
+            package_list = results["results"] 
             for package in package_list:
                 creator_id = package.get('creator_user_id')
                 if creator_id:
                     user = model.Session.query(model.User).filter(model.User.id == creator_id).first()
                     if user:
                         package['creator_fullname'] = user.fullname
-			package['creator_email'] = user.email
-                        
+                        package['creator_email'] = user.email
             return results
+
         except Exception as e:
             return f'Error: {str(e)}', 401
 
     return "Method not allowed", 405  # For unsupported methods
+
 
