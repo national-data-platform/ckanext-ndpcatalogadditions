@@ -18,9 +18,7 @@ from flask import request, jsonify
 
 server_url = os.getenv('CKANEXT__KEYCLOAK__REDIRECT_URI')
 ckan_url = server_url.replace('/user/sso_login', '')
-
 api_key = os.getenv('CKANEXT__NDPCATALOGADDITIONS__API_KEY')
-
 headers = {
     'X-CKAN-API-Key': api_key,
     'Content-Type': 'application/json'
@@ -513,5 +511,4 @@ def list_all_packages():
             return f'Error: {str(e)}', 401
 
     return "Method not allowed", 405  # For unsupported methods
-
 
