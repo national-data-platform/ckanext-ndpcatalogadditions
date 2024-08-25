@@ -5,13 +5,14 @@ import string
 import traceback
 import requests
 import json
+from datetime import datetime
 
 import ckan.model as model
 import ckan.logic as logic
 from ckan.plugins import toolkit
 from ckan.authz import is_sysadmin
 from ckan.lib.munge import munge_title_to_name
-from ckanext.ndpcatalogadditions.keycloak_token import get_user_info
+from ckanext.ndp.keycloak_token import get_user_info
 from flask import request, jsonify
 
 
@@ -204,7 +205,55 @@ def save_remote_dataset(remote_user, dataset):
     finally:
         delete_api_token(token)
 
-    
+
+def get_accept_notification_text(fullname, title, submit_date):
+    return f"""
+Subject: Your Dataset Submission to NDP
+
+Dear {fullname},
+
+Thank you for submitting your dataset, “{title},” to the National Data Platform (NDP) on {submit_date}.
+
+We are pleased to inform you that, after careful evaluation by our reviewers, your dataset meets 
+the NDP acceptance criteria and has been recognized for its high quality. As a result, we are 
+delighted to include it in the NDP Catalog.
+
+We sincerely appreciate your valuable contribution and hope you will continue to support the NDP 
+by sharing more high-quality datasets in the future.
+
+Best regards,
+
+The NDP Team
+"""
+
+
+def get_reject_notification_text(fullname, title, submit_date):
+    return f"""
+Subject: Your Dataset Submission to NDP
+
+Dear {fullname},
+
+Thank you for submitting your dataset, “{title},” to the National Data Platform (NDP) on {submit_date}. 
+We appreciate your time and effort in contributing to our platform.
+
+After a thorough review by our team, we regret to inform you that your dataset does not currently meet
+the NDP acceptance criteria. While we are unable to include it in the NDP Catalog at this time, we 
+encourage you to review our guidelines and consider making revisions.
+
+We would be happy to review a revised submission, should you choose to update your dataset in line
+with our criteria. Your contributions are important to us, and we hope to see more of your work in
+the future.
+
+Best regards,
+
+The NDP Team
+"""
+
+
+def send_email(email_address, email_text):
+    pass
+
+
 def create_package():
     if request.method == 'POST':
         try:
@@ -303,7 +352,7 @@ def approve_package():
 
             if not user.sysadmin and not is_reviewer():
                 return "Not authorized to approve this dataset.", 401
-    
+            
             # actions in the production catalog
             #    1. find the creator and the owner_org of the dataset
             #    2. create a user for the creator if doesn't exist 
@@ -356,19 +405,24 @@ def approve_package():
             #    1. add the approval information to the dataset
             #    2. delete the dataset
 
+            extras = dataset['extras']
+            extras.append({'key': 'approval_status', 'value': 'approved'})
+            extras.append({'key': 'approval_user', 'value': user.name})
+            extras.append({'key': 'approval_time', 'value': datetime.now().isoformat()})
             update_dict = {
                 'id': dataset_dict['id'],
-                'extras': [
-                    {'key': 'approval_status', 'value': 'approved'},
-                    {'key': 'approval_user', 'value': user.name},
-                    {'key': 'approval_time', 'value': datetime.now().isoformat()},
-                ]
+                'extras': extras
             }
             logic.get_action('package_patch')(context, update_dict)
 
             # delete this dataset with ignore_auth context
             logic.get_action('package_delete')(context, dataset_dict)
 
+            # send an accept notification
+            title = dataset['title']
+            submit_date = dataset['metadata_created']
+            send_email(email, get_accept_notification_text(fullname, title, submit_date))
+            
             # return f"The package '{dataset['name']}' is moved to the production catalog."
             return remote_dataset
         
@@ -380,7 +434,7 @@ def approve_package():
             return f'Error: {str(e)}', 401
 
     return "Method not allowed", 405  # For unsupported methods
-
+    
 
 def reject_package():
     if request.method == 'POST':
@@ -390,21 +444,36 @@ def reject_package():
 
             if not user.sysadmin and not is_reviewer():
                 return "Not authorized to approve this dataset.", 401
+
+            # fetch the dataset
+            context = {'ignore_auth': True}
+            dataset = logic.get_action('package_show')(context, {'id': dataset_dict['id']})
+
+            # fetch the creator
+            creator_user_id = dataset['creator_user_id']
+            creator = model.User.get(creator_user_id)
+            email = creator.email
+            fullname = creator.fullname
             
             # Note that the reviewer may not has the permission to view this package if it is private
             context = {'ignore_auth': True}
+            extras = dataset['extras']
+            extras.append({'key': 'approval_status', 'value': 'rejected'})
+            extras.append({'key': 'approval_user', 'value': user.name})
+            extras.append({'key': 'approval_time', 'value': datetime.now().isoformat()})
             update_dict = {
                 'id': dataset_dict['id'],
-                'extras': [
-                    {'key': 'approval_status', 'value': 'rejected'},
-                    {'key': 'approval_user', 'value': user.name},
-                    {'key': 'approval_time', 'value': datetime.now().isoformat()},
-                ]
+                'extras': extras
             }
             logic.get_action('package_patch')(context, update_dict)
-		
             logic.get_action('package_delete')(context, {'id': dataset_dict['id']})
-            return f"The dataset '{dataset_dict['id']}' is rejected and purged."
+
+            # send a reject notification
+            title = dataset['title']
+            submit_date = dataset['metadata_created']
+            send_email(email, get_reject_notification_text(fullname, title, submit_date))
+            
+            return f"The dataset '{dataset_dict['id']}' is rejected and deleted."
         except logic.NotAuthorized:
             traceback.print_exc()
             return "Not authorized to approve this dataset.", 401            
