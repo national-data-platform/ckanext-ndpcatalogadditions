@@ -504,7 +504,7 @@ def list_all_packages():
                     user = model.Session.query(model.User).filter(model.User.id == creator_id).first()
                     if user:
                         package['creator_fullname'] = user.fullname
-			            package['creator_email'] = user.email
+			package['creator_email'] = user.email
                         
             return results
         except Exception as e:
