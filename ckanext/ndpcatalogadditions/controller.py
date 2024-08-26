@@ -18,6 +18,7 @@ from flask import request, jsonify
 
 server_url = os.getenv('CKANEXT__KEYCLOAK__REDIRECT_URI')
 ckan_url = server_url.replace('/user/sso_login', '')
+ckan_url = ckan_url.replace('catalog2', 'catalog')
 api_key = os.getenv('CKANEXT__NDPCATALOGADDITIONS__API_KEY')
 headers = {
     'X-CKAN-API-Key': api_key,
