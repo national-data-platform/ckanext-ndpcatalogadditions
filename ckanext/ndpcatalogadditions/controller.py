@@ -24,7 +24,7 @@ headers = {
     'X-CKAN-API-Key': api_key,
     'Content-Type': 'application/json'
 }
-
+email_secret=os.getenv('email_secret')
 
 def generate_random_password(length=32):
     characters = string.ascii_letters + string.digits + string.punctuation
@@ -207,51 +207,83 @@ def save_remote_dataset(remote_user, dataset):
 
 def get_accept_notification_text(fullname, title, submit_date):
     return f"""
-Subject: Your Dataset Submission to NDP
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 
-Dear {fullname},
+    <p>Dear {fullname},</p>
 
-Thank you for submitting your dataset, “{title},” to the National Data Platform (NDP) on {submit_date}.
+    <p>Thank you for submitting your dataset, <strong>“{title},”</strong> to the National Data Platform (NDP) on {submit_date}.</p>
 
-We are pleased to inform you that, after careful evaluation by our reviewers, your dataset meets 
-the NDP acceptance criteria and has been recognized for its high quality. As a result, we are 
-delighted to include it in the NDP Catalog.
+    <p>We are pleased to inform you that, after careful evaluation by our reviewers, your dataset meets the NDP acceptance criteria and has been recognized for its high quality. As a result, we are delighted to include it in the NDP Catalog.</p>
 
-We sincerely appreciate your valuable contribution and hope you will continue to support the NDP 
-by sharing more high-quality datasets in the future.
+    <p>We sincerely appreciate your valuable contribution and hope you will continue to support the NDP by sharing more high-quality datasets in the future.</p>
 
-Best regards,
+    <p>Best regards,</p>
 
-The NDP Team
+    <p>The NDP Team</p>
+
+</body>
+</html>
 """
 
 
 def get_reject_notification_text(fullname, title, submit_date):
     return f"""
-Subject: Your Dataset Submission to NDP
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 
-Dear {fullname},
+    <p>Dear {fullname},</p>
 
-Thank you for submitting your dataset, “{title},” to the National Data Platform (NDP) on {submit_date}. 
-We appreciate your time and effort in contributing to our platform.
+    <p>Thank you for submitting your dataset, <strong>“{title}”</strong>, to the National Data Platform (NDP) on {submit_date}. We appreciate your time and effort in contributing to our platform.</p>
 
-After a thorough review by our team, we regret to inform you that your dataset does not currently meet
-the NDP acceptance criteria. While we are unable to include it in the NDP Catalog at this time, we 
-encourage you to review our guidelines and consider making revisions.
+    <p>After a thorough review by our team, we regret to inform you that your dataset does not currently meet the NDP acceptance criteria. While we are unable to include it in the NDP Catalog at this time, we encourage you to review our guidelines and consider making revisions.</p>
 
-We would be happy to review a revised submission, should you choose to update your dataset in line
-with our criteria. Your contributions are important to us, and we hope to see more of your work in
-the future.
+    <p>We would be happy to review a revised submission, should you choose to update your dataset in line with our criteria. Your contributions are important to us, and we hope to see more of your work in the future.</p>
 
-Best regards,
+    <p>Best regards,</p>
 
-The NDP Team
+    <p>The NDP Team</p>
+
+</body>
+</html>
 """
 
 
 def send_email(email_address, email_text):
-    pass
+    # Define the URL and headers
+    url = 'https://ndp-test.sdsc.edu/workspaces-api/email/send_email'
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+    }
 
+    # Define the data payload
+    data = {
+        "to_email": email_address,
+        "subject": "Your Dataset Submission to NDP",      
+        "body": email_text,         
+        "secret": email_secret       
+    }
+
+    # Make the POST request
+    response = requests.post(url, headers=headers, json=data)
+
+    # Check the response
+    if response.status_code != 200:
+        raise ValueError(f"Failed to send email. {response.text}")
+    
 
 def create_package():
     if request.method == 'POST':
