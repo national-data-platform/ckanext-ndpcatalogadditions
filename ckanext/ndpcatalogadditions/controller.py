@@ -218,7 +218,7 @@ def get_accept_notification_text(fullname, title, submit_date):
 
     <p>Dear {fullname},</p>
 
-    <p>Thank you for submitting your dataset, <strong>“{title},”</strong> to the National Data Platform (NDP) on {submit_date}.</p>
+    <p>Thank you for submitting your dataset, <strong>“{title},”</strong> to the National Data Platform (NDP) on {submit_date[:10]}.</p>
 
     <p>We are pleased to inform you that, after careful evaluation by our reviewers, your dataset meets the NDP acceptance criteria and has been recognized for its high quality. As a result, we are delighted to include it in the NDP Catalog.</p>
 
@@ -246,7 +246,7 @@ def get_reject_notification_text(fullname, title, submit_date):
 
     <p>Dear {fullname},</p>
 
-    <p>Thank you for submitting your dataset, <strong>“{title}”</strong>, to the National Data Platform (NDP) on {submit_date}. We appreciate your time and effort in contributing to our platform.</p>
+    <p>Thank you for submitting your dataset, <strong>“{title}”</strong>, to the National Data Platform (NDP) on {submit_date[:10]}. We appreciate your time and effort in contributing to our platform.</p>
 
     <p>After a thorough review by our team, we regret to inform you that your dataset does not currently meet the NDP acceptance criteria. While we are unable to include it in the NDP Catalog at this time, we encourage you to review our guidelines and consider making revisions.</p>
 
