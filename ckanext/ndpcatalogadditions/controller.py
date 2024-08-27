@@ -365,7 +365,8 @@ def list_my_packages():
             context = {'user': user.id}
             search_dict = {
                 'q': f'creator_user_id:{user.id}',
-                'rows': 1000  
+                'rows': 1000,
+                'include_private': True 
             }
             result = logic.get_action('package_search')(context, search_dict)
             return result
