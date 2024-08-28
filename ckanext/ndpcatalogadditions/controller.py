@@ -79,12 +79,16 @@ def process_user_and_organization(user, org_name):
         response = requests.post(f'{ckan_url}/api/3/action/organization_show', headers=headers, json=data)
         if response.status_code == 200:
             remote_organization = response.json()['result']
-            del remote_organization['id']
-            organization = model.Group(name=remote_organization['name'],
-                                       title=remote_organization['title'],
-                                       description=remote_organization['description'],
-                                       type='organization',
-                                       is_organization=True)
+            organization = model.Group.get(remote_organization['name'])
+            if not organization:
+                del remote_organization['id']
+                organization = model.Group(name=remote_organization['name'],
+                                           title=remote_organization['title'],
+                                           description=remote_organization['description'],
+                                           type='organization',
+                                           is_organization=True)
+                model.Session.add(organization)
+                model.Session.commit()
         else:    
             # Create the organization object
             organization = model.Group(name=munge_title_to_name(org_name),
@@ -92,9 +96,9 @@ def process_user_and_organization(user, org_name):
                                        description="Created by admin when creating a new dataset",
                                        type='organization',
                                        is_organization=True)
-        model.Session.add(organization)
-        model.Session.commit()        
-
+            model.Session.add(organization)
+            model.Session.commit()
+         
     member = model.Member(group=organization, table_id=user.id, table_name='user', capacity='editor')
     model.Session.add(member)
     model.Session.commit()   
