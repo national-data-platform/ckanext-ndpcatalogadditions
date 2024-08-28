@@ -46,7 +46,6 @@ def is_reviewer():
 
 
 def get_or_create_user():
-
     # Get the Authorization header
     auth_header = request.headers.get('Authorization')
 
@@ -106,7 +105,6 @@ def process_user_and_organization(user, org_name):
 
     
 def get_or_create_remote_user(username, email, fullname):
-
     user_show_url = f'{ckan_url}/api/3/action/user_show'
     response = requests.get(user_show_url, headers=headers, params={'id': username})
     
@@ -140,7 +138,6 @@ def get_or_create_remote_user(username, email, fullname):
 
 
 def process_remote_user_and_organization(remote_user, organization):
-    
     data = { 'id': organization.name }
     response = requests.post(f'{ckan_url}/api/3/action/organization_show', headers=headers, json=data)
     if response.status_code == 200:
