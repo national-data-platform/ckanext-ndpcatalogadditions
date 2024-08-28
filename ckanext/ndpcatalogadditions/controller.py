@@ -24,6 +24,7 @@ headers = {
     'X-CKAN-API-Key': api_key,
     'Content-Type': 'application/json'
 }
+site_url = os.getenv('CKAN_SITE_URL')
 email_secret=os.getenv('email_secret')
 
 def generate_random_password(length=32):
@@ -264,7 +265,7 @@ def get_reject_notification_text(fullname, title, submit_date):
 
 def send_email(email_address, email_text):
     # Define the URL and headers
-    url = 'https://ndp-test.sdsc.edu/workspaces-api/email/send_email'
+    url = f'{site_url}/workspaces-api/email/send_email'
     headers = {
         'accept': 'application/json',
         'Content-Type': 'application/json',
