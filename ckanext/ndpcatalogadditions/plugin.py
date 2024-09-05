@@ -1,8 +1,17 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 from flask import Blueprint
-from ckanext.ndpcatalogadditions.controller import create_package, update_package, delete_package, purge_package, list_my_packages, approve_package, reject_package, list_all_packages
-
+from ckanext.ndp.controller import (
+    create_package,
+    update_package,
+    delete_package,
+    purge_package,
+    list_my_packages,
+    list_my_reviewed_packages,
+    approve_package,
+    reject_package,
+    list_all_packages
+)
 
 class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
@@ -49,6 +58,13 @@ class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
             u'/ndp/my_package_list',
             u'my_package_list',
             list_my_packages,
+            methods=['GET', 'POST']
+        )
+
+        blueprint.add_url_rule(
+            u'/ndp/my_reviewed_package_list',
+            u'my_reviewed_package_list',
+            list_my_reviewed_packages,
             methods=['GET', 'POST']
         )
 
