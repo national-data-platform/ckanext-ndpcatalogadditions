@@ -33,7 +33,11 @@ This CKAN plugin provides following endpoints to support NDP users submitting ne
   
 * ##### GET/POST <CKAN_URL>/ndp/my_package_list
 
-  List all datasets submitted by the current user.
+  List all datasets submitted by the current user that have not yet been reviewed.
+
+* ##### GET/POST <CKAN_URL>/ndp/my_reviewed_package_list
+
+  List all datasets submitted by the current user that have been reviewed.
 
 This plugin creates a new Prekan account for the user, if the information in the Keycloak token used by the user does not have a corresponding account in Prekan.
 
@@ -61,6 +65,10 @@ Only users with admin or review identities can use the following endpoints:
 
   This endpoint will make the specified dataset as deleted in Prekan, and the reviewer name, the review time and the review result “rejected” are assoicated
   to the dataset.
+
+* ##### GET/POST <CKAN_URL>/ndp/package_list
+
+  List all datasets that have not yet been reviewed.
 
 ## Requirements
 
