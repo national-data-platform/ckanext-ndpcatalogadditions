@@ -12,6 +12,7 @@ import ckan.logic as logic
 from ckan.plugins import toolkit
 from ckan.authz import is_sysadmin
 from ckan.lib.munge import munge_title_to_name
+from ckan.lib.dictization.model_dictize import package_dictize
 from ckanext.ndpcatalogadditions.keycloak_token import get_user_info
 from flask import request, jsonify
 
@@ -377,6 +378,36 @@ def list_my_packages():
 
     return "Method not allowed", 405  # For unsupported methods
 
+
+def list_my_reviewed_packages():
+    if request.method == 'POST' or request.method == 'GET':
+        try:
+            user = get_or_create_user()
+            deleted_datasets = model.Session.query(model.Package) \
+                                            .filter(model.Package.state == 'deleted') \
+                                            .filter(model.Package.creator_user_id == user.id) \
+                                            .join(model.PackageExtra) \
+                                            .filter(model.PackageExtra.key == 'approval_status') \
+                                            .all()
+            
+            # Convert the result into the same format as package_search
+            context = {'model': model, 'session': model.Session, 'user': user.id}
+            package_dicts = [package_dictize(pkg, context) for pkg in deleted_datasets]
+
+            # Convert the result into the same format as package_search
+            result = {
+                'count': len(package_dicts),
+                'results': package_dicts,
+                'facets': {},
+                'search_facets': {}
+            }
+            return result
+        except Exception as e:
+            traceback.print_exc()
+            return f'Error: {str(e)}', 401
+
+    return "Method not allowed", 405  # For unsupported methods
+    
 
 def approve_package():
     if request.method == 'POST':
