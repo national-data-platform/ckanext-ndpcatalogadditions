@@ -198,7 +198,11 @@ def save_remote_dataset(remote_user, dataset):
     token = create_api_token(remote_user['name'])
     try:
         api_url = f"{ckan_url}/api/3/action/package_create"
-        response = requests.post(api_url, data=json.dumps(dataset), headers=headers)
+        new_headers = {
+            'X-CKAN-API-Key': token,
+            'Content-Type': 'application/json'
+        }
+        response = requests.post(api_url, data=json.dumps(dataset), headers=new_headers)
         if response.status_code == 200:
             created_package = response.json()['result']
             return created_package
