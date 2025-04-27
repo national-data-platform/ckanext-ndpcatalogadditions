@@ -80,7 +80,7 @@ Only creators and users with admin identities can use the following endpoints:
 * ##### POST <CKAN_URL>/ndp/update_my_approved_package
   Update an approved dataset in CKAN by submitting a JSON string with the fields specified [here](https://docs.ckan.org/en/2.10/api/#ckan.logic.action.create.package_update).
 
-### For Users Accessing Approved Private Datasets
+### For Users Accessing Approved Datasets
 
 * ##### GET/POST <CKAN_URL>/ndp/get_approved_package?id=<dataset_id_or_dataset_name>
   Returns the dataset in the NDP CKAN with the specified ID if one of the following conditions is met:
