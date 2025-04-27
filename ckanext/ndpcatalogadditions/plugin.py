@@ -10,7 +10,11 @@ from ckanext.ndp.controller import (
     list_my_reviewed_packages,
     approve_package,
     reject_package,
-    list_all_packages
+    list_all_packages,
+    get_approved_package,
+    my_approved_packages,
+    update_my_approved_package,
+    get_api_token
 )
 
 class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
@@ -89,5 +93,34 @@ class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
             methods=['POST', 'GET']
         )
 
+        
+        blueprint.add_url_rule(
+            u'/ndp/get_approved_package',
+            u'get_approved_package',
+            get_approved_package,
+            methods=['GET', 'POST']
+        )
+
+        blueprint.add_url_rule(
+            u'/ndp/my_approved_packages',
+            u'my_approved_packages',
+            my_approved_packages,
+            methods=['GET', 'POST']
+        )
+
+        blueprint.add_url_rule(
+            u'/ndp/update_my_approved_package',
+            u'update_my_approved_package',
+            update_my_approved_package,
+            methods=['POST']
+        )
+
+        blueprint.add_url_rule(
+            u'/ndp/get_api_token',
+            u'get_api_token',
+            get_api_token,
+            methods=['GET', 'POST']
+        )
+        
         return blueprint
         
