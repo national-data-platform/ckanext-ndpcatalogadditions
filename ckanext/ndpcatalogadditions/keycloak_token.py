@@ -1,4 +1,3 @@
-
 import os
 
 import requests
@@ -12,7 +11,7 @@ def verify_and_decode_token(token, server_url, realm, client_id):
     key_url = f"{server_url}/realms/{realm}/protocol/openid-connect/certs"
     response = requests.get(key_url)
     keys = response.json()['keys']
-
+    
     try:
         # Verify and decode the token
         header = jwt.get_unverified_header(token)
@@ -33,6 +32,7 @@ def verify_and_decode_token(token, server_url, realm, client_id):
 def extract_user_info(decoded_token):
     # Extract relevant user information
     user_info = {
+        'id': decoded_token.get('sub'),
         'username': decoded_token.get('preferred_username'),
         'email': decoded_token.get('email'),
         'name': decoded_token.get('name'),
@@ -55,6 +55,4 @@ def get_user_info(token: str):
         return user_info
     else:
         raise toolkit.NotAuthorized('Invalid Keycloak token')
-
-
 
