@@ -74,12 +74,21 @@ Only users with admin or review identities can use the following endpoints:
 
 Only creators and users with admin identities can use the following endpoints:
 
-* ##### POST <CKAN_URL>/ndp/my_approved_packages
+* ##### GET/POST <CKAN_URL>/ndp/my_approved_packages
   List all datasets in the NDP CKAN submitted by the current user that have been approved.
 
 * ##### POST <CKAN_URL>/ndp/update_my_approved_package
   Update an approved dataset in CKAN by submitting a JSON string with the fields specified [here](https://docs.ckan.org/en/2.10/api/#ckan.logic.action.create.package_update).
 
+### For Users Accessing Approved Private Datasets
+
+##### GET/POST `<CKAN_URL>/ndp/get_approved_package?id=<dataset_id_or_dataset_name>`
+
+Returns the dataset in the NDP CKAN with the specified ID if one of the following conditions is met:
+
+- The user is an NDP admin or the creator of the dataset.
+- The user is a member of a group or subgroup listed in the dataset's `allowed_groups`.
+- The user's email is listed in the dataset's `allowed_users`.
 
 ## Requirements
 
