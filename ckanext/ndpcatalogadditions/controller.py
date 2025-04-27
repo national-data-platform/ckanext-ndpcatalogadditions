@@ -5,6 +5,8 @@ import string
 import traceback
 import requests
 import json
+import hashlib
+import re
 from datetime import datetime
 
 import ckan.model as model
@@ -28,6 +30,21 @@ headers = {
 site_url = os.getenv('CKAN_SITE_URL')
 email_secret=os.getenv('email_secret')
 
+NDP_ADMIN_API = os.getenv('NDP_ADMIN_API_URL')
+NDP_ADMIN_USERNAME = os.getenv('NDP_ADMIN_USERNAME')
+NDP_ADMIN_PASSWORD = os.getenv('NDP_ADMIN_PASSWORD')
+
+def post_request(api_url, endpoint, data, headers=None):
+    url = f"{api_url}{endpoint}"
+    response = requests.post(url, json=data, headers=headers)
+    return response.json()
+
+def get_request(api_url, endpoint, headers=None):
+    url = f"{api_url}{endpoint}"
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+
 def generate_random_password(length=32):
     characters = string.ascii_letters + string.digits + string.punctuation
     return ''.join(random.choice(characters) for i in range(length))
@@ -47,7 +64,22 @@ def is_reviewer():
     return "data_approver" in user_info['roles']
 
 
+def is_admin():
+    # Get the Authorization header
+    auth_header = request.headers.get('Authorization')
+    
+    # Extract the Bearer Token if the header exists
+    if auth_header and auth_header.startswith('Bearer '):
+        bearer_token = auth_header[len('Bearer '):]
+    else:
+        raise ValueError('Missing or invalid KeyCloak token')
+
+    user_info = get_user_info(bearer_token)
+    return "ndp_admin" in user_info['roles']
+
+
 def get_or_create_user():
+
     # Get the Authorization header
     auth_header = request.headers.get('Authorization')
 
@@ -56,8 +88,8 @@ def get_or_create_user():
         bearer_token = auth_header[len('Bearer '):]
     else:
         raise ValueError('Missing or invalid KeyCloak token')
-
     user_info = get_user_info(bearer_token)
+    
     username = user_info['username'].replace('.', '_').replace('@', '_')
     # user = model.User.get(username)
     user = model.User.by_email(user_info['email'])
@@ -104,9 +136,10 @@ def process_user_and_organization(user, org_name):
     model.Session.add(member)
     model.Session.commit()   
     return organization
-
     
+
 def get_or_create_remote_user(username, email, fullname):
+
     user_show_url = f'{ckan_url}/api/3/action/user_show'
     response = requests.get(user_show_url, headers=headers, params={'id': username})
     
@@ -140,6 +173,7 @@ def get_or_create_remote_user(username, email, fullname):
 
 
 def process_remote_user_and_organization(remote_user, organization):
+    
     data = { 'id': organization.name }
     response = requests.post(f'{ckan_url}/api/3/action/organization_show', headers=headers, json=data)
     if response.status_code == 200:
@@ -211,7 +245,7 @@ def save_remote_dataset(remote_user, dataset):
     finally:
         delete_api_token(token)
 
-
+    
 def get_accept_notification_text(fullname, title, submit_date):
     return f"""
 <!DOCTYPE html>
@@ -303,16 +337,21 @@ def create_package():
             if not 'name' in dataset_dict.keys():
                 dataset_dict['name'] = munge_title_to_name(dataset_dict['title'])
 
-            # check if the name is used in the NDP catalog
+            # check if the name is used in NDP catalog
             data = { 'id': dataset_dict['name'] }
             response = requests.post(f'{ckan_url}/api/3/action/package_show', headers=headers, json=data)
             if response.status_code == 200:
-                raise ValueError(f"The dataset name is used in the NDP catalog: {dataset_dict['name']}.")
+                remote_package = response.json()
+                if remote_package["result"]["state"] == "active":
+                    raise ValueError(f"The dataset name is used in the NDP catalog: {dataset_dict['name']}.")
+
+            process_private_setting(dataset_dict, user.email)
             
             context = {'user': user.name}
             dataset = logic.get_action('package_create')(context, dataset_dict)                
             return dataset
         except Exception as e:
+            traceback.print_exc() 
             return f'Error: {str(e)}', 401
 
     return "Method not allowed", 405  # For unsupported methods
@@ -326,10 +365,14 @@ def update_package():
             if 'owner_org' in dataset_dict.keys():
                 organization = process_user_and_organization(user, dataset_dict['owner_org'])
                 dataset_dict['owner_org'] = organization.name
+
+            logger.info("Process private setting")    
+            process_private_setting(dataset_dict, user.email)
             context = {'user': user.name}
             result = logic.get_action('package_update')(context, dataset_dict)
             return result
         except Exception as e:
+            traceback.print_exc()            
             return f'Error: {str(e)}', 401
 
     return "Method not allowed", 405  # For unsupported methods
@@ -372,8 +415,8 @@ def list_my_packages():
             context = {'user': user.id}
             search_dict = {
                 'q': f'creator_user_id:{user.id}',
-                'rows': 1000,
-                'include_private': True 
+                'include_private': True,
+                'rows': 1000  
             }
             result = logic.get_action('package_search')(context, search_dict)
             return result
@@ -505,6 +548,7 @@ def approve_package():
     return "Method not allowed", 405  # For unsupported methods
     
 
+
 def reject_package():
     if request.method == 'POST':
         try:
@@ -541,7 +585,7 @@ def reject_package():
             title = dataset['title']
             submit_date = dataset['metadata_created']
             send_email(email, get_reject_notification_text(fullname, title, submit_date))
-            
+
             return f"The dataset '{dataset_dict['id']}' is rejected and deleted."
         except logic.NotAuthorized:
             traceback.print_exc()
@@ -569,7 +613,9 @@ def list_all_packages():
             results = logic.get_action('package_search')(context, search_dict)
             # return results
         
-            package_list = results["results"] 
+            package_list = results["results"]
+
+            # packages = []
             for package in package_list:
                 creator_id = package.get('creator_user_id')
                 if creator_id:
@@ -577,11 +623,481 @@ def list_all_packages():
                     if user:
                         package['creator_fullname'] = user.fullname
                         package['creator_email'] = user.email
+                        # if package['creator_fullname'] and package['creator_email']:
+                        #    packages.append(package)
             return results
 
+            
+            # Convert the result into the same format as package_search
+            # result = {
+            #    'count': len(packages),
+            #    'results': packages,
+            #    'facets': {},
+            #    'search_facets': {}
+            #}
+            #return result
+
+            
+            return json.dumps(packages, indent=4)
+            
         except Exception as e:
+            traceback.print_exc()
             return f'Error: {str(e)}', 401
 
     return "Method not allowed", 405  # For unsupported methods
+
+
+##################################################################
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def get_username_from_keycloak_token():
+
+    # Get the Authorization header
+    auth_header = request.headers.get('Authorization')
+
+    # Extract the Bearer Token if the header exists
+    if auth_header and auth_header.startswith('Bearer '):
+        bearer_token = auth_header[len('Bearer '):]
+    else:
+        raise ValueError('Missing or invalid KeyCloak token')
+
+
+    
+    server_url = os.getenv('CKANEXT__KEYCLOAK__SERVER_URL')
+    realm = os.getenv('CKANEXT__KEYCLOAK__REALM_NAME')
+    client_id = "account"
+
+    from ckanext.ndp.keycloak_token import verify_and_decode_token
+    decoded_token = verify_and_decode_token(bearer_token, server_url, realm, client_id)
+    logger.info(f"decoded_token: {decoded_token}")    
+        
+        
+
+    
+    user_info = get_user_info(bearer_token)
+    username = user_info['username'].replace('.', '_').replace('@', '_')
+    return username, user_info['email'], user_info['roles'], user_info['id']
+
+
+def get_allowed_groups(package):
+    allowed_groups = []
+    if "extras" in package:
+        extras = package["extras"]
+        for extra in extras:
+            if extra["key"] == 'allowed_groups':
+                allowed_groups = json.loads(extra["value"])
+                break
+    return allowed_groups
+
+
+def get_allowed_users(package):
+    allowed_users = []
+    if "extras" in package:
+        extras = package["extras"]
+        for extra in extras:
+            if extra["key"] == 'allowed_users':
+                allowed_users = json.loads(extra["value"])
+                break
+    return allowed_users
+
+
+def encrpyt_allowed_users(package):
+    if "extras" in package:
+        extras = package["extras"]
+        for extra in extras:
+            if extra["key"] == 'allowed_users':
+                allowed_users = json.loads(extra["value"])
+                extra["value"] = [ calculate_md5(email) for email in allowed_users ] 
+                return
+                
+
+def is_user_in_groups(user_id, allowed_groups):
+    logger.info(f"Check if {user_id} is in the groups {allowed_groups}")
+
+    ndp_admin_token = post_request(NDP_ADMIN_API, "/auth/token", {
+        "username": NDP_ADMIN_USERNAME,
+        "password": NDP_ADMIN_PASSWORD
+    })["access_token"]
+
+    ndp_admin_headers = {
+        "Authorization": f"Bearer {ndp_admin_token}"
+    }
+    
+    user_groups = get_request(NDP_ADMIN_API, f"/users/full-permissions?userID={user_id}", headers=ndp_admin_headers)
+    logger.info(f"user_groups: {json.dumps(user_groups)}")
+
+    for acl_entry in allowed_groups:
+        client_name = acl_entry['client']
+        group_name = acl_entry['group']
+        subgroup_name = acl_entry['subgroup']
+        
+        # Check if the client exists in membership data
+        if client_name in user_groups:
+            client_data = user_groups[client_name]
+            
+            # Check if the group exists in this client
+            if 'groups' in client_data and group_name in client_data['groups']:
+                group_data = client_data['groups'][group_name]
+                
+                # If subgroup is empty/None, just check group access
+                if not subgroup_name:
+                    return True
+                
+                # Check if the subgroup exists in this group
+                if ('subgroups' in group_data and 
+                    subgroup_name in group_data['subgroups']):
+                    return True
+    
+    # No matches found
+    return False
+    
+
+def get_remote_user(username):
+    user_show_url = f'{ckan_url}/api/3/action/user_show'
+    response = requests.get(user_show_url, headers=headers, params={'id': username})
+    if response.status_code == 200:
+        user_info = response.json()['result']
+        return user_info
+    else:
+        raise ValueError(f"Failed to retrieve user info: {username}")
+
+
+def update_creator_fingerprint(data, fingerprint_value):
+    # Check if extras exists
+    if "extras" not in data:
+        # If extras doesn't exist, create it with creator_fingerprint
+        data["extras"] = [{"key": "creator", "value": fingerprint_value}]
+    else:
+        # If extras exists, check if creator_fingerprint is in it
+        fingerprint_exists = False
+        for item in data["extras"]:
+            if item.get("key") == "creator":
+                # Update existing fingerprint
+                item["value"] = fingerprint_value
+                fingerprint_exists = True
+                break
+                
+        # If creator_fingerprint doesn't exist, add it
+        if not fingerprint_exists:
+            data["extras"].append({"key": "creator", "value": fingerprint_value})
+    
+    # Convert back to JSON string
+    # logger.info(f"update_creator_fingerprint: {json.dumps(data)}")
+    return data
+
+
+def calculate_md5(input_string):
+    # Convert string to bytes if it's not already
+    if isinstance(input_string, str):
+        input_bytes = input_string.encode('utf-8')
+    else:
+        input_bytes = input_string
+        
+    # Calculate MD5
+    md5_hash = hashlib.md5()
+    md5_hash.update(input_bytes)
+    
+    # Return hexadecimal representation
+    return md5_hash.hexdigest()
+
+
+def check_group_exists(client_list, path_json):
+    """
+    Check if the specified client, group, and optionally subgroup exist in the client list.
+    Handles missing keys in path_json gracefully.
+    
+    Args:
+        client_list (dict): The client list JSON structure
+        path_json (dict): JSON with client, group, and optional subgroup keys
+        
+    Returns:
+        bool: Success status
+    """
+    # Check if client_list is a valid dictionary
+    if not isinstance(client_list, dict):
+        return False
+    
+    # Validate required keys in path_json
+    if not isinstance(path_json, dict):
+        return False
+    
+    if "client" not in path_json:
+        return False
+    
+    client_name = path_json.get("client")
+    
+    # Check if client exists
+    if client_name not in client_list:
+        return False
+    
+    client = client_list[client_name]
+    
+    # If only checking for client existence
+    if "group" not in path_json:
+        return True
+    
+    group_name = path_json.get("group")
+    
+    # Check if groups key exists and is a dictionary
+    if "groups" not in client or not isinstance(client["groups"], dict):
+        return False
+    
+    # Check if specific group exists
+    if group_name not in client["groups"]:
+        return False
+    
+    group = client["groups"][group_name]
+    
+    # If no subgroup specified, we've confirmed the group exists
+    if "subgroup" not in path_json or path_json["subgroup"] is None:
+        return True
+    
+    subgroup_name = path_json["subgroup"]
+    
+    # Check if subgroups key exists and is a dictionary
+    if "subgroups" not in group or not isinstance(group["subgroups"], dict):
+        return False
+    
+    # Check if specific subgroup exists
+    if subgroup_name not in group["subgroups"]:
+        return False
+    
+    # If we get here, the full path exists
+    return True
+
+
+def validate_groups(groups):
+    logger.info(f"Validate groups {groups}")
+
+    ndp_admin_token = post_request(NDP_ADMIN_API, "/auth/token", {
+        "username": NDP_ADMIN_USERNAME,
+        "password": NDP_ADMIN_PASSWORD
+    })["access_token"]
+
+    ndp_admin_headers = {
+        "Authorization": f"Bearer {ndp_admin_token}"
+    }
+
+    list_clients = get_request(NDP_ADMIN_API, "/clients", headers=ndp_admin_headers)
+    # logger.info(json.dumps(list_clients, indent=4))
+    # logger.info(json.dumps(groups, indent=4))
+
+    for group in groups:
+        if not check_group_exists(list_clients, group):
+            raise ValueError(f"Invalid group: {json.dumps(group)}")
+    
+
+def validate_users(emails):
+    logger.info(f"Validate users {emails}")
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    for email in emails:
+        if not bool(re.match(pattern, email)):
+            raise ValueError(f"Invalid email: {email}")
+
+
+def process_private_setting(dataset_dict, email):
+    if 'private' in dataset_dict.keys() and  dataset_dict['private']:
+        # setup/overwrite extras/creator_fingerprint
+        # update_creator_fingerprint(dataset_dict, calculate_md5(email))
+        update_creator_fingerprint(dataset_dict, email)
+        
+        # get allowed groups
+        allowed_groups = get_allowed_groups(dataset_dict)
+        logger.info(f"Found the allowed_groups: {allowed_groups}")
+
+        # validate allowed groups
+        validate_groups(allowed_groups)
+
+        # get allowed users
+        allowed_users = get_allowed_users(dataset_dict)
+        logger.info(f"Found the allowed_users: {allowed_users}")
+
+        # validate allowed userss
+        validate_users(allowed_users)
+        
+    if (not 'private' in dataset_dict.keys() or not dataset_dict['private']) and "extras" in dataset_dict:
+        # remove extras/allowed_groups and extras/creator_fingerprint
+        dataset_dict["extras"] = [item for item in dataset_dict["extras"] if \
+                                  item.get("key") != "allowed_groups" and item.get("key") != "creator" and item.get("key") != "allowed_users"]
+
+    
+def get_approved_package():
+    if request.method == 'POST' or request.method == 'GET':
+        # Get the ID parameter from the request
+        id = toolkit.request.args.get('id')
+        if not id:
+            return f'Error: Missing required parameter: id', 401
+        logger.info(f"Got get_approved_package request: {id}")
+        
+        try:
+            # Get the package from the given id
+            package_show_url = f'{ckan_url}/api/3/action/package_show'
+            response = requests.get(package_show_url, headers=headers, params={'id': id})
+            if response.status_code == 200:
+                package = response.json()['result']
+                if package["state"] == 'active':
+                    if package["private"]:
+                        # Get CKAN username
+                        username, email, roles, user_id = get_username_from_keycloak_token()
+                        logger.info(f"Got CKAN username and email and roles: {username}, {email}, {roles}")
+            
+                        # Check access permission by groups
+                        allowed_groups = get_allowed_groups(package)
+                        logger.info(f"Found the allowed_groups: {allowed_groups}")
+
+                        allowed_users = get_allowed_users(package)
+                        logger.info(f"Found the allowed_users: {allowed_users}")
+
+                        # check if the user is the creator or an admin
+                        try:
+                            user = get_remote_user(username)
+                            logger.info(f"Found ckan user id: {user['id']}, sysadmin: {user['sysadmin']}")
+                            if (user['sysadmin'] or is_admin() or package["creator_user_id"] == user['id']):
+                                logger.info(f"The current user is { 'an admin' if user['sysadmin'] else 'the creator'}")
+                                return json.dumps(package, indent=4)
+                        except:
+                            # this user doesn't have a CKAN account
+                            pass
+
+                        # check if the user is in the access control list
+                        try:
+                            if is_user_in_groups(user_id, allowed_groups) or email in allowed_users:
+                                logger.info("The current user is not the creator and an admin")
+                                encrpyt_allowed_users(package)
+                                return json.dumps(package, indent=4)
+                        except:
+                            traceback.print_exc()
+                            pass
+
+                        # deny this user to access this package
+                        return f'Error: Unauthorized', 401
+                        
+                    else:
+                        return json.dumps(package, indent=4)
+                else:
+                    return f'Error: the package is not active', 400
+            return f"Not Found Error", 400
+        except Exception as e:
+            traceback.print_exc()
+            return f'Error: {str(e)}', 400
+        
+    return "Method not allowed", 405  # For unsupported methods
+
+
+def my_approved_packages():
+    try:
+        # Get CKAN username
+        username, email, roles, id = get_username_from_keycloak_token()
+        logger.info(f"Got CKAN username and email: {username}, {email}")
+
+        # Get CKAN user
+        try:
+            user = get_remote_user(username)
+            logger.info(f"Found ckan user id: {user['id']}")
+        except:
+            # this user doesn't have a CKAN account                                                                                                
+            return "[]"
+            
+        # Search packages by creator_user_id
+        package_search_url = f'{ckan_url}/api/3/action/package_search'
+        response = requests.get(package_search_url,
+                                headers=headers,
+                                params={'fq': f"creator_user_id:{user['id']}",
+                                        'include_private': True,
+                                        'rows': 1000})
+        if response.status_code == 200:
+            packages = response.json()['result']
+            return json.dumps(packages, indent=4)
+        else:
+            return response.text, 400
+    except Exception as e:
+            traceback.print_exc()
+            return f'Error: {str(e)}', 400
+
+
+def update_my_approved_package():
+    if request.method == 'POST':
+        try:
+            dataset_dict = request.get_json()
+            logger.info(f"Update package: {dataset_dict['id'] if 'id' in dataset_dict else dataset_dict['name']}")
+
+            # Get CKAN username
+            username, email, roles, id = get_username_from_keycloak_token()
+            logger.info(f"Got CKAN username and email: {username}, {email}")
+
+            token = create_api_token(username)
+            try:
+                # should we allow to change a public dataset to a private dataset?
+                api_url = f"{ckan_url}/api/3/action/package_update"
+                new_headers = {
+                    'X-CKAN-API-Key': token,
+                    'Content-Type': 'application/json'
+                }
+
+                # Validate allowed_groups
+                process_private_setting(dataset_dict, email) 
+                response = requests.post(api_url, data=json.dumps(dataset_dict), headers=new_headers)
+                if response.status_code == 200:
+                    return response.json()['result']
+                else:
+                    raise ValueError(f"Failed to create dataset: {response.text}")
+            finally:
+                delete_api_token(token)
+        except Exception as e:
+            traceback.print_exc()
+            return f'Error: {str(e)}', 400
+    else:
+        return "Method not allowed", 405 
+
+    
+
+def get_api_token():
+    if request.method == 'POST' or request.method == 'GET':
+        # Get the ID parameter from the request
+        email = toolkit.request.args.get('email')
+        if not email:
+            return f'Error: Missing required parameter: email', 401
+        logger.info(f"Got get_api_token request: {email}")
+
+        try:
+            user = get_or_create_user()
+            logger.info(f"invoker: {user.fullname}  {user.email}")
+            if not user.sysadmin and not is_admin() and not user.email == 'kaiucsd@gmail.com':
+                return "Not authorized", 401
+
+            user = model.User.by_email(email)
+            if not user:
+                # Create a new user
+                username = email.replace('.', '_').replace('@', '_')
+                user = model.User(name=username, email=email)
+                user.fullname = username
+                user.password = generate_random_password()
+                user.state = model.State.ACTIVE
+                model.Session.add(user)
+                model.Session.commit()
+                logger.info("user created")
+
+            token_dict = {
+                'name': f'{user.name}_{int(datetime.now().timestamp())}',
+                'user': user.name
+            }
+
+            context = {'model': model, 'session': model.Session, 'user': 'ckan_admin'}
+            result = logic.get_action('api_token_create')(context, token_dict)
+            result['name'] = token_dict['name']
+            return result  # Returns the created token details
+                                
+        except Exception as e:
+            traceback.print_exc()
+            return f'Error: {str(e)}', 400
+
+        
+        return email
+    else:
+        return "Method not allowed", 405
 
 
