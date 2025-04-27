@@ -82,13 +82,11 @@ Only creators and users with admin identities can use the following endpoints:
 
 ### For Users Accessing Approved Private Datasets
 
-##### GET/POST `<CKAN_URL>/ndp/get_approved_package?id=<dataset_id_or_dataset_name>`
-
-Returns the dataset in the NDP CKAN with the specified ID if one of the following conditions is met:
-
-- The user is an NDP admin or the creator of the dataset.
-- The user is a member of a group or subgroup listed in the dataset's `allowed_groups`.
-- The user's email is listed in the dataset's `allowed_users`.
+* ##### GET/POST `<CKAN_URL>/ndp/get_approved_package?id=<dataset_id_or_dataset_name>`
+  Returns the dataset in the NDP CKAN with the specified ID if one of the following conditions is met:
+	- The user is an NDP admin or the creator of the dataset.
+	- The user is a member of a group or subgroup listed in the dataset's `allowed_groups`.
+	- The user's email is listed in the dataset's `allowed_users`.
 
 ## Requirements
 
