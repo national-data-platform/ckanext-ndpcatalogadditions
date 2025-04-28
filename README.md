@@ -126,13 +126,14 @@ To install ckanext-ndpcatalogadditions:
    `/etc/ckan/default/ckan.ini`).
 
 4. Make the following environment variables available:
-   CKANEXT__KEYCLOAK__REDIRECT_URI
-   CKANEXT__NDPCATALOGADDITIONS__API_KEY
-   CKAN_SITE_URL
-   email_secret
-   NDP_ADMIN_API
-   NDP_ADMIN_USERNAME
-   NDP_ADMIN_PASSWORD
+
+    - `CKANEXT__KEYCLOAK__REDIRECT_URI`
+    - `CKANEXT__NDPCATALOGADDITIONS__API_KEY`
+    - `CKAN_SITE_URL`
+    - `email_secret`
+    - `NDP_ADMIN_API`
+    - `NDP_ADMIN_USERNAME`
+    - `NDP_ADMIN_PASSWORD`
 
 6. Restart CKAN. For example if you've deployed CKAN with Apache on Ubuntu:
 
