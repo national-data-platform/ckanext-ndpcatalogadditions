@@ -28,6 +28,10 @@ headers = {
 site_url = os.getenv('CKAN_SITE_URL')
 email_secret=os.getenv('email_secret')
 
+NDP_ADMIN_API = os.getenv('NDP_ADMIN_API_URL')
+NDP_ADMIN_USERNAME = os.getenv('NDP_ADMIN_USERNAME')
+NDP_ADMIN_PASSWORD = os.getenv('NDP_ADMIN_PASSWORD')
+
 def generate_random_password(length=32):
     characters = string.ascii_letters + string.digits + string.punctuation
     return ''.join(random.choice(characters) for i in range(length))
