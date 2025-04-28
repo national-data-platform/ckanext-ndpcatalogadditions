@@ -18,7 +18,6 @@ from ckan.lib.dictization.model_dictize import package_dictize
 from ckanext.ndpcatalogadditions.keycloak_token import get_user_info
 from flask import request, jsonify
 
-
 server_url = os.getenv('CKANEXT__KEYCLOAK__REDIRECT_URI')
 ckan_url = server_url.replace('/user/sso_login', '')
 ckan_url = ckan_url.replace('catalog2', 'catalog')
@@ -34,10 +33,12 @@ NDP_ADMIN_API = os.getenv('NDP_ADMIN_API_URL')
 NDP_ADMIN_USERNAME = os.getenv('NDP_ADMIN_USERNAME')
 NDP_ADMIN_PASSWORD = os.getenv('NDP_ADMIN_PASSWORD')
 
+
 def post_request(api_url, endpoint, data, headers=None):
     url = f"{api_url}{endpoint}"
     response = requests.post(url, json=data, headers=headers)
     return response.json()
+
 
 def get_request(api_url, endpoint, headers=None):
     url = f"{api_url}{endpoint}"
