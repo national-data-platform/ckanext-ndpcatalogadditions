@@ -131,7 +131,7 @@ To install ckanext-ndpcatalogadditions:
     - `CKANEXT__NDPCATALOGADDITIONS__API_KEY`
     - `CKAN_SITE_URL`
     - `email_secret`
-    - `NDP_ADMIN_API`
+    - `NDP_ADMIN_API_URL`
     - `NDP_ADMIN_USERNAME`
     - `NDP_ADMIN_PASSWORD`
 
