@@ -715,6 +715,22 @@ def encrpyt_allowed_users(package):
                 return
                 
 
+def delete_sensitive_extras(ckan_dataset_json):
+    # Create a copy to avoid modifying the original
+    modified_dataset = ckan_dataset_json.copy()
+    
+    # Check if extras exists
+    if 'extras' in modified_dataset:
+        # Filter out the specified keys
+        sensitive_keys = ['allowed_users', 'creator']
+        modified_dataset['extras'] = [
+            extra for extra in modified_dataset['extras'] 
+            if extra['key'] not in sensitive_keys
+        ]
+    
+    return modified_dataset
+
+            
 def is_user_in_groups(user_id, allowed_groups):
     logger.info(f"Check if {user_id} is in the groups {allowed_groups}")
 
@@ -967,7 +983,8 @@ def get_approved_package():
                         try:
                             if is_user_in_groups(user_id, allowed_groups) or email in allowed_users:
                                 logger.info("The current user is not the creator and an admin")
-                                encrpyt_allowed_users(package)
+                                # encrpyt_allowed_users(package)
+                                package = delete_sensitive_extras(package)
                                 return json.dumps(package, indent=4)
                         except:
                             traceback.print_exc()
@@ -1099,5 +1116,4 @@ def get_api_token():
         return email
     else:
         return "Method not allowed", 405
-
 
