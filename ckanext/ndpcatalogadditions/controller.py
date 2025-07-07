@@ -1,4 +1,3 @@
-
 import os
 import random
 import string
@@ -15,7 +14,7 @@ from ckan.plugins import toolkit
 from ckan.authz import is_sysadmin
 from ckan.lib.munge import munge_title_to_name
 from ckan.lib.dictization.model_dictize import package_dictize
-from ckanext.ndp.keycloak_token import get_user_info
+from ckanext.ndpcatalogadditions.keycloak_token import get_user_info
 from flask import request, jsonify
 
 server_url = os.getenv('CKANEXT__KEYCLOAK__REDIRECT_URI')
