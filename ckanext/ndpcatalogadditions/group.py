@@ -9,8 +9,8 @@ import ckan.model as model
 import ckan.logic as logic
 from ckan.plugins import toolkit
 from ckan import authz
-from ckanext.ndp.keycloak_token import get_user_info
-from ckanext.ndp.controller import get_or_create_remote_user, create_api_token, delete_api_token, ckan_url, api_key
+from ckanext.ndpcatalogadditions.keycloak_token import get_user_info
+from ckanext.ndpcatalogadditions.controller import get_or_create_remote_user, create_api_token, delete_api_token, ckan_url, api_key
 from flask import request, jsonify
 
 
