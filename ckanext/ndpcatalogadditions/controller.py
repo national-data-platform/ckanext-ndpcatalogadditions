@@ -327,8 +327,41 @@ def send_email(email_address, email_text):
     # Check the response
     if response.status_code != 200:
         raise ValueError(f"Failed to send email. {response.text}")
-    
 
+
+def add_or_update_ndp_creator_md5(dataset_json, md5_value):
+    """
+    Add or update the ndp_creator_md5 field in a CKAN dataset's extras.
+    
+    Args:
+        dataset_json (dict): The CKAN dataset JSON object
+        md5_value (str): The MD5 hash value to set
+    
+    Returns:
+        dict: Updated dataset JSON
+    """
+    # Ensure extras array exists
+    if 'extras' not in dataset_json:
+        dataset_json['extras'] = []
+    
+    # Look for existing ndp_creator_md5 entry
+    found = False
+    for extra in dataset_json['extras']:
+        if extra.get('key') == 'ndp_creator_md5':
+            extra['value'] = md5_value
+            found = True
+            break
+    
+    # If not found, add new entry
+    if not found:
+        dataset_json['extras'].append({
+            'key': 'ndp_creator_md5',
+            'value': md5_value
+        })
+    
+    return dataset_json
+
+    
 def create_package():
     if request.method == 'POST':
         try:
@@ -348,7 +381,12 @@ def create_package():
                 if remote_package["result"]["state"] == "active":
                     raise ValueError(f"The dataset name is used in the NDP catalog: {dataset_dict['name']}.")
 
+            # process the attributes related to the private dataset
             process_private_setting(dataset_dict, user.email)
+
+            # save the creator info
+            username, email, roles, user_id = get_username_from_keycloak_token()
+            dataset_dict = add_or_update_ndp_creator_md5(dataset_dict, calculate_md5(user_id))
             
             context = {'user': user.name}
             dataset = logic.get_action('package_create')(context, dataset_dict)                
@@ -360,17 +398,92 @@ def create_package():
     return "Method not allowed", 405  # For unsupported methods
 
 
+def preserve_ndp_creator_md5(dataset_dict, user_id):
+    """
+    Preserve the existing ndp_creator_md5 value when updating a dataset.
+    Handles both id and name as dataset identifiers.
+    
+    Args:
+        dataset_dict (dict): The dataset dictionary being updated
+    
+    Returns:
+        dict: Modified dataset_dict with preserved ndp_creator_md5
+    """
+    # Try to get dataset identifier (prefer id over name)
+    dataset_id = dataset_dict.get('id') or dataset_dict.get('name')
+    if not dataset_id:
+        logger.warning("No dataset id or name found in dataset_dict for preserving ndp_creator_md5")
+        return dataset_dict
+    
+    try:
+        # Get the existing dataset using admin context
+        # package_show accepts both id and name
+        context = {'ignore_auth': True}
+        existing_dataset = logic.get_action('package_show')(context, {'id': dataset_id})
+        
+        # Find existing ndp_creator_md5
+        existing_ndp_creator_md5 = None
+        if 'extras' in existing_dataset:
+            for extra in existing_dataset['extras']:
+                if extra.get('key') == 'ndp_creator_md5':
+                    existing_ndp_creator_md5 = extra.get('value')
+                    break
+
+        # Remove any ndp_creator_md5 from incoming data
+        if 'extras' in dataset_dict:
+            dataset_dict['extras'] = [
+                extra for extra in dataset_dict['extras'] 
+                if extra.get('key') != 'ndp_creator_md5'
+            ]
+
+        # Ensure extras array exists
+        if 'extras' not in dataset_dict:
+            dataset_dict['extras'] = []
+                
+        # If we found an existing value, preserve it
+        if existing_ndp_creator_md5:
+            # Add the preserved value
+            dataset_dict['extras'].append({
+                'key': 'ndp_creator_md5',
+                'value': existing_ndp_creator_md5
+            })
+            
+            logger.info(f"Preserved ndp_creator_md5: {existing_ndp_creator_md5} for dataset: {dataset_id}")
+        else:
+            logger.debug(f"No existing ndp_creator_md5 found for dataset: {dataset_id}")
+
+            # Add the preserved value                                                                                                                               
+            dataset_dict['extras'].append({
+                'key': 'ndp_creator_md5',
+                'value': calculate_md5(user_id)
+            })                
+            
+    except logic.NotFound:
+        logger.warning(f"Dataset not found when trying to preserve ndp_creator_md5: {dataset_id}")
+    except Exception as e:
+        logger.warning(f"Could not preserve ndp_creator_md5 for dataset {dataset_id}: {str(e)}")
+    
+    return dataset_dict
+
+
 def update_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
             dataset_dict = request.get_json()
-            if 'owner_org' in dataset_dict.keys():
+
+            # Preserve ndp_creator_md5
+            username, email, roles, user_id = get_username_from_keycloak_token()
+            dataset_dict = preserve_ndp_creator_md5(dataset_dict, user_id)
+            logger.info(f"preserved result: {dataset_dict}")
+
+            if 'owner_org' in dataset_dict.keys() and dataset_dict['owner_org']:
                 organization = process_user_and_organization(user, dataset_dict['owner_org'])
                 dataset_dict['owner_org'] = organization.name
 
             logger.info("Process private setting")    
             process_private_setting(dataset_dict, user.email)
+
             context = {'user': user.name}
             result = logic.get_action('package_update')(context, dataset_dict)
             return result
@@ -463,8 +576,8 @@ def save_dataset_to_groups(allowed_groups, dataset_id):
     logger.info(f"Save the dataset id {dataset_id} as an attribute to the groups {allowed_groups}")
 
     ndp_admin_token = post_request(NDP_API, "/login", {
-        "client_id": NDP_CLIENT,
-        "secret": NDP_SECRET,
+        "client_id": TEST_CLIENT,
+        "secret": SECRET,
     })["access_token"]
 
     # logger.info('-'*70)
@@ -484,8 +597,8 @@ def delete_dataset_from_groups(allowed_groups, dataset_id):
     logger.info(f"Delete the dataset id {dataset_id} from the groups {allowed_groups}")
 
     ndp_admin_token = post_request(NDP_API, "/login", {
-        "client_id": NDP_CLIENT,
-        "secret": NDP_SECRET,
+        "client_id": TEST_CLIENT,
+        "secret": SECRET,
     })["access_token"]
 
     # logger.info('-'*70)
@@ -573,7 +686,7 @@ def approve_package():
 
             # create a remote organization if doesn't exist and add the remote user as an editor
             remote_organization = None
-            if 'owner_org' in dataset.keys():
+            if 'owner_org' in dataset.keys() and dataset['owner_org']:
                 organization = model.Group.get(dataset['owner_org'])
                 remote_organization = process_remote_user_and_organization(remote_user, organization)
 
@@ -836,8 +949,8 @@ def is_user_in_groups(user_id, allowed_groups):
     logger.info(f"Check if {user_id} is in the groups {allowed_groups}")
 
     ndp_admin_token = post_request(NDP_API, "/login", {
-        "client_id": NDP_CLIENT,
-        "secret": NDP_SECRET,
+        "client_id": TEST_CLIENT,
+        "secret": SECRET,
     })["access_token"]
 
     ndp_admin_headers = {
@@ -867,8 +980,8 @@ def get_user_keycloak_groups(user_id):
     logger.info(f"get_user_keycloak_groups: {user_id}")
 
     ndp_admin_token = post_request(NDP_API, "/login", {
-        "client_id": NDP_CLIENT,
-        "secret": NDP_SECRET,
+        "client_id": TEST_CLIENT,
+        "secret": SECRET,
     })["access_token"]
 
     ndp_admin_headers = {
@@ -1013,8 +1126,8 @@ def validate_groups(groups):
         return True
     
     ndp_admin_token = post_request(NDP_API, "/login", {
-        "client_id": NDP_CLIENT,
-        "secret": NDP_SECRET,
+        "client_id": TEST_CLIENT,
+        "secret": SECRET,
     })["access_token"]
 
     # print('-'*70)
@@ -1214,6 +1327,53 @@ def update_my_approved_package():
                     'Content-Type': 'application/json'
                 }
 
+                # load the old dataset
+                package_show_url = f'{ckan_url}/api/3/action/package_show'
+                response = requests.get(package_show_url,
+                                        headers=headers,
+                                        params={'id': dataset_dict['id'] if 'id' in dataset_dict.keys() else dataset_dict['name']})
+                if response.status_code == 200:
+                    package = response.json()['result']
+                    logger.info(f"load the existing dataset: {package}")
+
+                    # Find existing ndp_creator_md5
+                    existing_ndp_creator_md5 = None
+                    if 'extras' in package:
+                        for extra in package['extras']:
+                            if extra.get('key') == 'ndp_creator_md5':
+                                existing_ndp_creator_md5 = extra.get('value')
+                                break
+        
+                    # Remove any ndp_creator_md5 from incoming data
+                    if 'extras' in dataset_dict:
+                        dataset_dict['extras'] = [
+                            extra for extra in dataset_dict['extras'] 
+                            if extra.get('key') != 'ndp_creator_md5'
+                        ]
+
+                    # Ensure extras array exists
+                    if 'extras' not in dataset_dict:
+                        dataset_dict['extras'] = []
+            
+                    # If we found an existing value, preserve it
+                    if existing_ndp_creator_md5:
+                         # Add the preserved value
+                        dataset_dict['extras'].append({
+                            'key': 'ndp_creator_md5',
+                            'value': existing_ndp_creator_md5
+                        })
+                        logger.info(f"Preserved ndp_creator_md5: {dataset_dict}")
+                    else:
+                        logger.debug(f"No existing ndp_creator_md5 found for dataset")
+
+                        # Add the preserved value
+                        dataset_dict['extras'].append({
+                            'key': 'ndp_creator_md5',
+                            'value': calculate_md5(id)
+                        })
+                else:
+                    return f'Error: failed to fecth the package', 400
+                
                 # validate allowed_groups
                 process_private_setting(dataset_dict, email) 
 
@@ -1224,18 +1384,13 @@ def update_my_approved_package():
                     
                     # load the old dataset
                     old_allowed_groups = []
-                    package_show_url = f'{ckan_url}/api/3/action/package_show'
-                    response = requests.get(package_show_url, headers=headers, params={'id': dataset_dict['id'] if 'id' in dataset_dict.keys() else dataset_dict['name']})
-                    if response.status_code == 200:
-                        package = response.json()['result']
-                        if package["state"] == 'active':
-                            if package["private"]:
-                                old_allowed_groups = get_allowed_groups(package)
-                                logger.info(f"Found the old allowed_groups: {old_allowed_groups}")
+                    if package["state"] == 'active' and package["private"]:
+                        old_allowed_groups = get_allowed_groups(package)
+                        logger.info(f"Found the old allowed_groups: {old_allowed_groups}")
                     
-                                cancelled_groups  = list(set(old_allowed_groups) - set(allowed_groups))
-                                logger.info(f"Need to remove {package['id']} from the groups {cancelled_groups}")
-                                delete_dataset_from_groups(cancelled_groups, package['id'])
+                        cancelled_groups  = list(set(old_allowed_groups) - set(allowed_groups))
+                        logger.info(f"Need to remove {package['id']} from the groups {cancelled_groups}")
+                        delete_dataset_from_groups(cancelled_groups, package['id'])
                                 
                     # save this dataset id to the new groups
                     save_dataset_to_groups(list(set(allowed_groups) - set(old_allowed_groups)), package['id'])
@@ -1410,5 +1565,4 @@ def search_package():
 
     else:
         return "Method not allowed", 405
-
 
