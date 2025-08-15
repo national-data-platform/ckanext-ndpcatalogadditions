@@ -1,4 +1,3 @@
-
 import os
 
 import requests
@@ -7,12 +6,17 @@ from jose.exceptions import JWTError
 from ckan.plugins import toolkit
 
 
+import logging
+
+logger = logging.getLogger('ckanext.ndpcatalogaddition')
+
+
 def verify_and_decode_token(token, server_url, realm, client_id):
     # Fetch the public key from Keycloak
     key_url = f"{server_url}/realms/{realm}/protocol/openid-connect/certs"
     response = requests.get(key_url)
     keys = response.json()['keys']
-
+    
     try:
         # Verify and decode the token
         header = jwt.get_unverified_header(token)
@@ -33,6 +37,7 @@ def verify_and_decode_token(token, server_url, realm, client_id):
 def extract_user_info(decoded_token):
     # Extract relevant user information
     user_info = {
+        'id': decoded_token.get('sub'),
         'username': decoded_token.get('preferred_username'),
         'email': decoded_token.get('email'),
         'name': decoded_token.get('name'),
@@ -50,11 +55,11 @@ def get_user_info(token: str):
     client_id = "account"
     
     decoded_token = verify_and_decode_token(token, server_url, realm, client_id)
+    logger.warning(f"decoded_token: {decoded_token}")
     if decoded_token:
         user_info = extract_user_info(decoded_token)
         return user_info
     else:
         raise toolkit.NotAuthorized('Invalid Keycloak token')
-
 
 
