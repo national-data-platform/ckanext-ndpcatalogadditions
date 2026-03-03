@@ -38,7 +38,8 @@ def extract_user_info(decoded_token):
     # Extract relevant user information
     user_info = {
         'id': decoded_token.get('sub'),
-        'username': decoded_token.get('preferred_username'),
+        # 'username': decoded_token.get('preferred_username'),
+        'username': decoded_token.get('email'),
         'email': decoded_token.get('email'),
         'name': decoded_token.get('name'),
         'given_name': decoded_token.get('given_name'),
