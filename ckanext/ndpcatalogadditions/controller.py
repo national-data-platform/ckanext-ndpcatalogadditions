@@ -32,6 +32,14 @@ NDP_API = os.getenv('NDP_API_URL')
 NDP_CLIENT = os.getenv('NDP_CLIENT')
 NDP_SECRET = os.getenv('NDP_SECRET')
 
+# Solr Indexing Configuration                                                                                                                                             
+SOLR_INDEX_URL = os.getenv('SOLR_INDEX_URL')
+
+# Contextual Insights Pipeline Configuration                                                                                                                              
+CONTEXTUAL_INSIGHTS_URL = os.getenv('CONTEXTUAL_INSIGHTS_URL')
+CONTEXTUAL_INSIGHTS_USERNAME = os.getenv('CONTEXTUAL_INSIGHTS_USERNAME')
+CONTEXTUAL_INSIGHTS_PASSWORD = os.getenv('CONTEXTUAL_INSIGHTS_PASSWORD')
+
 def post_request(api_url, endpoint, data, headers=None):
     url = f"{api_url}{endpoint}"
     response = requests.post(url, json=data, headers=headers)
@@ -248,7 +256,174 @@ def save_remote_dataset(remote_user, dataset):
     finally:
         delete_api_token(token)
 
-    
+
+def index_approved_dataset(dataset_id):
+    """
+    Call Solr indexing service to index an approved dataset.
+
+    Args:
+        dataset_id: The CKAN dataset ID (UUID) to index
+
+    Returns:
+        True if successful, False if failed (errors are logged but not raised)
+    """
+    try:
+        url = f"{SOLR_INDEX_URL}/{dataset_id}"
+        headers = {'accept': 'application/json'}
+
+        logger.info(f"Calling Solr index endpoint: {url}")
+        response = requests.put(url, headers=headers, timeout=10)
+
+        if response.status_code in [200, 201, 202]:
+            logger.info(f"Successfully triggered Solr indexing for dataset: {dataset_id}")
+            return True
+        else:
+            logger.warning(
+                f"Solr indexing returned status {response.status_code} for dataset {dataset_id}: "
+                f"{response.text}"
+            )
+            return False
+
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout calling Solr index endpoint for dataset: {dataset_id}")
+        return False
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling Solr index endpoint for dataset {dataset_id}: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error indexing dataset {dataset_id}: {e}")
+        return False
+
+
+def start_contextual_insights_process(remote_dataset, remote_user):
+    """
+    Trigger the contextual insights pipeline for a dataset if enabled.
+
+    If the dataset has 'enable_contextual_insights' = True in extras, sends a request
+    to the contextual insights pipeline and saves the returned contextual_insights_id
+    back to the CKAN dataset.
+
+    Args:
+        remote_dataset: The dataset dict saved to remote CKAN
+        remote_user: The remote user dict (contains API key for CKAN updates)
+
+    Returns:
+        True if process completed (successfully or gracefully failed),
+        False only if critical errors occurred that should halt the workflow
+    """
+    try:
+        # Check if contextual insights is enabled for this dataset
+        extras = remote_dataset.get('extras', [])
+        enable_contextual_insights = False
+
+        for extra in extras:
+            if extra.get('key') == 'enable_contextual_insights':
+                # Check if the value is a boolean true or string "true"
+                value = extra.get('value')
+                if value is True or (isinstance(value, str) and value.lower() == 'true'):
+                    enable_contextual_insights = True
+                break
+
+        if not enable_contextual_insights:
+            logger.info(f"Contextual insights not enabled for dataset {remote_dataset.get('id')}, skipping.")
+            return True
+
+        dataset_id = remote_dataset.get('id')
+        logger.info(f"Triggering contextual insights pipeline for dataset: {dataset_id}")
+
+        # Prepare the request with basic authentication
+        url = CONTEXTUAL_INSIGHTS_URL
+        auth = (CONTEXTUAL_INSIGHTS_USERNAME, CONTEXTUAL_INSIGHTS_PASSWORD)
+        headers = {'Content-Type': 'application/json'}
+
+        # Send the dataset metadata as JSON
+        logger.info(f"Calling contextual insights endpoint: {url}")
+        response = requests.post(
+            url,
+            json=remote_dataset,
+            headers=headers,
+            auth=auth,
+            timeout=30
+        )
+
+        if response.status_code in [200, 201, 202]:
+            response_data = response.json()
+            contextual_insights_id = response_data.get('contextual_insights_id')
+
+            if contextual_insights_id:
+                logger.info(
+                    f"Received contextual_insights_id: {contextual_insights_id} "
+                    f"for dataset: {dataset_id}"
+                )
+
+                # Save the contextual_insights_id back to CKAN dataset
+                # Add it to extras
+                extras.append({
+                    'key': 'contextual_insights_id',
+                    'value': contextual_insights_id
+                })
+
+                # Prepare the patch request to update the dataset
+                update_url = f"{ckan_url}/api/3/action/package_patch"
+                update_headers = {
+                    'X-CKAN-API-Key': remote_user.get('apikey', api_key),
+                    'Content-Type': 'application/json'
+                }
+
+                update_data = {
+                    'id': dataset_id,
+                    'extras': extras
+                }
+
+                logger.info(f"Updating dataset {dataset_id} with contextual_insights_id")
+                update_response = requests.patch(
+                    update_url,
+                    data=json.dumps(update_data),
+                    headers=update_headers,
+                    timeout=10
+                )
+
+                if update_response.status_code in [200, 201]:
+                    logger.info(
+                        f"Successfully saved contextual_insights_id to dataset: {dataset_id}"
+                    )
+                    return True
+                else:
+                    logger.warning(
+                        f"Failed to update dataset with contextual_insights_id. "
+                        f"Status: {update_response.status_code}, "
+                        f"Response: {update_response.text}"
+                    )
+                    # Don't fail the workflow - just log the warning
+                    return True
+            else:
+                logger.warning(
+                    f"Contextual insights response did not contain contextual_insights_id. "
+                    f"Response: {response.text}"
+                )
+                return True
+        else:
+            logger.warning(
+                f"Contextual insights pipeline returned status {response.status_code}. "
+                f"Response: {response.text}"
+            )
+            # Don't fail the workflow - just log the warning
+            return True
+
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout calling contextual insights endpoint for dataset: {remote_dataset.get('id')}")
+        # Don't fail the workflow - just log the error
+        return True
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling contextual insights endpoint: {e}")
+        # Don't fail the workflow - just log the error
+        return True
+    except Exception as e:
+        logger.error(f"Unexpected error in contextual insights process: {e}")
+        # Don't fail the workflow - just log the error
+        return True
+
+
 def get_accept_notification_text(fullname, title, submit_date):
     return f"""
 <!DOCTYPE html>
