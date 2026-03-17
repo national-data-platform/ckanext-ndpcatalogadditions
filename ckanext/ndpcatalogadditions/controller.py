@@ -395,7 +395,7 @@ def start_contextual_insights_process(remote_dataset, remote_user):
                         resource_url = f"{ckan_url}/api/3/action/resource_create"
                         resource_data = {
                             'package_id': dataset_id,
-                            'name': 'Contextual Insight Dashboard',
+                            'name': 'Dashboard',
                             'url': dashboard_url,
                             'format': 'HTML',
                             'resource_type': 'file'
