@@ -366,7 +366,7 @@ def start_contextual_insights_process(remote_dataset, remote_user):
                 # Prepare the patch request to update the dataset
                 update_url = f"{ckan_url}/api/3/action/package_patch"
                 update_headers = {
-                    'X-CKAN-API-Key': remote_user.get('apikey', api_key),
+                    'X-CKAN-API-Key': api_key,
                     'Content-Type': 'application/json'
                 }
 
