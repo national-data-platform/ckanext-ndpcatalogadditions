@@ -299,8 +299,8 @@ def start_contextual_insights_process(remote_dataset, remote_user):
     """
     Trigger the contextual insights pipeline for a dataset if enabled.
 
-    If the dataset has 'enable_contextual_insights' = True in extras, sends a request
-    to the contextual insights pipeline and saves the returned contextual_insights_id
+    If the dataset has 'enable_contextual_insight' = True in extras, sends a request
+    to the contextual insights pipeline and saves the returned contextual_insight_id
     back to the CKAN dataset.
 
     Args:
@@ -314,17 +314,17 @@ def start_contextual_insights_process(remote_dataset, remote_user):
     try:
         # Check if contextual insights is enabled for this dataset
         extras = remote_dataset.get('extras', [])
-        enable_contextual_insights = False
+        enable_contextual_insight = False
 
         for extra in extras:
-            if extra.get('key') == 'enable_contextual_insights':
+            if extra.get('key') == 'enable_contextual_insight':
                 # Check if the value is a boolean true or string "true"
                 value = extra.get('value')
                 if value is True or (isinstance(value, str) and value.lower() == 'true'):
-                    enable_contextual_insights = True
+                    enable_contextual_insight = True
                 break
 
-        if not enable_contextual_insights:
+        if not enable_contextual_insight:
             logger.info(f"Contextual insights not enabled for dataset {remote_dataset.get('id')}, skipping.")
             return True
 
@@ -348,19 +348,20 @@ def start_contextual_insights_process(remote_dataset, remote_user):
 
         if response.status_code in [200, 201, 202]:
             response_data = response.json()
-            contextual_insights_id = response_data.get('contextual_insights_id')
+            contextual_insight_id = response_data.get('contextual_insight_id')
+            dashboard_url = response_data.get('Dashboard')
 
-            if contextual_insights_id:
+            if contextual_insight_id:
                 logger.info(
-                    f"Received contextual_insights_id: {contextual_insights_id} "
+                    f"Received contextual_insight_id: {contextual_insight_id} "
                     f"for dataset: {dataset_id}"
                 )
 
-                # Save the contextual_insights_id back to CKAN dataset
+                # Save the contextual_insight_id back to CKAN dataset
                 # Add it to extras
                 extras.append({
-                    'key': 'contextual_insights_id',
-                    'value': contextual_insights_id
+                    'key': 'contextual_insight_id',
+                    'value': contextual_insight_id
                 })
 
                 # Prepare the patch request to update the dataset
@@ -375,7 +376,7 @@ def start_contextual_insights_process(remote_dataset, remote_user):
                     'extras': extras
                 }
 
-                logger.info(f"Updating dataset {dataset_id} with contextual_insights_id")
+                logger.info(f"Updating dataset {dataset_id} with contextual_insight_id")
                 update_response = requests.patch(
                     update_url,
                     data=json.dumps(update_data),
@@ -385,12 +386,43 @@ def start_contextual_insights_process(remote_dataset, remote_user):
 
                 if update_response.status_code in [200, 201]:
                     logger.info(
-                        f"Successfully saved contextual_insights_id to dataset: {dataset_id}"
+                        f"Successfully saved contextual_insight_id to dataset: {dataset_id}"
                     )
+
+                    # Add Dashboard URL as a resource if provided
+                    if dashboard_url:
+                        logger.info(f"Adding Dashboard URL as resource: {dashboard_url}")
+                        resource_url = f"{ckan_url}/api/3/action/resource_create"
+                        resource_data = {
+                            'package_id': dataset_id,
+                            'name': 'Contextual Insight Dashboard',
+                            'url': dashboard_url,
+                            'format': 'HTML',
+                            'resource_type': 'file'
+                        }
+
+                        resource_response = requests.post(
+                            resource_url,
+                            data=json.dumps(resource_data),
+                            headers=update_headers,
+                            timeout=10
+                        )
+
+                        if resource_response.status_code in [200, 201]:
+                            logger.info(
+                                f"Successfully added Dashboard resource to dataset: {dataset_id}"
+                            )
+                        else:
+                            logger.warning(
+                                f"Failed to add Dashboard resource. "
+                                f"Status: {resource_response.status_code}, "
+                                f"Response: {resource_response.text}"
+                            )
+
                     return True
                 else:
                     logger.warning(
-                        f"Failed to update dataset with contextual_insights_id. "
+                        f"Failed to update dataset with contextual_insight_id. "
                         f"Status: {update_response.status_code}, "
                         f"Response: {update_response.text}"
                     )
@@ -398,7 +430,7 @@ def start_contextual_insights_process(remote_dataset, remote_user):
                     return True
             else:
                 logger.warning(
-                    f"Contextual insights response did not contain contextual_insights_id. "
+                    f"Contextual insights response did not contain contextual_insight_id. "
                     f"Response: {response.text}"
                 )
                 return True
@@ -422,6 +454,7 @@ def start_contextual_insights_process(remote_dataset, remote_user):
         logger.error(f"Unexpected error in contextual insights process: {e}")
         # Don't fail the workflow - just log the error
         return True
+
 
 
 def get_accept_notification_text(fullname, title, submit_date):
