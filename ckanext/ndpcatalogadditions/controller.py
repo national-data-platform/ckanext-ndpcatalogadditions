@@ -885,6 +885,14 @@ def approve_package():
             # save the dataset to the remote CKAN
             remote_dataset = save_remote_dataset(remote_user, dataset)
 
+			# ==== Contextual Insights Pipeline ====                                                                                                                      
+            start_contextual_insights_process(remote_dataset, remote_user)
+            # ==== End Contextual Insights Pipeline ====                                                                                                                  
+
+            # ==== Solr Indexing ====                                                                                                                                     
+            index_approved_dataset(remote_dataset['id'])
+            # ==== End Solr Indexing ====               
+
             # if this dataset is private, save the id of the remote_dataset as an attribute of all groups in the existingGroupIds 
            
             if 'private' in remote_dataset.keys() and remote_dataset['private']:
