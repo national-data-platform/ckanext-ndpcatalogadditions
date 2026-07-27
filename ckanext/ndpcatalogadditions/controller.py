@@ -867,7 +867,19 @@ def approve_package():
             user = get_or_create_user()
             dataset_dict = request.get_json()
 
-            if not user.sysadmin and not is_reviewer() and not user.name == 'klin_sdsc_edu':
+            # get the dataset with ignore_auth. Note that the reviewer may not has the permission to view this package if it is private
+            context = {'ignore_auth': True}
+            dataset = logic.get_action('package_show')(context, {'id': dataset_dict['id']})
+
+			# A submitter may approve their own dataset only if it's private: private                                                           
+            # datasets stay restricted to specific groups after approval (see the                                                               
+            # save_dataset_to_groups() call below), never becoming publicly visible,                                                            
+            # so self-approval here doesn't skip review for anything public-facing.                                                             
+            is_own_private_submission = (
+                dataset.get('private') and dataset.get('creator_user_id') == user.id
+            )
+
+            if not user.sysadmin and not is_reviewer() and not user.name == 'klin_sdsc_edu' and not is_own_private_submissio:
                 return f"Not authorized to approve this dataset.", 401
             
             # actions in the production catalog
@@ -877,9 +889,6 @@ def approve_package():
             #    4  add the creator as an editor to the owner_org
             #    5. create the dataset
 
-            # get the dataset with ignore_auth. Note that the reviewer may not has the permission to view this package if it is private
-            context = {'ignore_auth': True}
-            dataset = logic.get_action('package_show')(context, {'id': dataset_dict['id']})
             if dataset['state'] == 'deleted':
                 return f"The dataset '{dataset['name']}' was already deleted. Can not approve it.", 401
                 
