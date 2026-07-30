@@ -134,7 +134,7 @@ def _validate_field_formats(package: Dict, errors: List[str], check_urls: bool =
 
     # uploadType validation
     if 'uploadType' in extras_dict and extras_dict['uploadType']:
-        valid_upload_types = ['dataset', 'model', 'service', 'container', 'application', 'code']
+        valid_upload_types = ['dataset', 'model', 'service', 'docker-image', 'application', 'code']
         if extras_dict['uploadType'] not in valid_upload_types:
             errors.append(f"Invalid extras:uploadType. Must be one of {valid_upload_types}")
             
