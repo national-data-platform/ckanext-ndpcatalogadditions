@@ -85,11 +85,17 @@ def _check_required_public_fields(package: Dict, errors: List[str]) -> None:
     extras = package.get('extras', [])
     extras_dict = {item['key']: item['value'] for item in extras if isinstance(item, dict)}
 
-    required_public_extras = ['uploadType', 'issueDate', 'lastUpdateDate', 'dataType', 'pocName', 'pocEmail']
+    required_public_extras = ['uploadType', 'lastUpdateDate', 'pocName', 'pocEmail']
     for extra_key in required_public_extras:
         if extra_key not in extras_dict or not extras_dict[extra_key]:
             errors.append(f'Missing required field for public dataset: extras:{extra_key}')
-    
+
+    # publisherEmail is only required when no organization is chosen (i.e. an
+    # individual/person publisher) - datasets published under an organization
+    # don't need it.
+    if not package.get('owner_org') and not extras_dict.get('publisherEmail'):
+        errors.append('Missing required field for public dataset: extras:publisherEmail (required when no organization is selected)')
+
     # Resources for public datasets
     resources = package.get('resources', [])
     if resources:
@@ -195,7 +201,7 @@ def _validate_field_formats(package: Dict, errors: List[str], check_urls: bool =
             if resource['status'] not in valid_status:
                 errors.append(f'Invalid: resource[{idx}]:status. Must be one of {valid_status}')
         if 'mimetype' in resource and resource['mimetype']:
-            pattern = re.compile(r'^[a-zA-Z0-9!#$&^_-]+/[a-zA-Z0-9!#$&^_.+-]+$')
+            pattern = re.compile(r'^[a-zA-Z0-9!#$&^_-]+(/[a-zA-Z0-9!#$&^_.+-]+)?$')
             if not bool(pattern.match(resource['mimetype'].strip())):
                 errors.append(f'Invalid: resource[{idx}]:mimetype.')
             
@@ -366,14 +372,20 @@ def _is_url_alive(url: str, timeout: int = 5) -> bool:
     
     try:
         response = requests.head(url, timeout=timeout, allow_redirects=True)
+        if response.status_code < 400:
+            return True
+        # Some servers (e.g. our own STAC/preSTAC) don't support HEAD and
+        # reply with 405 rather than raising - fall back to GET below.
+    except requests.exceptions.RequestException:
+        pass
+
+    # If HEAD failed (exception) or came back with an error status, try GET
+    # before concluding the URL is really unreachable.
+    try:
+        response = requests.get(url, timeout=timeout, allow_redirects=True, stream=True)
         return response.status_code < 400
     except requests.exceptions.RequestException:
-        # If HEAD fails, try GET as some servers don't support HEAD
-        try:
-            response = requests.get(url, timeout=timeout, allow_redirects=True, stream=True)
-            return response.status_code < 400
-        except requests.exceptions.RequestException:
-            return False
+        return False
 
 
 def _is_valid_datetime(dt_str: str) -> bool:
