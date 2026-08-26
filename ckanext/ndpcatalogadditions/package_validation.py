@@ -369,7 +369,7 @@ def _is_url_alive(url: str, timeout: int = 5) -> bool:
     if parsed.scheme not in ('http', 'https'):
         # Non-HTTP(S) schemes (e.g., pelican://) are not checked online
         return True
-    
+
     try:
         response = requests.head(url, timeout=timeout, allow_redirects=True)
         if response.status_code < 400:
@@ -383,6 +383,22 @@ def _is_url_alive(url: str, timeout: int = 5) -> bool:
     # before concluding the URL is really unreachable.
     try:
         response = requests.get(url, timeout=timeout, allow_redirects=True, stream=True)
+        if response.status_code < 400:
+            return True
+    except requests.exceptions.RequestException:
+        pass
+
+    # Last resort: some servers (e.g. WAFs/security plugins) block requests'
+    # default "python-requests/x.x" User-Agent outright (406/403) regardless
+    # of HEAD vs GET. Retry once with an honest, self-identifying UA before
+    # concluding the URL is really unreachable - this only ever changes the
+    # outcome for URLs that would otherwise be reported dead above.
+    identifying_headers = {
+        'User-Agent': 'NDP-URL-Validator/1.0 (+https://nationaldataplatform.org)'
+    }
+    try:
+        response = requests.get(url, timeout=timeout, allow_redirects=True,
+                                 stream=True, headers=identifying_headers)
         return response.status_code < 400
     except requests.exceptions.RequestException:
         return False
