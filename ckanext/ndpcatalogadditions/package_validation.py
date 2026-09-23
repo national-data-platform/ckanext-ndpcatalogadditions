@@ -764,4 +764,69 @@ def _validate_spatial_data(data: str, format_type: str, field_name: str, errors:
             # Check that we have numeric coordinate values
             numeric_values = []
             for val in coord_values:
-   
+                try:
+                    float(val)
+                    numeric_values.append(val)
+                except ValueError:
+                    pass
+            
+            if not numeric_values:
+                errors.append(f'Invalid WKT for extras:{field_name}: no valid numeric coordinates found')
+                return
+                
+        except Exception as e:
+            errors.append(f'Error validating WKT for extras:{field_name}: {str(e)}')
+
+
+# Example usage
+if __name__ == '__main__':
+    # Example public dataset
+    public_package = {
+        "title": "Sample Dataset",
+        "notes": "This is a sample dataset",
+        "private": False,
+        "tags": [{"name": "sample"}],
+        "extras": [
+            {"key": "uploadType", "value": "manual"},
+            {"key": "issueDate", "value": "2024-01-01"},
+            {"key": "lastUpdateDate", "value": "2024-01-15"},
+            {"key": "dataType", "value": "tabular"},
+            {"key": "pocName", "value": "John Doe"},
+            {"key": "pocEmail", "value": "john.doe@example.com"},
+            {"key": "doi", "value": "10.5281/zenodo.1001234"},
+            {"key": "startDateTime", "value": "2024-01-01T00:00:00Z"},
+            {"key": "endDateTime", "value": "2024-12-31T23:59:59Z"},
+            {"key": "spatialCovFormat", "value": "geojson"},
+            # {"key": "dataBbox", "value": "{\"type\":\"Polygon\",\"coordinates\":[[[-105.284,40.0075],[-105.284,40.0165],[-105.272,40.0165],[-105.272,40.0075],[-105.284,40.0075]]]}"},
+            {"key": "spatialCov", "value": "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-105.284,40.0075],[-105.284,40.0165],[-105.272,40.0165],[-105.272,40.0075],[-105.284,40.0075]]]},\"properties\":{}}]}"}
+        ],
+        "resources": [
+            {
+                "name": "Data File",
+                "description": "Main data file",
+                "mimetype": "text/csv",
+                "format": "CSV",
+                "status": "active",
+                "url": "https://example.com/data.csv"
+            }
+        ]
+    }
+    
+    result = ndp_package_validate(json.dumps(public_package))
+    print(f"Valid: {result['valid']}")
+    if result['errors']:
+        print("Errors:")
+        for error in result['errors']:
+            print(f"  - {error}")
+    else:
+        print("No errors found!")
+        
+    # Check if temporal was created
+    extras_dict = {item['key']: item['value'] for item in result['package'].get('extras', [])}
+    if 'temporal' in extras_dict:
+        print(f"\nTemporal field created: {extras_dict['temporal']}")
+    
+    # Check if spatial was created
+    if 'spatial' in extras_dict:
+        print(f"Spatial field created from geojson data: {extras_dict['spatial']}")
+       

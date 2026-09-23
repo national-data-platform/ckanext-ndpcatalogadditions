@@ -10,9 +10,8 @@ import ckan.logic as logic
 from ckan.plugins import toolkit
 from ckan import authz
 from ckanext.ndpcatalogadditions.keycloak_token import get_user_info
-from ckanext.ndpcatalogadditions.controller import get_or_create_remote_user, create_api_token, delete_api_token, ckan_url, api_key
+from ckanext.ndpcatalogadditions.controller import get_or_create_remote_user, create_api_token, delete_api_token, ckan_url, api_key, get_remote_user, index_approved_dataset
 from flask import request, jsonify
-
 
 import logging
 
@@ -238,7 +237,7 @@ def show_group():
 
 def update_group():
     if request.method == 'POST':
-        try:                    
+        try:             
             # get user info
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
@@ -638,7 +637,14 @@ from flask import jsonify
 
 def list_groups():
     if request.method == 'GET':
-        try:
+        try:                   
+            creator_email = request.args.get('creator_email', '')
+            logger.info(f"creator_email: {creator_email}")
+
+            if creator_email:
+                remote_user = get_remote_user(creator_email.replace('@', '_').replace('.', '_'))
+                logger.info(f"remote user: {remote_user}")
+            
             api_url = f"{ckan_url}/api/3/action/group_list_authz"
             new_headers = {
                 'X-CKAN-API-Key': api_key,
@@ -654,7 +660,9 @@ def list_groups():
                 # Filter the items
                 catalog_types = ["datahub_catalog", "user_catalog", "pathfinder_catalog"]
                 filtered_items = [item for item in response_data["result"] if item["type"] in catalog_types]
-
+                if creator_email:
+                    filtered_items = [item for item in filtered_items if remote_user['name'].replace('_', '-') in item['name']]
+                    
                 group_details = []
                 for group in filtered_items:
                     logger.info(f"Load the details of {group['name']}")
@@ -782,6 +790,8 @@ def group_package_add():
                     }
                     response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
                     if response.status_code == 200:
+                        # Reindex the dataset so the group association is updated in search
+                        index_approved_dataset(package_id, api_key)
                         return response.json()
                     else:
                         raise ValueError(f"Failed to add dataset: {response.text}")
@@ -793,6 +803,8 @@ def group_package_add():
                     }
                     response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
                     if response.status_code == 200:
+                        # Reindex the dataset so the group association is updated in search
+                        index_approved_dataset(package_id, api_key)
                         return response.json()
                     else:
                         raise ValueError(f"Failed to add dataset: {response.text}")

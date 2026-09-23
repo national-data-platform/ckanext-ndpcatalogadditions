@@ -17,7 +17,9 @@ from ckanext.ndpcatalogadditions.controller import (
     update_my_approved_package,
     get_api_token,
     get_ckan_id,
-    search_package
+    search_package,
+    get_pop_prekan_token,
+    validate_package
 )
 from ckanext.ndpcatalogadditions.group import (
     create_group,
@@ -36,7 +38,8 @@ from ckanext.ndpcatalogadditions.group import (
 
 import json
 from datetime import datetime
-
+from ckanext.ndpcatalogadditions.swagger_ui import swagger_ui, openapi_spec
+from ckanext.ndpcatalogadditions.daily_metrics import daily_metrics, daily_metrics_json, dataset_access_json
 
 class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
@@ -164,6 +167,12 @@ class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
             methods=['GET']
         )
 
+        blueprint.add_url_rule(
+	    u'/ndp/get_ep_prekan_token',
+            u'get_ep_prekan_token',
+	    get_pop_prekan_token,
+            methods=['GET', 'POST']
+        )
         
         #########################
         
@@ -251,5 +260,49 @@ class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
             methods=['POST']
         )
 
+        #########################
+
+        blueprint.add_url_rule(
+            u'/ndp/api-docs',
+            u'swagger_ui',
+	    swagger_ui,
+            methods=['GET']
+	)
+
+        blueprint.add_url_rule(
+            u'/ndp/openapi.json',
+            u'openapi_spec',
+            openapi_spec,
+            methods=['GET']
+	)
+        
+        blueprint.add_url_rule(
+	    u'/ndp/daily_metrics',
+	    u'daily_metrics',
+            daily_metrics,
+            methods=['GET']
+        )
+
+        blueprint.add_url_rule(
+            u'/ndp/daily_metrics.json',
+	    u'daily_metrics_json',
+            daily_metrics_json,
+            methods=['GET']
+        )
+
+        blueprint.add_url_rule(
+            u'/ndp/dataset_access.json',
+	    u'dataset_access_json',
+            dataset_access_json,
+            methods=['GET']
+	)
+
+        blueprint.add_url_rule(
+            u'/ndp/package_validate',
+            u'validate_package',
+            validate_package,
+            methods=['POST']
+        )
+        
         return blueprint
 

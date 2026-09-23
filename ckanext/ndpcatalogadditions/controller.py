@@ -16,35 +16,47 @@ from ckan.lib.munge import munge_title_to_name
 from ckan.lib.dictization.model_dictize import package_dictize
 from ckanext.ndpcatalogadditions.keycloak_token import get_user_info
 from flask import request, jsonify
+from ckanext.ndpcatalogadditions.package_validation import ndp_package_validate
 
 server_url = os.getenv('CKANEXT__KEYCLOAK__REDIRECT_URI')
 ckan_url = server_url.replace('/user/sso_login', '')
 ckan_url = ckan_url.replace('catalog2', 'catalog')
+
 api_key = os.getenv('CKANEXT__NDPCATALOGADDITIONS__API_KEY')
 headers = {
     'X-CKAN-API-Key': api_key,
     'Content-Type': 'application/json'
 }
+
 site_url = os.getenv('CKAN_SITE_URL')
-email_secret=os.getenv('email_secret')
+email_secret = os.getenv('email_secret')
 
-NDP_API = os.getenv('NDP_API_URL')
-NDP_CLIENT = os.getenv('NDP_CLIENT')
-NDP_SECRET = os.getenv('NDP_SECRET')
+NDP_API = os.getenv('NDP_API_URL', 'https://idp.nationaldataplatform.org/groups')
+TEST_CLIENT = os.getenv('NDP_CLIENT', 'NDP_CLIENT')
+SECRET = os.getenv('NDP_SECRET')
 
-# Solr Indexing Configuration                                                                                                                                             
-SOLR_INDEX_URL = os.getenv('SOLR_INDEX_URL')
+POP_SECRET_TOKEN = os.getenv('CKANEXT__NDPCATALOGADDITIONS__POP_SECRET_TOKEN')
 
-# Contextual Insights Pipeline Configuration                                                                                                                              
-CONTEXTUAL_INSIGHTS_URL = os.getenv('CONTEXTUAL_INSIGHTS_URL')
-CONTEXTUAL_INSIGHTS_USERNAME = os.getenv('CONTEXTUAL_INSIGHTS_USERNAME')
-CONTEXTUAL_INSIGHTS_PASSWORD = os.getenv('CONTEXTUAL_INSIGHTS_PASSWORD')
+# Solr Indexing Configuration
+# SOLR_INDEX_URL = os.getenv('SOLR_INDEX_URL', 'http://awesome-compute.sdsc.edu:8081/v1/ckan-api/add_to_index')
+SOLR_INDEX_URL = os.getenv('SOLR_INDEX_URL', 'http://awesome-compute.sdsc.edu:8081/v1/ckan-api/secure/add_to_index')
 
 def post_request(api_url, endpoint, data, headers=None):
     url = f"{api_url}{endpoint}"
     response = requests.post(url, json=data, headers=headers)
-    return response.json()
+    if response.status_code == 200:
+        logger.info(f"response.text: {response.text}")
 
+        # Check if response has content and is valid JSON
+        if not response.text.strip():
+            raise ValueError("Error: Empty response received")
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError as e:
+            raise ValueError(f"Error: Invalid JSON response. Content: {response.text[:200]}...")
+    else:
+        raise ValueError(f"Failed to access {url}: {response.text}")
+    
 def get_request(api_url, endpoint, headers=None):
     url = f"{api_url}{endpoint}"
     response = requests.get(url, headers=headers)
@@ -115,7 +127,7 @@ def get_or_create_user():
     return user
 
 
-def process_user_and_organization(user, org_name):
+def process_user_and_organization(user, org_name, capacity='editor'):
     organization = model.Group.get(munge_title_to_name(org_name))
     if not organization:
         # Check remote site                                                                                                                                                  
@@ -133,21 +145,30 @@ def process_user_and_organization(user, org_name):
                                            is_organization=True)
                 model.Session.add(organization)
                 model.Session.commit()
-        else:    
+        else:
             # Create the organization object
             organization = model.Group(name=munge_title_to_name(org_name),
                                        title=org_name,
-                                       description="Created by admin when creating a new dataset",
+                                       description="Created by admin when creating a new dataset" if capacity=='editor' else 'Created by POP',
                                        type='organization',
                                        is_organization=True)
             model.Session.add(organization)
             model.Session.commit()
-         
-    member = model.Member(group=organization, table_id=user.id, table_name='user', capacity='editor')
-    model.Session.add(member)
-    model.Session.commit()   
-    return organization
+
+    # Check if member already exists
+    existing_member = model.Session.query(model.Member).filter(
+        model.Member.group_id == organization.id,
+        model.Member.table_id == user.id,
+        model.Member.table_name == 'user'
+    ).first()
     
+    if not existing_member: 
+        member = model.Member(group=organization, table_id=user.id, table_name='user', capacity=capacity)
+        model.Session.add(member)
+        model.Session.commit()
+        
+    return organization
+
 
 def get_or_create_remote_user(username, email, fullname):
 
@@ -209,8 +230,8 @@ def process_remote_user_and_organization(remote_user, organization):
         'role': 'editor'
     }
     response = requests.post(f'{ckan_url}/api/3/action/organization_member_create', headers=headers, json=member_data)
-    if response.status_code != 200:
-        raise Value(f"Failed to add user to organization: {response.text}")
+    if response.status_code != 200 or not response.json().get('success'):
+        raise ValueError(f"Failed to add user to organization: {response.text}")
 
     return remote_organization
     
@@ -257,22 +278,29 @@ def save_remote_dataset(remote_user, dataset):
         delete_api_token(token)
 
 
-def index_approved_dataset(dataset_id):
+def index_approved_dataset(dataset_id, ckan_api_token):
     """
     Call Solr indexing service to index an approved dataset.
 
     Args:
         dataset_id: The CKAN dataset ID (UUID) to index
+        ckan_api_token: CKAN API token with read access to the dataset - the
+            indexing service now needs this itself to fetch private packages
+            (it does its own package_show call server-side).
 
     Returns:
         True if successful, False if failed (errors are logged but not raised)
     """
     try:
-        url = f"{SOLR_INDEX_URL}/{dataset_id}"
-        headers = {'accept': 'application/json'}
+        headers = {'accept': 'application/json', 'Content-Type': 'application/json'}
 
-        logger.info(f"Calling Solr index endpoint: {url}")
-        response = requests.put(url, headers=headers, timeout=10)
+        logger.info(f"Calling Solr index endpoint: {SOLR_INDEX_URL} for dataset {dataset_id}")
+        response = requests.post(
+            SOLR_INDEX_URL,
+            headers=headers,
+            json={'ckan_id': dataset_id, 'ckan_api_token': ckan_api_token},
+            timeout=10
+        )
 
         if response.status_code in [200, 201, 202]:
             logger.info(f"Successfully triggered Solr indexing for dataset: {dataset_id}")
@@ -294,169 +322,7 @@ def index_approved_dataset(dataset_id):
         logger.error(f"Unexpected error indexing dataset {dataset_id}: {e}")
         return False
 
-
-def start_contextual_insights_process(remote_dataset, remote_user):
-    """
-    Trigger the contextual insights pipeline for a dataset if enabled.
-
-    If the dataset has 'enable_contextual_insight' = True in extras, sends a request
-    to the contextual insights pipeline and saves the returned contextual_insight_id
-    back to the CKAN dataset.
-
-    Args:
-        remote_dataset: The dataset dict saved to remote CKAN
-        remote_user: The remote user dict (contains API key for CKAN updates)
-
-    Returns:
-        True if process completed (successfully or gracefully failed),
-        False only if critical errors occurred that should halt the workflow
-    """
-    try:
-        # Check if contextual insights is enabled for this dataset
-        extras = remote_dataset.get('extras', [])
-        enable_contextual_insight = False
-
-        for extra in extras:
-            if extra.get('key') == 'enable_contextual_insight':
-                # Check if the value is a boolean true or string "true"
-                value = extra.get('value')
-                if value is True or (isinstance(value, str) and value.lower() == 'true'):
-                    enable_contextual_insight = True
-                break
-
-        if not enable_contextual_insight:
-            logger.info(f"Contextual insights not enabled for dataset {remote_dataset.get('id')}, skipping.")
-            return True
-
-        dataset_id = remote_dataset.get('id')
-        logger.info(f"Triggering contextual insights pipeline for dataset: {dataset_id}")
-
-        # Prepare the request with basic authentication
-        url = CONTEXTUAL_INSIGHTS_URL
-        auth = (CONTEXTUAL_INSIGHTS_USERNAME, CONTEXTUAL_INSIGHTS_PASSWORD)
-        headers = {'Content-Type': 'application/json'}
-
-        # Send the dataset metadata as JSON
-        logger.info(f"Calling contextual insights endpoint: {url}")
-        response = requests.post(
-            url,
-            json=remote_dataset,
-            headers=headers,
-            auth=auth,
-            timeout=30
-        )
-
-        if response.status_code in [200, 201, 202]:
-            response_data = response.json()
-            contextual_insight_id = response_data.get('contextual_insight_id')
-            dashboard_url = response_data.get('Dashboard')
-
-            if contextual_insight_id:
-                logger.info(
-                    f"Received contextual_insight_id: {contextual_insight_id} "
-                    f"for dataset: {dataset_id}"
-                )
-
-                # Save the contextual_insight_id back to CKAN dataset
-                # Add it to extras
-                extras.append({
-                    'key': 'contextual_insight_id',
-                    'value': contextual_insight_id
-                })
-
-                # Prepare the patch request to update the dataset
-                update_url = f"{ckan_url}/api/3/action/package_patch"
-                update_headers = {
-                    'X-CKAN-API-Key': api_key,
-                    'Content-Type': 'application/json'
-                }
-
-                update_data = {
-                    'id': dataset_id,
-                    'extras': extras
-                }
-
-                logger.info(f"Updating dataset {dataset_id} with contextual_insight_id")
-                update_response = requests.patch(
-                    update_url,
-                    data=json.dumps(update_data),
-                    headers=update_headers,
-                    timeout=10
-                )
-
-                if update_response.status_code in [200, 201]:
-                    logger.info(
-                        f"Successfully saved contextual_insight_id to dataset: {dataset_id}"
-                    )
-
-                    # Add Dashboard URL as a resource if provided
-                    if dashboard_url:
-                        logger.info(f"Adding Dashboard URL as resource: {dashboard_url}")
-                        resource_url = f"{ckan_url}/api/3/action/resource_create"
-                        resource_data = {
-                            'package_id': dataset_id,
-                            'name': 'Dashboard',
-                            'url': dashboard_url,
-                            'format': 'HTML',
-                            'resource_type': 'file'
-                        }
-
-                        resource_response = requests.post(
-                            resource_url,
-                            data=json.dumps(resource_data),
-                            headers=update_headers,
-                            timeout=10
-                        )
-
-                        if resource_response.status_code in [200, 201]:
-                            logger.info(
-                                f"Successfully added Dashboard resource to dataset: {dataset_id}"
-                            )
-                        else:
-                            logger.warning(
-                                f"Failed to add Dashboard resource. "
-                                f"Status: {resource_response.status_code}, "
-                                f"Response: {resource_response.text}"
-                            )
-
-                    return True
-                else:
-                    logger.warning(
-                        f"Failed to update dataset with contextual_insight_id. "
-                        f"Status: {update_response.status_code}, "
-                        f"Response: {update_response.text}"
-                    )
-                    # Don't fail the workflow - just log the warning
-                    return True
-            else:
-                logger.warning(
-                    f"Contextual insights response did not contain contextual_insight_id. "
-                    f"Response: {response.text}"
-                )
-                return True
-        else:
-            logger.warning(
-                f"Contextual insights pipeline returned status {response.status_code}. "
-                f"Response: {response.text}"
-            )
-            # Don't fail the workflow - just log the warning
-            return True
-
-    except requests.exceptions.Timeout:
-        logger.error(f"Timeout calling contextual insights endpoint for dataset: {remote_dataset.get('id')}")
-        # Don't fail the workflow - just log the error
-        return True
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Error calling contextual insights endpoint: {e}")
-        # Don't fail the workflow - just log the error
-        return True
-    except Exception as e:
-        logger.error(f"Unexpected error in contextual insights process: {e}")
-        # Don't fail the workflow - just log the error
-        return True
-
-
-
+        
 def get_accept_notification_text(fullname, title, submit_date):
     return f"""
 <!DOCTYPE html>
@@ -513,7 +379,7 @@ def get_reject_notification_text(fullname, title, submit_date):
 """
 
 
-def send_email(email_address, email_text):
+def send_email(email_address, email_text, subject="Your Dataset Submission to NDP"):
     # Define the URL and headers
     url = f'{site_url}/workspaces-api/email/send_email'
     headers = {
@@ -524,7 +390,7 @@ def send_email(email_address, email_text):
     # Define the data payload
     data = {
         "to_email": email_address,
-        "subject": "Your Dataset Submission to NDP",      
+        "subject": subject,      
         "body": email_text,         
         "secret": email_secret       
     }
@@ -569,7 +435,28 @@ def add_or_update_ndp_creator_md5(dataset_json, md5_value):
     
     return dataset_json
 
-    
+
+def validate_package():
+    if request.method == 'POST':
+        try:
+            dataset_dict = request.get_json()
+
+            # validate the package                                                                                                                                         
+            validation_result = ndp_package_validate(json.dumps(dataset_dict))
+            if validation_result['errors']:
+                logger.error(json.dumps(dataset_dict, indent=4))
+                logger.error(f"validate package: {validation_result['errors']}")
+                return f"{json.dumps(validation_result['errors'], indent=4)}", 422
+            else:
+                return "Valid"
+
+        except Exception as e:
+            traceback.print_exc()
+            return f'Error: {str(e)}', 401
+
+    return "Method not allowed", 405  # For unsupported methods   
+
+
 def create_package():
     if request.method == 'POST':
         try:
@@ -732,18 +619,50 @@ def purge_package():
     return "Method not allowed", 405  # For unsupported methods
 
 
+def filter_datasets_by_cndp(packages, cndp):
+    if not cndp:
+        return packages
+    filtered = []
+    for package in packages:
+        extras = package.get('extras', [])
+        cndp_extra = next((e for e in extras if e.get('key') == 'cndp'), None)
+        if cndp_extra is None or cndp_extra.get('value') == cndp:
+            filtered.append(package)
+    return filtered
+
+
 def list_my_packages():
     if request.method == 'POST' or request.method == 'GET':
         try:
             user = get_or_create_user()
-            context = {'user': user.id}
+            # ignore_auth: package_search's permission-label filtering only credits a
+            # user with seeing a private dataset if they're currently a member of its
+            # owner_org - but submitters are removed from the org right after
+            # submitting (see remove_member() in create_package()), so they'd
+            # otherwise lose visibility into their own submission. The query below is
+            # already scoped to this user's own creator_user_id, so bypassing auth
+            # here doesn't expose anyone else's datasets.
+            context = {'ignore_auth': True}
             search_dict = {
                 'q': f'creator_user_id:{user.id}',
                 'include_private': True,
                 'rows': 1000  
             }
             result = logic.get_action('package_search')(context, search_dict)
+
+            package_list = result["results"]
+            for package in package_list:
+                creator_id = package.get('creator_user_id')
+                if creator_id:
+                    user = model.Session.query(model.User).filter(model.User.id == creator_id).first()
+                    if user:
+                        package['creator_fullname'] = user.fullname
+                        package['creator_email'] = user.email
+            cndp = request.args.get('cndp')
+            result["results"] = filter_datasets_by_cndp(package_list, cndp)
+            result["count"] = len(result["results"])
             return result
+        
         except Exception as e:
             return f'Error: {str(e)}', 401
 
@@ -871,21 +790,22 @@ def approve_package():
             context = {'ignore_auth': True}
             dataset = logic.get_action('package_show')(context, {'id': dataset_dict['id']})
 
-			# A submitter may approve their own dataset only if it's private: private                                                           
-            # datasets stay restricted to specific groups after approval (see the                                                               
-            # save_dataset_to_groups() call below), never becoming publicly visible,                                                            
-            # so self-approval here doesn't skip review for anything public-facing.                                                             
+            # A submitter may approve their own dataset only if it's private: private
+            # datasets stay restricted to specific groups after approval (see the
+            # save_dataset_to_groups() call below), never becoming publicly visible,
+            # so self-approval here doesn't skip review for anything public-facing.
             is_own_private_submission = (
                 dataset.get('private') and dataset.get('creator_user_id') == user.id
             )
 
-            if not user.sysadmin and not is_reviewer() and not user.name == 'klin_sdsc_edu' and not is_own_private_submissio:
+            if not user.sysadmin and not is_reviewer() and not user.name == 'klin_sdsc_edu' \
+                    and not is_own_private_submission:
                 return f"Not authorized to approve this dataset.", 401
-            
+
             # actions in the production catalog
             #    1. find the creator and the owner_org of the dataset
-            #    2. create a user for the creator if doesn't exist 
-            #    3. create a organization for the owner_org if doesn't exists 
+            #    2. create a user for the creator if doesn't exist
+            #    3. create a organization for the owner_org if doesn't exists
             #    4  add the creator as an editor to the owner_org
             #    5. create the dataset
 
@@ -927,21 +847,20 @@ def approve_package():
             # save the dataset to the remote CKAN
             remote_dataset = save_remote_dataset(remote_user, dataset)
 
-			# ==== Contextual Insights Pipeline ====                                                                                                                      
-            start_contextual_insights_process(remote_dataset, remote_user)
-            # ==== End Contextual Insights Pipeline ====                                                                                                                  
-
-            # ==== Solr Indexing ====                                                                                                                                     
-            index_approved_dataset(remote_dataset['id'])
-            # ==== End Solr Indexing ====               
-
+            # ==== Solr Indexing ====
+            index_approved_dataset(remote_dataset['id'], api_key)
+            # ==== End Solr Indexing ====  
+            
             # if this dataset is private, save the id of the remote_dataset as an attribute of all groups in the existingGroupIds 
            
             if 'private' in remote_dataset.keys() and remote_dataset['private']:
-                # get allowed groups
-                allowed_groups = get_allowed_groups(remote_dataset)
-                logger.info(f"Found the allowed_groups: {allowed_groups}")
-                save_dataset_to_groups(allowed_groups, remote_dataset['id'])
+                try:
+                    # get allowed groups
+                    allowed_groups = get_allowed_groups(remote_dataset)
+                    logger.info(f"Found the allowed_groups: {allowed_groups}")
+                    save_dataset_to_groups(allowed_groups, remote_dataset['id'])
+                except Exception as e:
+                    logger.error(f"Failed to save dataset to groups (non-critical): {str(e)}")
 
             # action in the local catalog
             #    1. add the approval information to the dataset
@@ -963,7 +882,14 @@ def approve_package():
             # send an accept notification
             title = dataset['title']
             submit_date = dataset['metadata_created']
-            send_email(email, get_accept_notification_text(fullname, title, submit_date))
+            email_text = get_accept_notification_text(fullname, title, submit_date)
+            email_subject = "Your Dataset Submission to NDP"
+            # Special case: approved into ONLY the data_hub_fusion catalog -> rebrand NDP as FEDER in the notification
+            if input_groups == ['data_hub_fusion']:
+                email_text = email_text.replace('the National Data Platform (NDP)', 'FEDER')
+                email_text = email_text.replace('NDP', 'FEDER')
+                email_subject = email_subject.replace('NDP', 'FEDER')
+            send_email(email, email_text, email_subject)
             
             # handle adding this dataset into the catalog groups
             for group_name in input_groups:
@@ -990,7 +916,7 @@ def approve_package():
                     if old_group['type'] == 'pathfinder_catalog' or old_group['type'] == 'datahub_catalog':
                         api_url = f"{ckan_url}/api/3/action/member_create"
                         new_headers = {
-                            'X-CKAN-API-Key': token,
+                            'X-CKAN-API-Key': api_key,
                             'Content-Type': 'application/json'
                         }
                         response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -1001,7 +927,7 @@ def approve_package():
                     elif old_group['type'] == 'user_catalog':
                         api_url = f"{ckan_url}/api/3/action/member_create"
                         new_headers = {
-                            'X-CKAN-API-Key': api_key,
+                            'X-CKAN-API-Key': token,
                             'Content-Type': 'application/json'
                         }
                         response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -1013,9 +939,12 @@ def approve_package():
                         raise ValueError(f"Not authorized to add a dataset")
                 finally:
                     delete_api_token(token)
-                        
+
+            if input_groups:
+                index_approved_dataset(remote_dataset['id'], api_key)
+
             return remote_dataset
-        
+
         except logic.NotAuthorized:
             traceback.print_exc()
             return "Not authorized to approve this dataset.", 401            
@@ -1103,6 +1032,9 @@ def list_all_packages():
                         package['creator_email'] = user.email
                         # if package['creator_fullname'] and package['creator_email']:
                         #    packages.append(package)
+            cndp = request.args.get('cndp')
+            results["results"] = filter_datasets_by_cndp(package_list, cndp)
+            results["count"] = len(results["results"])
             return results
 
             
@@ -1130,7 +1062,6 @@ def list_all_packages():
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 def get_username_from_keycloak_token():
 
@@ -1420,7 +1351,7 @@ def my_prekan_package():
                 # check if the user is the creator or an admin
                 try:
                     logger.info(f"Found ckan user id: {user.id}, sysadmin: {user.sysadmin}")
-                    if (user.sysadmin or is_admin() or package["creator_user_id"] == user.id):
+                    if (user.sysadmin or is_admin() or is_reviewer() or package["creator_user_id"] == user.id):
                         logger.info(f"The current user is { 'an admin' if user.sysadmin else 'the creator'}")
                         return package
                 except:
@@ -1439,6 +1370,44 @@ def my_prekan_package():
     else:
         return "Method not allowed", 405  # For unsupported methods
 
+
+def get_creator_name(package):
+    creator_user_id = package.get('creator_user_id')
+    if not creator_user_id:
+        return None
+    logger.info(f"creator_user_id: {creator_user_id}")
+
+    api_url = f"{ckan_url}/api/3/action/user_show"
+    headers = {
+        'Authorization': api_key,
+        'Content-Type': 'application/json'
+    }
+    params = {
+        'id': creator_user_id
+    }
+    
+    try:
+        response = requests.get(api_url, headers=headers, params=params)
+        logger.info(f"response: {response.text}")
+        if response.status_code == 200:
+            user_data = response.json()
+            if user_data.get('success'):
+                user = user_data['result']
+                # Try fullname first, then display_name, finally username
+                return (user.get('fullname') or 
+                        user.get('display_name') or 
+                        user.get('name'))
+            else:
+                logger.info(f"API error: {user_data.get('error')}")
+                return None
+        else:
+            logger.info(f"HTTP error: {response.status_code}")
+            return None
+            
+    except requests.RequestException as e:
+        print(f"Request failed: {e}")
+        return None
+
     
 def get_approved_package():
     if request.method == 'POST' or request.method == 'GET':
@@ -1454,8 +1423,18 @@ def get_approved_package():
             response = requests.get(package_show_url, headers=headers, params={'id': id})
             if response.status_code == 200:
                 package = response.json()['result']
+
+                # add creator_name to the package
+                creator_name = get_creator_name(package)
+                logger.info(f"creator_name: {creator_name}")
+                if creator_name:
+                    package['creator_name'] = creator_name
+                    
                 if package["state"] == 'active':
                     if package["private"]:
+
+                        logger.info(f"fetched package: {json.dumps(package, indent=4)}")
+                        
                         # Get CKAN username
                         username, email, roles, user_id = get_username_from_keycloak_token()
                         logger.info(f"Got CKAN username and email and roles: {username}, {email}, {roles}")
@@ -1525,6 +1504,9 @@ def my_approved_packages():
                                         'rows': 1000})
         if response.status_code == 200:
             packages = response.json()['result']
+            cndp = request.args.get('cndp')
+            packages["results"] = filter_datasets_by_cndp(packages.get("results", []), cndp)
+            packages["count"] = len(packages["results"])
             return json.dumps(packages, indent=4)
         else:
             return response.text, 400
@@ -1622,9 +1604,15 @@ def update_my_approved_package():
                 
                 response = requests.post(api_url, data=json.dumps(dataset_dict), headers=new_headers)
                 if response.status_code == 200:
-                    return response.json()['result']
+                    updated_dataset = response.json()['result']
+
+                    # ==== Solr Indexing ====
+                    index_approved_dataset(updated_dataset['id'], api_key)
+                    # ==== End Solr Indexing ====
+
+                    return updated_dataset
                 else:
-                    raise ValueError(f"Failed to create dataset: {response.text}")
+                    raise ValueError(f"Failed to update dataset: {response.text}")
             finally:
                 delete_api_token(token)
         except Exception as e:
@@ -1701,26 +1689,12 @@ def get_ckan_id():
 
 from urllib.parse import urlencode
 
-def build_visibility_filter(user_project_ids):
-    filters = ['private:false']
-    
-    if user_project_ids:
-        # Build exact match conditions for each project ID
-        exact_matches = []
-        for project_id in user_project_ids:
-            # Use exact phrase matching
-            exact_matches.append(f'extras_existingGroupIds:"{project_id}"')
-        
-        # Combine with OR
-        group_filter = " OR ".join(exact_matches)
-        # Add to filters with private requirement
-        filters.append(f"({group_filter} AND private:true)")
-    
-    return ' OR '.join(filters)
 
-
-def build_visibility_filter(user_project_ids):
-    filters = ['private:false']
+def build_visibility_filter(user_project_ids, user_id):
+    
+    filters = ['(private:false)']
+    if user_id:
+        filters.append(f'(private:true AND creator_user_id:"{user_id}")')
     
     if user_project_ids:
         # Build exact match conditions for each project ID
@@ -1732,7 +1706,7 @@ def build_visibility_filter(user_project_ids):
         # Combine with OR
         group_filter = " OR ".join(exact_matches)
         # Add to filters with private requirement
-        filters.append(f"({group_filter} AND private:true)")
+        filters.append(f"(private:true AND ({group_filter}))")
     
     return ' OR '.join(filters)
 
@@ -1745,33 +1719,37 @@ def search_package():
                 data_dict = request.get_json() or {}
             else:
                 data_dict = dict(request.args)
-            logger.info(f"search package: {data_dict}")
+            logger.warning(f"search package: {data_dict}")
                 
             username, email, roles, user_id = get_username_from_keycloak_token()
-            logger.info(f"Got the user info: {username} {email} {user_id}")
-            
+            logger.warning(f"Got the user info: {username} {email} {user_id}")
+
+            try:
+                user = get_remote_user(username)
+                user_id = user['id']
+                logger.warning(f"Found ckan user id: {user['id']}")
+            except:
+                user_id = None
+
             group_ids = get_user_keycloak_groups(user_id)
-            group_ids = ['12345']
-            # group_ids = []
-            # group_ids = ['eaa879ce-7da0-4232-b447-447999ffc5f3']
-            logger.info(f"Got the user group: {group_ids}")
+            logger.warning(f"Got the user group: {group_ids}")
             
-            visibility_filter = build_visibility_filter(group_ids)
-            logger.info(f"visibility filter: {visibility_filter}")
+            visibility_filter = build_visibility_filter(group_ids, user_id)
+            logger.warning(f"visibility filter: {visibility_filter}")
 
             original_fq = data_dict.get('fq', '')
             modified_data_dict = data_dict.copy()
     
             if original_fq:
-                modified_data_dict['fq'] = f'({original_fq}) AND ({visibility_filter})'
+                modified_data_dict['fq'] = f'(({original_fq}) AND ({visibility_filter}))'
             else:
-                modified_data_dict['fq'] = visibility_filter
+                modified_data_dict['fq'] = f'({visibility_filter})'
     
             modified_data_dict['include_private'] = True
-            logger.info(f"Final fq: {modified_data_dict['fq']}")
+            logger.warning(f"modified_data_dict: {json.dumps(modified_data_dict, indent=4)}")
             
             package_search_url = f'{ckan_url}/api/3/action/package_search'
-            logger.info(f"API request URL: {package_search_url}?{urlencode(modified_data_dict)}")
+            logger.warning(f"API request URL: {package_search_url}?{urlencode(modified_data_dict)}")
 
             response = requests.get(package_search_url,
                                     headers=headers,
@@ -1791,3 +1769,82 @@ def search_package():
     else:
         return "Method not allowed", 405
 
+
+# ------------------------------------------------------
+
+
+def get_user_api_tokens(user_id_or_name):
+    """Get API tokens with minimal context"""
+    
+    context = {'ignore_auth': True}
+    data_dict = {'user': user_id_or_name}
+    
+    try:
+        tokens = toolkit.get_action('api_token_list')(context, data_dict)
+        return tokens
+    except Exception as e:
+        logger.info(f"Error: {e}")
+        return None
+
+
+def get_pop_prekan_token():
+    if request.method == 'POST' or request.method == 'GET':
+        try:
+            # Check for secret token in custom header (e.g., 'X-Secret-Token')
+            secret_token = request.headers.get('X-Secret-Token')
+
+            # Check the secret token occurence
+            if not secret_token:
+                return "Missing X-Secret-Token header", 401
+
+            # Validate the secret token
+            if secret_token != POP_SECRET_TOKEN:
+                return "Invalid X-Secret-Token", 403
+            logger.warning(f"Got the secret token")
+            
+            # Get or create the user from the keycloak token
+            user = get_or_create_user()
+
+            # Get the org parameter from the request   
+            org_name = toolkit.request.args.get('org')
+            if not org_name:
+                return f'Error: Missing required parameter: org', 401
+            logger.warning(f"Got get_pop_api_token request: {org_name}")
+                
+            organization = model.Group.get(munge_title_to_name(org_name))
+            if not organization:
+                logger.warning(f"create organization: {org_name}")
+                organization = process_user_and_organization(user, org_name, capacity='admin')
+            elif organization.description != 'Created by POP':
+                logger.warning(f"organization.description: {organization.description}")
+                return f'Error: Invalid organization {org_name}', 401
+            else:
+                logger.warning(f"fetch tokens")
+                token_names = get_user_api_tokens(user.id)
+                logger.warning(f"token_names: {token_names}")
+                if token_names:
+                    token_name = token_names[0]['name']
+                    logger.info(f"Got the first api token name: {token_name}")
+                    if not token_name.startswith(f'pop__{org_name}__{user.name}__'):
+                        pass
+                        # return f'Error: Invalid request', 401
+                else:
+                    pass
+                    # return f'Error: Invalid organization {org_name}', 401
+
+            token_dict = {
+                'name': f'pop__{org_name}__{user.name}__{int(datetime.now().timestamp())}',
+                'user': user.name
+            }
+
+            context = {'model': model, 'session': model.Session, 'user': 'ckan_admin'}
+            result = logic.get_action('api_token_create')(context, token_dict)
+            result['name'] = token_dict['name']
+            return result  # Returns the created token details
+            
+        except Exception as e:
+            traceback.print_exc()
+            logger.error(f"Error in get_pop_api_token: {str(e)}")
+            return f'Error: {str(e)}', 400
+    else:
+        return "Method not allowed", 405

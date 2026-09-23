@@ -1,10 +1,10 @@
+
 import os
 
 import requests
 from jose import jwt
 from jose.exceptions import JWTError
 from ckan.plugins import toolkit
-
 
 import logging
 
@@ -57,10 +57,13 @@ def get_user_info(token: str):
     
     decoded_token = verify_and_decode_token(token, server_url, realm, client_id)
     logger.warning(f"decoded_token: {decoded_token}")
+    
+    # print(f"decoded_token: {decoded_token}")
     if decoded_token:
         user_info = extract_user_info(decoded_token)
         return user_info
     else:
         raise toolkit.NotAuthorized('Invalid Keycloak token')
+
 
 
