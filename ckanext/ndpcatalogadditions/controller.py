@@ -561,11 +561,52 @@ def preserve_ndp_creator_md5(dataset_dict, user_id):
     return dataset_dict
 
 
+def check_package_ownership(user, package_id):
+    """
+    Check if the user is authorized to modify a package.
+
+    Args:
+        user: The current user object
+        package_id: The package id or name to check
+
+    Returns:
+        tuple: (is_authorized: bool, error_message: str, status_code: int)
+               If is_authorized is True, error_message and status_code will be None
+    """
+    if not package_id:
+        return False, 'Package id or name is required.', 400
+
+    try:
+        context = {'ignore_auth': True}
+        existing_package = logic.get_action('package_show')(context, {'id': package_id})
+
+        # Check if user is system admin - they can update any package
+        if user.sysadmin:
+            return True, None, None
+
+        # Check if the current user is the creator of the package
+        if existing_package.get('creator_user_id') != user.id:
+            return False, 'You are not authorized to update this package. Only the creator can update it.', 403
+
+        return True, None, None
+
+    except logic.NotFound:
+        return False, f'Package with id/name "{package_id}" not found.', 404
+    except logic.NotAuthorized:
+        return False, 'You are not authorized to view this package.', 403
+
+
 def update_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
             dataset_dict = request.get_json()
+
+            # Check if the user is authorized to update the package
+            package_id = dataset_dict.get('id') or dataset_dict.get('name')
+            is_authorized, error_msg, status_code = check_package_ownership(user, package_id)
+            if not is_authorized:
+                return f'Error: {error_msg}', status_code
 
             # Preserve ndp_creator_md5
             username, email, roles, user_id = get_username_from_keycloak_token()
@@ -593,7 +634,14 @@ def delete_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()            
+            dataset_dict = request.get_json()
+
+            # Check if the user is authorized to delete the package
+            package_id = dataset_dict.get('id') or dataset_dict.get('name')
+            is_authorized, error_msg, status_code = check_package_ownership(user, package_id)
+            if not is_authorized:
+                return f'Error: {error_msg}', status_code
+
             context = {'user': user.id}
             logic.get_action('package_delete')(context, dataset_dict)
             return f"The package '{dataset_dict['id']}' is deleted."
