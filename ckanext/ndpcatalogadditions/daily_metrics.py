@@ -177,6 +177,10 @@ def daily_metrics():
                 </div>
                 <div class="p-6 space-y-4">
                     <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Registered Users</span>
+                        <span id="journey-registered-users" class="text-lg font-bold text-gray-900" title="Total user accounts in Keycloak">--</span>
+                    </div>
+                    <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Unique Visitors</span>
                         <span id="journey-visitors" class="text-lg font-bold text-gray-900">--</span>
                     </div>
@@ -257,6 +261,15 @@ def daily_metrics():
                             <span class="text-sm font-medium text-gray-700">Private NDP Datasets</span>
                         </div>
                         <span id="global-private" class="font-bold text-gray-900">--</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-purple-100 text-purple-600 w-8 h-8 rounded-full flex items-center justify-center">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">Public CollabStudio Objects</span>
+                        </div>
+                        <span id="global-public-objects" class="font-bold text-gray-900" title="Public projects + data challenges + classrooms + workspaces">--</span>
                     </div>
                 </div>
             </div>
@@ -642,6 +655,7 @@ def daily_metrics():
                 if (logPeriod.days) {
                     document.getElementById('journey-period').textContent = 'Since ' + logPeriod.start_date + ' (' + logPeriod.days + ' days)';
                 }
+                document.getElementById('journey-registered-users').textContent = formatNumber(journey.registered_users);
                 document.getElementById('journey-visitors').textContent = formatNumber(journey.unique_visitors);
                 document.getElementById('datasets-viewed-btn').textContent = formatNumber(journey.datasets_viewed);
                 document.getElementById('journey-searches').textContent = formatNumber(journey.total_searches);
@@ -672,6 +686,19 @@ def daily_metrics():
                 const global = data.global_data_products || {};
                 document.getElementById('global-public').textContent = formatNumber(global.public_entries);
                 document.getElementById('global-private').textContent = formatNumber(global.private_entries);
+
+                // Public CollabStudio objects (projects + data challenges + classrooms + workspaces)
+                const publicEntities = data.public_entities || {};
+                const publicObjectsTotal = publicEntities.total != null
+                    ? publicEntities.total
+                    : (publicEntities.public_projects || 0) + (publicEntities.public_data_challenges || 0)
+                      + (publicEntities.public_classrooms || 0) + (publicEntities.public_workspaces || 0);
+                const publicObjectsEl = document.getElementById('global-public-objects');
+                publicObjectsEl.textContent = formatNumber(publicObjectsTotal);
+                publicObjectsEl.title = `Projects: ${publicEntities.public_projects ?? 0} · `
+                    + `Data Challenges: ${publicEntities.public_data_challenges ?? 0} · `
+                    + `Classrooms: ${publicEntities.public_classrooms ?? 0} · `
+                    + `Workspaces: ${publicEntities.public_workspaces ?? 0}`;
 
                 // Top Viewed
                 topViewedData = data.top_viewed || {};
