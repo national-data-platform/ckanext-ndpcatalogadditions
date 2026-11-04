@@ -234,7 +234,39 @@ def process_remote_user_and_organization(remote_user, organization):
         raise ValueError(f"Failed to add user to organization: {response.text}")
 
     return remote_organization
-    
+
+
+def ensure_creator_can_edit(username, package):
+    # Moving a dataset to another org leaves its creator without edit rights, so add the
+    # creator as an editor of the dataset's current org unless they can already edit there
+    owner_org = package.get('owner_org')
+    if not owner_org:
+        return
+
+    remote_user = get_remote_user(username)
+    if remote_user.get('sysadmin'):
+        return
+
+    response = requests.post(f'{ckan_url}/api/3/action/member_list', headers=headers,
+                             json={'id': owner_org, 'object_type': 'user'})
+    if response.status_code != 200 or not response.json().get('success'):
+        raise ValueError(f"Failed to list organization members: {response.text}")
+
+    # Never overwrite an existing editor or admin role (organization_member_create would demote an admin)
+    for user_id, _, capacity in response.json()['result']:
+        if user_id == remote_user['id'] and capacity.lower() in ('editor', 'admin'):
+            return
+
+    member_data = {
+        'id': owner_org,
+        'username': remote_user['name'],
+        'role': 'editor'
+    }
+    response = requests.post(f'{ckan_url}/api/3/action/organization_member_create', headers=headers, json=member_data)
+    if response.status_code != 200 or not response.json().get('success'):
+        raise ValueError(f"Failed to add user to organization: {response.text}")
+    logger.info(f"Added creator {remote_user['name']} as editor of organization {owner_org} for package {package['id']}")
+
 
 def create_api_token(username):
     api_url = f'{ckan_url}/api/3/action/api_token_create'
@@ -1569,7 +1601,11 @@ def update_my_approved_package():
                             if extra.get('key') == 'ndp_creator_md5':
                                 existing_ndp_creator_md5 = extra.get('value')
                                 break
-        
+
+                    # Only the verified creator gets edit rights restored on the dataset's current org
+                    if existing_ndp_creator_md5 and existing_ndp_creator_md5 == calculate_md5(id):
+                        ensure_creator_can_edit(username, package)
+
                     # Remove any ndp_creator_md5 from incoming data
                     if 'extras' in dataset_dict:
                         dataset_dict['extras'] = [
