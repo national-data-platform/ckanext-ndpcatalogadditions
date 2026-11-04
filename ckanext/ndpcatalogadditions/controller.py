@@ -24,7 +24,7 @@ ckan_url = ckan_url.replace('catalog2', 'catalog')
 
 api_key = os.getenv('CKANEXT__NDPCATALOGADDITIONS__API_KEY')
 headers = {
-    'X-CKAN-API-Key': api_key,
+    'Authorization': api_key,
     'Content-Type': 'application/json'
 }
 
@@ -297,7 +297,7 @@ def save_remote_dataset(remote_user, dataset):
     try:
         api_url = f"{ckan_url}/api/3/action/package_create"
         new_headers = {
-            'X-CKAN-API-Key': token,
+            'Authorization': token,
             'Content-Type': 'application/json'
         }
         response = requests.post(api_url, data=json.dumps(dataset), headers=new_headers)
@@ -851,7 +851,7 @@ def approve_package():
                 try:
                     api_url = f"{ckan_url}/api/3/action/group_list_authz"
                     new_headers = {
-                        'X-CKAN-API-Key': api_key,
+                        'Authorization': api_key,
                         'Content-Type': 'application/json'
                     }
                     data_dict = {}
@@ -1013,7 +1013,7 @@ def approve_package():
                     if old_group['type'] == 'pathfinder_catalog' or old_group['type'] == 'datahub_catalog':
                         api_url = f"{ckan_url}/api/3/action/member_create"
                         new_headers = {
-                            'X-CKAN-API-Key': api_key,
+                            'Authorization': api_key,
                             'Content-Type': 'application/json'
                         }
                         response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -1024,7 +1024,7 @@ def approve_package():
                     elif old_group['type'] == 'user_catalog':
                         api_url = f"{ckan_url}/api/3/action/member_create"
                         new_headers = {
-                            'X-CKAN-API-Key': token,
+                            'Authorization': token,
                             'Content-Type': 'application/json'
                         }
                         response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -1581,7 +1581,7 @@ def update_my_approved_package():
                 # should we allow to change a public dataset to a private dataset?
                 api_url = f"{ckan_url}/api/3/action/package_update"
                 new_headers = {
-                    'X-CKAN-API-Key': token,
+                    'Authorization': token,
                     'Content-Type': 'application/json'
                 }
 
