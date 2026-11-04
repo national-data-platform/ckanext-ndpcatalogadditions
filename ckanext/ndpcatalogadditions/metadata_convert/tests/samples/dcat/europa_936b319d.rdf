@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:dct="http://purl.org/dc/terms/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:prov="http://www.w3.org/ns/prov#"
+    xmlns:vcard="http://www.w3.org/2006/vcard/ns#"
+    xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+    xmlns:locn="http://www.w3.org/ns/locn#"
+    xmlns:dcat="http://www.w3.org/ns/dcat#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:j.0="http://data.europa.eu/930/"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/">
+  <dcat:DatasetSeries rdf:about="http://data.europa.eu/88u/dataset/936b319d-5253-425d-bd29-4b6ebce067ff">
+    <dcat:keyword xml:lang="en">NOAA-14</dcat:keyword>
+    <dct:title xml:lang="pl-t-en-t0-mtec">AVHRR - Temperatura powierzchni ziemi (LST) - Europa, Noc</dct:title>
+    <dct:description xml:lang="en">The "Land Surface Temperature derived from NOAA-AVHRR data (LST_AVHRR)" is a fixed grid map (in stereographic projection) with a spatial resolution of 1.1 km. The total size covering Europe is 4100 samples by 4300 lines. Within 24 hours of acquiring data from the satellite, day-time and night-time LSTs are calculated. In general, the products utilise data from all six of the passes that the satellite makes over Europe in each 24 hour period. For the daily day-time LST maps, the compositing criterion for the three day-time passes is maximum NDVI value and for daily night-time LST maps, the criterion is the maximum night-time LST value of the three night-time passes. Weekly and monthly day-time or night-time LST composite products are also produced by averaging daily day-time or daily night-time LST values, respectively. The range of LST values is scaled between –39.5°C and +87°C with a radiometric resolution of 0.5°C. A value of –40°C is used for water. Clouds are masked out as bad values. For additional information, please see: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:title xml:lang="mt-t-en-t0-mtec">AVHRR - Land Surface Temperature (LST) - Europe, Nighttime</dct:title>
+    <dcat:keyword xml:lang="en">NOAA-17</dcat:keyword>
+    <dct:title xml:lang="en">AVHRR - Land Surface Temperature (LST) - Europe, Nighttime</dct:title>
+    <dct:title xml:lang="cs-t-en-t0-mtec">AVHRR - Teplota zemského povrchu (LST) - Evropa, Noční</dct:title>
+    <dct:description xml:lang="pt-t-en-t0-mtec">A "temperatura da superfície terrestre derivada dos dados NOAA-AVHRR (LST_AVHRR)" é um mapa quadriculado fixo (em projeção estereográfica) com uma resolução espacial de 1,1 km. A dimensão total que cobre a Europa é de 4100 amostras por 4300 linhas. No prazo de 24 horas após a aquisição dos dados do satélite, são calculadas as LST diurnas e nocturnas. Em geral, os produtos utilizam dados de todos os seis passes que o satélite faz sobre a Europa em cada período de 24 horas. Para os mapas LST diurnos diários, o critério de composição para os três passes diurnos é o valor NDVI máximo e para os mapas LST noturnos diários, o critério é o valor LST noturno máximo dos três passes noturnos. Os produtos compostos LST semanais e mensais diurnos ou noturnos são também produzidos através da média dos valores LST diários diurnos ou noturnos diários, respetivamente. A gama de valores LST é dimensionada entre –39,5 °C e +87 °C com uma resolução radiométrica de 0,5 °C. Utiliza-se um valor de –40 °C para a água. Nuvens são mascaradas como maus valores. Para mais informações, consultar: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:title xml:lang="lt-t-en-t0-mtec">AVHRR - Žemės paviršiaus temperatūra (LST) - Europa, naktinis laikas</dct:title>
+    <dct:title xml:lang="sl-t-en-t0-mtec">AVHRR - Temperatura kopnega (LST) - Evropa, Nočni čas</dct:title>
+    <dct:description xml:lang="sv-t-en-t0-mtec">"Markytans temperatur härledd från NOAA-AVHRR-data (LST_AVHRR)" är en fast rutnätskarta (i stereografisk projektion) med en rumslig upplösning på 1,1 km. Den totala storleken som täcker Europa är 4100 prover med 4300 linjer. Inom 24 timmar efter insamling av data från satelliten, dagtid och nattetid LSTs beräknas. I allmänhet använder produkterna data från alla sex pass som satelliten gör över Europa under varje 24-timmarsperiod. För de dagliga LST-kartorna dagtid är sammansättningskriteriet för de tre dagtidspassen maximalt NDVI-värde och för de dagliga LST-kartorna nattetid är kriteriet det maximala LST-värdet nattetid för de tre nattpassen. Veckovis och månatlig dagtid eller nattetid LST-kompositprodukter produceras också genom medelvärden för daglig dagtid respektive daglig nattetid LST-värden. Intervallet för LST-värden skalas mellan – 39,5 °C och + 87 °C med en radiometrisk upplösning på 0,5 °C. Ett värde på – 40 °C används för vatten. Moln maskeras som dåliga värden. För ytterligare information, se: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dcat:keyword xml:lang="en">NOAA-16</dcat:keyword>
+    <dct:description xml:lang="de-t-en-t0-mtec">Die "Land Surface Temperature derived from NOAA-AVHRR data (LST_AVHRR)" ist eine Festnetzkarte (in stereographischer Projektion) mit einer räumlichen Auflösung von 1,1 km. Die Gesamtgröße für Europa beträgt 4100 Proben von 4300 Zeilen. Innerhalb von 24 Stunden nach der Datenerfassung vom Satelliten werden Tag- und Nacht-LSTs berechnet. Im Allgemeinen verwenden die Produkte Daten aus allen sechs Pässen, die der Satellit in jedem 24-Stunden-Zeitraum über Europa macht. Für die tagesaktuellen LST-Karten ist das Compositing-Kriterium für die drei Tageskarten der maximale NDVI-Wert, und für die tagesaktuellen LST-Karten ist das Kriterium der maximale nächtliche LST-Wert der drei Nachtkarten. Wöchentliche und monatliche LST-Composite-Produkte für Tag und Nacht werden auch durch durchschnittlich tägliche LST-Werte für Tag und Nacht erzeugt. Der Bereich der LST-Werte wird zwischen –39,5 °C und +87 °C mit einer radiometrischen Auflösung von 0,5 °C skaliert. Für Wasser wird ein Wert von –40 °C verwendet. Wolken werden als schlechte Werte ausgeblendet. Weitere Informationen finden Sie unter: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:title xml:lang="fi-t-en-t0-mtec">AVHRR - Maanpinnan lämpötila (LST) - Europe, Nighttime</dct:title>
+    <foaf:isPrimaryTopicOf rdf:parseType="Resource">
+    </foaf:isPrimaryTopicOf>
+    <dct:description xml:lang="mt-t-en-t0-mtec">It-“Temperatura tal-Wiċċ tal-Art derivata mid-data NOAA-AVHRR (LST_AVHRR)” hija mappa tal-grilja fissa (fi projezzjoni stereografika) b’riżoluzzjoni spazjali ta’ 1.1 km. Id-daqs totali li jkopri l-Ewropa huwa ta’ 4100 kampjun b’4300 linja. Fi żmien 24 siegħa mill-akkwist tad-data mis-satellita, jiġu kkalkulati l-LSTs binhar u billejl. B’mod ġenerali, il-prodotti jużaw data mis-sitt passes kollha li s-satellita tagħmel fl-Ewropa f’kull perjodu ta’ 24 siegħa. Għall-mapep LST ta’ kuljum ta’ matul il-jum, il-kriterju ta’ kompożizzjoni għat-tliet passes ta’ matul il-jum huwa l-valur NDVI massimu u għall-mapep LST ta’ kuljum ta’ matul il-lejl, il-kriterju huwa l-valur LST massimu ta’ matul il-lejl tat-tliet passes ta’ matul il-lejl. Il-prodotti komposti LST ta 'kuljum u ta' kull xahar jew bil-lejl huma prodotti wkoll mill-medja tal-valuri LST ta 'kuljum jew ta' bil-lejl ta 'kuljum, rispettivament. Il-medda ta’ valuri LST hija skalata bejn –39.5°C u +87°C b’riżoluzzjoni radjumetrika ta’ 0.5°C. Għall-ilma jintuża valur ta’ –40°C. Is-sħab huma moħbija bħala valuri ħżiena. Għal aktar informazzjoni, jekk jogħġbok ara: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:title xml:lang="lv-t-en-t0-mtec">AVHRR - Zemes virsmas temperatūra (LST) - Eiropa, nakts</dct:title>
+    <j.0:topicCategory rdf:resource="http://inspire.ec.europa.eu/metadata-codelist/TopicCategory/environment"/>
+    <dct:description xml:lang="hr-t-en-t0-mtec">"Temperatura površine zemljišta izvedena iz NOAA-AVHRR podataka (LST_AVHRR)" je karta fiksne mreže (u stereografskoj projekciji) s prostornom rezolucijom od 1,1 km. Ukupna veličina koja pokriva Europu iznosi 4100 uzoraka po 4300 linija. U roku od 24 sata od dobivanja podataka od satelita izračunavaju se dnevni i noćni LST-ovi. Općenito, proizvodi koriste podatke iz svih šest prolaza koje satelit čini preko Europe u svakom razdoblju od 24 sata. Kad je riječ o dnevnim kartama LST-a, kriterij kompozicije za tri dnevne propusnice maksimalna je vrijednost NDVI-ja, a kad je riječ o dnevnim kartama LST-a po noći, kriterij je maksimalna vrijednost LST-a po noći za tri noćne propusnice. Tjedni i mjesečni kombinirani proizvodi za LST tijekom dana ili noći također se proizvode uprosječivanjem dnevnih dnevnih vrijednosti LST-a odnosno dnevnih vrijednosti LST-a tijekom noći. Raspon vrijednosti LST-a skalira se između –39,5 °C i +87 °C uz radiometrijsku razlučivost od 0,5 °C. Za vodu se upotrebljava vrijednost od –40 °C. Oblaci su maskirani kao loše vrijednosti. Za dodatne informacije vidjeti: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <j.0:resourceType rdf:resource="http://inspire.ec.europa.eu/metadata-codelist/ResourceType/series"/>
+    <dct:title xml:lang="nl-t-en-t0-mtec">AVHRR - Landoppervlaktemperatuur (LST) - Europa, Nacht</dct:title>
+    <dct:title xml:lang="de-t-en-t0-mtec">AVHRR - Landoberflächentemperatur (LST) - Europa, Nacht</dct:title>
+    <dct:description xml:lang="et-t-en-t0-mtec">NOAA-AVHRRi andmetest tuletatud maapinna temperatuur (LST_AVHRR) on fikseeritud võrgukaart (stereograafilises projektsioonis), mille ruumiline eraldusvõime on 1,1 km. Kogu Euroopat hõlmav suurus on 4100 proovi 4300 liini kohta. 24 tunni jooksul pärast satelliidilt andmete saamist arvutatakse päevane ja öine LST. Üldiselt kasutavad tooted andmeid kõigist kuuest passist, mida satelliit Euroopas iga 24 tunni jooksul läbib. Päevase päevase LST kaartide puhul on kolme päevase läbipääsuloa koostamise kriteeriumiks NDVI maksimumväärtus ja öise päevase LST kaartide koostamise kriteeriumiks kolme öise läbipääsuloa öise päevase LST maksimumväärtus. Iganädalasi ja igakuiseid päevaseid või öiseid LST liittooteid toodetakse ka päevase või öise LST väärtuste keskmistamise teel. LST väärtuste vahemik on vahemikus –39,5 °C kuni +87 °C radiomeetrilise lahutusvõimega 0,5 °C. Vee puhul kasutatakse väärtust –40 °C. Pilved on maskeeritud halbadeks väärtusteks. Lisateabe saamiseks vt: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:description xml:lang="el-t-en-t0-mtec">Η "Θερμοκρασία επιφάνειας γης που προέρχεται από δεδομένα NOAA-AVHRR (LST_AVHRR)" είναι ένας σταθερός χάρτης πλέγματος (σε στερεογραφική προβολή) με χωρική ανάλυση 1,1 km. Το συνολικό μέγεθος που καλύπτει την Ευρώπη είναι 4100 δείγματα από 4300 γραμμές. Εντός 24 ωρών από τη λήψη δεδομένων από τον δορυφόρο, υπολογίζονται οι LST κατά τη διάρκεια της ημέρας και της νύχτας. Σε γενικές γραμμές, τα προϊόντα χρησιμοποιούν δεδομένα και από τα έξι περάσματα που κάνει ο δορυφόρος πάνω από την Ευρώπη σε κάθε περίοδο 24 ωρών. Για τους ημερήσιους χάρτες LST κατά τη διάρκεια της ημέρας, το κριτήριο σύνθεσης για τις τρεις ημερήσιες διελεύσεις είναι η μέγιστη τιμή NDVI και για τους ημερήσιους χάρτες LST κατά τη διάρκεια της νύχτας, το κριτήριο είναι η μέγιστη τιμή LST κατά τη διάρκεια της νύχτας για τις τρεις νυκτερινές διελεύσεις. Τα εβδομαδιαία και μηνιαία σύνθετα προϊόντα LST κατά τη διάρκεια της ημέρας ή της νύχτας παράγονται επίσης με τον μέσο όρο των ημερήσιων τιμών LST κατά τη διάρκεια της ημέρας ή της νύχτας, αντίστοιχα. Το εύρος των τιμών LST κλιμακώνεται μεταξύ –39,5 °C και +87 °C με ραδιομετρική ανάλυση 0,5 °C. Για το νερό χρησιμοποιείται τιμή –40 °C. Τα σύννεφα αποκρύπτονται ως κακές αξίες. Για περισσότερες πληροφορίες, βλ.: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dcat:distribution>
+      <dcat:Distribution>
+        <dct:description xml:lang="en">EOWEB GeoPortal Collection</dct:description>
+        <dcat:accessURL rdf:resource="https://eoweb.dlr.de/guestegp/main?ecswCollection=urn%3Aeop%3ADLR%3AEOWEB%3ANOAA.AVHRR.LST_N"/>
+        <dct:license>
+          <dct:LicenseDocument>
+            <rdfs:label xml:lang="en">License: https://geoservice.dlr.de/resources/licenses/D-SDA_DataLicenseTerms.pdf</rdfs:label>
+          </dct:LicenseDocument>
+        </dct:license>
+        <dct:title xml:lang="en">AVHRR - Land Surface Temperature (LST) - Europe, Nighttime</dct:title>
+        <dcat:accessService>
+          <dcat:DataService rdf:about="urn:edp-geo-harvest:936b319d-5253-425d-bd29-4b6ebce067ff_d834083e5010">
+            <j.0:serviceProtocol>
+              <dct:Standard rdf:about="http://www.opengeospatial.org/standards/cat"/>
+            </j.0:serviceProtocol>
+            <j.0:serviceType rdf:resource="http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/discovery"/>
+            <dcat:endpointDescription rdf:resource="https://eoweb.dlr.de/guestegp/main?ecswCollection=urn%3Aeop%3ADLR%3AEOWEB%3ANOAA.AVHRR.LST_N"/>
+            <dcat:endpointURL rdf:resource="https://eoweb.dlr.de/guestegp/main"/>
+            <dct:title xml:lang="en">AVHRR - Land Surface Temperature (LST) - Europe, Nighttime</dct:title>
+          </dcat:DataService>
+        </dcat:accessService>
+      </dcat:Distribution>
+    </dcat:distribution>
+    <dct:description xml:lang="hu-t-en-t0-mtec">A "NOAA-AVHRR adatokból származtatott földfelszíni hőmérséklet (LST_AVHRR)" egy 1,1 km-es térbeli felbontású rögzített rácstérkép (sztereográfiai vetületben). Az Európára kiterjedő teljes méret 4100 minta 4300 sorban. A műholdas adatok beszerzésétől számított 24 órán belül kiszámítják a nappali és éjszakai LST-ket. Általánosságban elmondható, hogy a termékek mind a hat áthaladás adatait felhasználják, amelyeket a műhold Európa-szerte minden 24 órás időszakban tesz. A napi nappali LST-térképek esetében a három nappali bérlet összeállítási kritériuma a maximális NDVI-érték, a napi éjszakai LST-térképek esetében pedig a három éjszakai bérlet maximális éjszakai LST-értéke. A heti és havi nappali vagy éjszakai LST összetett termékeket a napi nappali, illetve napi éjszakai LST értékek átlagolásával is előállítják. Az LST-értékek tartományát –39,5 °C és +87 °C között skálázzák 0,5 °C radiometrikus felbontással. Víz esetében –40 °C értéket használnak. A felhők rossz értékekként vannak elrejtve. További információkért kérjük, látogasson el a következő weboldalra: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dcat:keyword xml:lang="en">urn:eop:DLR:EOWEB:NOAA.AVHRR.LST_N</dcat:keyword>
+    <dcat:theme rdf:resource="http://publications.europa.eu/resource/authority/data-theme/ENVI"/>
+    <dct:description xml:lang="ga-t-en-t0-mtec">Is éard atá sa ‘Teocht Dromchla Talún a dhíorthaítear ó shonraí NOAA-AVHRR (LST_AVHRR)’ léarscáil ghreille sheasta (i dteilgean steiréagrafach) ag a bhfuil taifeach spásúil 1.1 km. Is é an méid iomlán a chlúdaíonn an Eoraip ná 4100 sampla faoi 4300 líne. Laistigh de 24 uair an chloig ó shonraí a fháil ón tsatailít, déantar LSTanna lae agus oíche a ríomh. Go ginearálta, úsáideann na táirgí sonraí ó gach ceann de na sé phas a dhéanann an tsatailít thar an Eoraip i ngach tréimhse 24 uair an chloig. I gcás léarscáileanna laethúla LST i rith an lae, is é uasluach NDVI an critéar cumadóireachta le haghaidh na dtrí phas i rith an lae agus i gcás léarscáileanna laethúla LST i rith na hoíche, is é uasluach LST i rith na hoíche na dtrí phas i rith na hoíche an critéar. Déantar táirgí ilchodacha LST seachtainiúla agus míosúla i rith an lae nó san oíche a tháirgeadh freisin trí mheánluachanna LST laethúla i rith an lae nó san oíche laethúil, faoi seach. Déantar raon na luachanna LST a scálú idir –39.5 °C agus +87 °C le taifeach radaiméadrach 0.5 °C. Úsáidtear luach –40 °C le haghaidh uisce. Déantar scamaill a cheilt mar dhrochluachanna. Chun tuilleadh eolais a fháil, féach: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:description xml:lang="lt-t-en-t0-mtec">"Žemės paviršiaus temperatūra, nustatyta pagal NOAA-AVHRR duomenis (LST_AVHRR)" yra fiksuotas tinklelio žemėlapis (stereografinėje projekcijoje), kurio erdvinė skiriamoji geba yra 1,1 km. Bendras Europą dengiantis dydis yra 4100 mėginių iš 4300 linijų. Per 24 valandas nuo duomenų gavimo iš palydovo apskaičiuojami dienos ir nakties LST. Apskritai, produktai naudoja duomenis iš visų šešių perėjimų, kuriuos palydovas atlieka per Europą per kiekvieną 24 valandų laikotarpį. Dienos dieninių LST žemėlapių atveju trijų dienos pravažiavimų komponavimo kriterijus yra didžiausia NDVI vertė, o dienos nakties LST žemėlapių atveju – didžiausia trijų nakties pravažiavimų nakties LST vertė. Savaitės ir mėnesio dienos ir nakties LST sudėtiniai produktai taip pat gaminami atitinkamai apskaičiuojant dienos ir dienos ir nakties LST vertes. LST verčių intervalas yra nuo –39,5 °C iki +87 °C, o radiometrinė skiriamoji geba – 0,5 °C. Vandeniui naudojama –40 °C vertė. Debesys yra užmaskuoti kaip blogos vertybės. Papildomos informacijos ieškokite: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:description xml:lang="es-t-en-t0-mtec">La "Temperatura de la superficie terrestre derivada de los datos NOAA-AVHRR (LST_AVHRR)" es un mapa de cuadrícula fija (en proyección estereográfica) con una resolución espacial de 1,1 km. El tamaño total que cubre Europa es de 4100 muestras por 4300 líneas. Dentro de las 24 horas posteriores a la adquisición de datos del satélite, se calculan los LST diurnos y nocturnos. En general, los productos utilizan datos de los seis pases que el satélite realiza en Europa en cada período de 24 horas. Para los mapas LST diarios diurnos, el criterio de composición para los tres pases diurnos es el valor NDVI máximo y para los mapas LST diarios nocturnos, el criterio es el valor LST máximo nocturno de los tres pases nocturnos. Los productos compuestos LST semanales y mensuales diurnos o nocturnos también se producen promediando los valores LST diarios diurnos o nocturnos diarios, respectivamente. El intervalo de valores LST se escala entre –39,5 °C y +87 °C con una resolución radiométrica de 0,5 °C. Para el agua se utiliza un valor de –40 °C. Las nubes son enmascaradas como malos valores. Para más información, véase: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:language>
+      <dct:LinguisticSystem rdf:about="http://publications.europa.eu/resource/authority/language/ENG"/>
+    </dct:language>
+    <dct:description xml:lang="ro-t-en-t0-mtec">"Temperatura suprafeței terenului derivată din datele NOAA-AVHRR (LST_AVHRR)" este o hartă fixă (în proiecție stereografică) cu o rezoluție spațială de 1,1 km. Dimensiunea totală care acoperă Europa este de 4100 de eșantioane pe 4300 de linii. În termen de 24 de ore de la obținerea datelor de la satelit, se calculează LST-urile pe timp de zi și pe timp de noapte. În general, produsele utilizează date de la toate cele șase treceri pe care satelitul le face peste Europa în fiecare perioadă de 24 de ore. Pentru hărțile zilnice LST pe timp de zi, criteriul de compoziție pentru cele trei treceri pe timp de zi este valoarea maximă NDVI, iar pentru hărțile zilnice LST pe timp de noapte, criteriul este valoarea maximă LST pe timp de noapte a celor trei treceri pe timp de noapte. Produsele compozite LST săptămânale și lunare pe timp de zi sau pe timp de noapte sunt, de asemenea, produse prin calcularea valorilor medii zilnice pe timp de zi sau, respectiv, pe timp de noapte. Intervalul valorilor LST este scalat între –39,5 °C și +87 °C cu o rezoluție radiometrică de 0,5 °C. Pentru apă se utilizează o valoare de –40 °C. Norii sunt mascați ca valori rele. Pentru informații suplimentare, vă rugăm să consultați: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:title xml:lang="el-t-en-t0-mtec">AVHRR - Θερμοκρασία επιφάνειας γης (LST) - Ευρώπη, Νύχτα</dct:title>
+    <dct:title xml:lang="sk-t-en-t0-mtec">AVHRR - Teplota zemského povrchu (LST) - Európa, nočné</dct:title>
+    <dct:title xml:lang="pt-t-en-t0-mtec">AVHRR - Temperatura da Superfície Terrestre (LST) - Europa, Noite</dct:title>
+    <dct:description xml:lang="it-t-en-t0-mtec">La "Temperatura superficiale del suolo derivata dai dati NOAA-AVHRR (LST _AVHRR)" è una mappa a griglia fissa (in proiezione stereografica) con una risoluzione spaziale di 1,1 km. La dimensione totale che copre l'Europa è di 4100 campioni per 4300 linee. Entro 24 ore dall'acquisizione dei dati dal satellite, vengono calcolati LST diurni e notturni. In generale, i prodotti utilizzano i dati di tutti e sei i passaggi che il satellite fa sull'Europa in ogni periodo di 24 ore. Per le mappe LST giornaliere diurne, il criterio di compositing per i tre abbonamenti diurni è il valore NDVI massimo e per le mappe LST giornaliere notturne, il criterio è il valore LST notturno massimo dei tre abbonamenti notturni. I prodotti compositi LST settimanali e mensili diurni o notturni sono prodotti anche calcolando la media dei valori LST giornalieri diurni o notturni giornalieri, rispettivamente. L'intervallo dei valori LST è scalato tra –39,5°C e +87°C con una risoluzione radiometrica di 0,5°C. Per l'acqua è utilizzato un valore di –40°C. Le nuvole sono mascherate come valori negativi. Per ulteriori informazioni, si prega di consultare: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dcat:keyword xml:lang="en">NOAA-19</dcat:keyword>
+    <dcat:theme>
+      <skos:Concept>
+        <skos:prefLabel>Land cover</skos:prefLabel>
+        <skos:inScheme>
+          <skos:ConceptScheme>
+            <dct:title xml:lang="en">GEMET - INSPIRE themes, version 1.0</dct:title>
+            <dct:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"
+            >2008-06-01</dct:issued>
+          </skos:ConceptScheme>
+        </skos:inScheme>
+      </skos:Concept>
+    </dcat:theme>
+    <dct:title xml:lang="sv-t-en-t0-mtec">AVHRR - Markytans temperatur (LST) - Europa, nattetid</dct:title>
+    <dct:title xml:lang="da-t-en-t0-mtec">AVHRR - Overfladetemperatur på land (LST) - Europa, nat</dct:title>
+    <dct:description xml:lang="lv-t-en-t0-mtec">"Zemes virsmas temperatūra, kas atvasināta no NOAA-AVHRR datiem (LST_AVHRR)" ir fiksēta koordinātu tīkla karte (stereogrāfiskā projekcija) ar telpisko izšķirtspēju 1,1 km. Kopējais lielums, kas aptver Eiropu, ir 4100 paraugi ar 4300 līnijām. 24 stundu laikā pēc datu iegūšanas no satelīta tiek aprēķināti dienas un nakts LST. Kopumā produkti izmanto datus no visām sešām caurlaidēm, ko satelīts veic Eiropā katrā 24 stundu periodā. Diennakts LST kartēm kompostēšanas kritērijs trim dienas caurlaidēm ir maksimālā NDVI vērtība, un dienas nakts LST kartēm kritērijs ir trīs nakts caurlaižu maksimālā nakts LST vērtība. Nedēļas un mēneša dienas vai nakts LST saliktos produktus ražo arī, aprēķinot attiecīgi dienas vai nakts LST vērtību vidējo vērtību. LST vērtību diapazons ir no –39,5 °C līdz +87 °C ar radiometrisko izšķirtspēju 0,5 °C. Attiecībā uz ūdeni izmanto vērtību –40 °C. Mākoņi tiek maskēti kā sliktas vērtības. Papildu informāciju skatīt: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:temporal>
+      <dct:PeriodOfTime>
+        <dcat:startDate rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+        >1998-02-23T15:00:00</dcat:startDate>
+      </dct:PeriodOfTime>
+    </dct:temporal>
+    <dct:title xml:lang="ga-t-en-t0-mtec">AVHRR - Teocht Dromchla Talún (LST) - An Eoraip, Oíche</dct:title>
+    <dct:provenance>
+      <dct:ProvenanceStatement>
+        <rdfs:label xml:lang="en">The LST maps are calculated using AVHRR channel 4 and 5, only. All LST products consist of one LST channel. The major processing steps are:
+1. Automatic pre-navigation / Interactive supervision 
+2. Calibration of thermal channels of NOAA-11, NOAA-14, NOAA-16, NOAA-17 and NOAA-18 AVHRR 
+3. Cloud Screening and Clearing 
+3.1. Cloud detection scheme for NIGHT TIME LST from NOAA-14 AVHRR 
+3.2. Cloud detection scheme for NIGHT TIME LST from NOAA-16 AVHRR 
+4. Derivation of the LST 
+5. Remapping 
+Further information is available at http://wdc.dlr.de/sensors/avhrr/ and Dech, S., Tungalagsaikhan, P., Preusser, C., &amp; Meisner, R., 1998. Operational value-adding to AVHRR data over Europe: methods, results, and prospects. Aerospace Science and Technology, 5, 335-346.</rdfs:label>
+      </dct:ProvenanceStatement>
+    </dct:provenance>
+    <dcat:contactPoint>
+      <vcard:Organization>
+        <vcard:hasEmail rdf:resource="mailto:geoservice@dlr.de"/>
+        <vcard:hasAddress>
+          <vcard:Address/>
+        </vcard:hasAddress>
+        <vcard:fn>German Aerospace Center (DLR)</vcard:fn>
+      </vcard:Organization>
+    </dcat:contactPoint>
+    <dct:title xml:lang="bg-t-en-t0-mtec">AVHRR - Температура на земната повърхност (LST) - Европа, Нощно време</dct:title>
+    <prov:qualifiedAttribution>
+      <prov:Attribution>
+        <prov:agent>
+          <foaf:Organization>
+            <foaf:mbox rdf:resource="mailto:geoservice@dlr.de"/>
+            <locn:address>
+              <locn:Address/>
+            </locn:address>
+            <foaf:name>German Aerospace Center (DLR)</foaf:name>
+          </foaf:Organization>
+        </prov:agent>
+        <dcat:hadRole>
+          <dcat:Role rdf:about="http://inspire.ec.europa.eu/metadata-codelist/ResponsiblePartyRole/pointOfContact"/>
+        </dcat:hadRole>
+      </prov:Attribution>
+    </prov:qualifiedAttribution>
+    <dct:description xml:lang="bg-t-en-t0-mtec">"Температура на земната повърхност, получена от данни на NOAA-AVHRR (LST_AVHRR)" е карта с фиксирана координатна мрежа (в стереографска проекция) с пространствена разделителна способност 1,1 km. Общият размер, покриващ Европа, е 4100 проби от 4300 линии. В рамките на 24 часа от получаването на данни от спътника се изчисляват дневни и нощни LSTs. Като цяло продуктите използват данни от всичките шест пропуска, които сателитът прави над Европа за всеки 24-часов период. За дневните LST карти критерият за съставяне на трите дневни пропуска е максималната стойност NDVI, а за дневните LST карти през нощта критерият е максималната стойност LST през нощта на трите нощни пропуска. Седмичните и месечните дневни или нощни съставни продукти на LST също се произвеждат чрез осредняване съответно на дневните дневни или дневните нощни стойности на LST. Диапазонът на стойностите на LST се измерва между –39,5 °C и +87 °C с радиометрична разделителна способност от 0,5 °C. За водата се използва стойност от –40 °C. Облаците са маскирани като лоши ценности. За допълнителна информация, моля, вижте: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:title xml:lang="es-t-en-t0-mtec">AVHRR - Temperatura de la superficie terrestre (LST) - Europa, Noche</dct:title>
+    <dcat:keyword xml:lang="en">NOAA-18</dcat:keyword>
+    <dct:description xml:lang="sl-t-en-t0-mtec">"Temperatura talne površine, izpeljana iz podatkov NOAA-AVHRR (LST_AVHRR)" je fiksna mrežna karta (v stereografski projekciji) s prostorsko ločljivostjo 1,1 km. Skupna velikost, ki zajema Evropo, je 4100 vzorcev s 4300 črtami. V 24 urah po pridobitvi podatkov iz satelita se izračunajo dnevni in nočni LST. Na splošno izdelki uporabljajo podatke iz vseh šestih prehodov, ki jih satelit naredi nad Evropo v vsakem 24-urnem obdobju. Za dnevne dnevne zemljevide LST je merilo za sestavljanje treh dnevnih prehodov najvišja vrednost NDVI, za dnevne nočne zemljevide LST pa je merilo najvišja nočna vrednost LST treh nočnih prehodov. Tedenski in mesečni dnevni ali nočni sestavljeni proizvodi LST se proizvajajo tudi s povprečjem dnevnih dnevnih oziroma dnevnih nočnih vrednosti LST. Razpon vrednosti LST je skaliran med –39,5 °C in +87 °C z radiometrično ločljivostjo 0,5 °C. Za vodo se uporablja vrednost –40 °C. Oblaki so zakriti kot slabe vrednote. Dodatne informacije so na voljo na: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:title xml:lang="et-t-en-t0-mtec">AVHRR - Maapinna temperatuur (LST) - Euroopa, Öine</dct:title>
+    <dct:title xml:lang="uk-t-en-t0-mtec">AVHRR - Температура поверхні землі (LST) - Європа, нічний час</dct:title>
+    <dcat:keyword xml:lang="en">AVHRR</dcat:keyword>
+    <prov:wasUsedBy>
+      <prov:Activity>
+        <prov:generated>
+          <prov:Entity>
+            <dct:description xml:lang="en">See the referenced specification</dct:description>
+            <dct:type rdf:resource="http://inspire.ec.europa.eu/metadata-codelist/DegreeOfConformity/conformant"/>
+          </prov:Entity>
+        </prov:generated>
+        <prov:qualifiedAssociation>
+          <prov:Association>
+            <prov:hadPlan>
+              <prov:Plan>
+                <prov:wasDerivedFrom>
+                  <prov:Entity>
+                    <dct:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"
+                    >2010-12-08</dct:issued>
+                    <dct:title xml:lang="en">Commission Regulation (EU) No 1089/2010 of 23 November 2010 implementing Directive 2007/2/EC of the European Parliament and of the Council as regards interoperability of spatial data sets and services</dct:title>
+                  </prov:Entity>
+                </prov:wasDerivedFrom>
+              </prov:Plan>
+            </prov:hadPlan>
+          </prov:Association>
+        </prov:qualifiedAssociation>
+      </prov:Activity>
+    </prov:wasUsedBy>
+    <dct:spatial>
+      <dct:Location>
+        <dcat:bbox rdf:datatype="http://www.opengis.net/ont/geosparql#wktLiteral"
+        >POLYGON((-24 78,57 78,57 28,-24 28,-24 78))</dcat:bbox>
+      </dct:Location>
+    </dct:spatial>
+    <dct:description xml:lang="fr-t-en-t0-mtec">La «Température de surface du sol dérivée des données NOAA-AVHRR (LST_AVHRR)» est une carte à grille fixe (en projection stéréographique) avec une résolution spatiale de 1,1 km. La taille totale couvrant l'Europe est de 4100 échantillons sur 4300 lignes. Dans les 24 heures suivant l'acquisition des données du satellite, les LST de jour et de nuit sont calculées. En général, les produits utilisent les données des six passes que le satellite effectue au-dessus de l'Europe au cours de chaque période de 24 heures. Pour les cartes LST journalières, le critère de composition pour les trois laissez-passer diurnes est la valeur NDVI maximale et pour les cartes LST journalières nocturnes, le critère est la valeur LST nocturne maximale des trois laissez-passer nocturnes. Les produits composites LST hebdomadaires et mensuels de jour ou de nuit sont également produits en calculant la moyenne des valeurs LST quotidiennes de jour ou de nuit, respectivement. La plage des valeurs LST est mise à l’échelle entre –39,5 °C et +87 °C avec une résolution radiométrique de 0,5 °C. Une valeur de –40 °C est utilisée pour l’eau. Les nuages sont masqués comme de mauvaises valeurs. Pour de plus amples informations, veuillez consulter: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:description xml:lang="sk-t-en-t0-mtec">"Pozemná povrchová teplota odvodená z údajov NOAA-AVHRR (LST_AVHRR)" je pevná mapa mriežky (v stereografickej projekcii) s priestorovým rozlíšením 1,1 km. Celková veľkosť pokrývajúca Európu je 4100 vzoriek po 4300 riadkoch. Do 24 hodín od získania údajov zo satelitu sa vypočítajú denné a nočné LST. Vo všeobecnosti produkty využívajú údaje zo všetkých šiestich preukazov, ktoré satelit vydáva nad Európou v každom 24-hodinovom období. V prípade denných denných máp LST je kritériom zloženia troch denných preukazov maximálna hodnota NDVI a v prípade denných nočných máp LST je kritériom maximálna nočná hodnota LST troch nočných preukazov. Týždenné a mesačné denné alebo nočné zmiešané výrobky LST sa vyrábajú aj spriemerovaním denných denných alebo denných nočných hodnôt LST. Rozsah hodnôt LST je od – 39,5 °C do + 87 °C s rádiometrickým rozlíšením 0,5 °C. V prípade vody sa používa hodnota – 40 °C. Oblaky sú maskované ako zlé hodnoty. Ďalšie informácie nájdete na stránke: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:description xml:lang="nl-t-en-t0-mtec">De "Landoppervlaktetemperatuur afgeleid van NOAA-AVHRR-gegevens (LST_AVHRR)" is een vaste rasterkaart (in stereografische projectie) met een ruimtelijke resolutie van 1,1 km. De totale grootte die Europa omvat is 4100 steekproeven door 4300 lijnen. Binnen 24 uur na het verkrijgen van gegevens van de satelliet worden overdag en 's nachts LST's berekend. Over het algemeen maken de producten gebruik van gegevens van alle zes passen die de satelliet in elke periode van 24 uur over Europa maakt. Voor de dagelijkse LST-kaarten voor overdag is het samenstellingscriterium voor de drie dagpassen de maximale NDVI-waarde en voor de dagelijkse LST-kaarten voor 's nachts is het criterium de maximale LST-waarde voor 's nachts van de drie nachtpassen. Wekelijkse en maandelijkse LST-composietproducten overdag of 's nachts worden ook geproduceerd door middel van gemiddelde dagelijkse LST-waarden overdag of 's nachts. Het bereik van de LST-waarden wordt geschaald tussen –39,5 °C en +87 °C met een radiometrische resolutie van 0,5 °C. Voor water wordt een waarde van –40 °C gebruikt. Wolken worden gemaskeerd als slechte waarden. Voor meer informatie, zie: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dcat:keyword xml:lang="en">FEDEO</dcat:keyword>
+    <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+    >2011-01-05T00:00:00</dct:created>
+    <dct:title xml:lang="ro-t-en-t0-mtec">AVHRR - Temperatura suprafeței terestre (LST) - Europa, pe timp de noapte</dct:title>
+    <dct:title xml:lang="it-t-en-t0-mtec">AVHRR - Temperatura della superficie terrestre (LST) - Europa, Notte</dct:title>
+    <dcat:keyword xml:lang="en">Land Surface Temperature (nighttime)</dcat:keyword>
+    <dcat:keyword xml:lang="en">Europe</dcat:keyword>
+    <dct:description xml:lang="cs-t-en-t0-mtec">"Pozemní povrchová teplota odvozená z dat NOAA-AVHRR (LST_AVHRR)" je pevná mapa mřížky (ve stereografické projekci) s prostorovým rozlišením 1,1 km. Celková velikost pokrývající Evropu je 4100 vzorků po 4300 řádcích. Do 24 hodin od získání dat ze satelitu se vypočítají denní a noční LST. Obecně platí, že produkty využívají data ze všech šesti průchodů, které družice provádí nad Evropou v každém 24hodinovém období. U denních denních map LST je kritériem pro složení tří denních průjezdů maximální hodnota NDVI a u denních nočních map LST je kritériem maximální noční hodnota LST tří nočních průjezdů. Týdenní a měsíční kompozitní produkty LST ve dne nebo v noci jsou také vyráběny průměrováním denních nebo denních nočních hodnot LST. Rozsah hodnot LST se měří v rozmezí –39,5 °C až +87 °C s radiometrickým rozlišením 0,5 °C. Pro vodu se použije hodnota –40 °C. Mraky jsou maskovány jako špatné hodnoty. Další informace naleznete na adrese: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:title xml:lang="hu-t-en-t0-mtec">AVHRR - Földfelszíni hőmérséklet (LST) - Európa, Éjszaka</dct:title>
+    <dct:description xml:lang="uk-t-en-t0-mtec">"Температура поверхні Землі, отримана з даних NOAA-AVHRR (LST_AVHRR)" - це фіксована карта сітки (у стереографічній проекції) з просторовою роздільною здатністю 1,1 км. Загальний розмір, що охоплює Європу, становить 4100 зразків на 4300 ліній. Протягом 24 годин після отримання даних із супутника розраховуються денні та нічні LST. В цілому, продукти використовують дані з усіх шести проходів, які супутник робить по Європі в кожному 24-годинному періоді. Для щоденних денних карт LST критерієм композиту трьох денних проходів є максимальне значення NDVI, а для щоденних нічних карт LST критерієм є максимальне нічне значення LST трьох нічних проходів. Щотижневі та щомісячні денні або нічні композитні вироби LST також виробляються шляхом усереднення щоденних денних або щоденних нічних значень LST відповідно. * Діапазон значень LST масштабується між –39.5°C і +87°C з радіометричною роздільною здатністю 0.5°C. Значення –40°C використовується для води. Хмари маскуються під погані значення. Для отримання додаткової інформації, будь ласка, дивіться: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:identifier rdf:datatype="http://www.w3.org/2001/XMLSchema#anyURI"
+    >https://geoservice.dlr.de/catalogue/srv/metadata/936b319d-5253-425d-bd29-4b6ebce067ff</dct:identifier>
+    <dct:title xml:lang="fr-t-en-t0-mtec">AVHRR - Température de surface du sol (LST) - Europe, Nuit</dct:title>
+    <dct:conformsTo>
+      <dct:Standard>
+        <dct:title xml:lang="en">Commission Regulation (EU) No 1089/2010 of 23 November 2010 implementing Directive 2007/2/EC of the European Parliament and of the Council as regards interoperability of spatial data sets and services</dct:title>
+        <dct:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date"
+        >2010-12-08</dct:issued>
+      </dct:Standard>
+    </dct:conformsTo>
+    <dct:description xml:lang="da-t-en-t0-mtec">"Landoverfladetemperatur afledt af NOAA-AVHRR-data (LST_AVHRR)" er et fastnetkort (i stereografisk projektion) med en rumlig opløsning på 1,1 km. Den samlede størrelse, der dækker Europa, er 4100 prøver fordelt på 4300 linjer. Inden for 24 timer efter indhentning af data fra satellitten beregnes dag- og nattids-LST'er. Generelt bruger produkterne data fra alle seks af de passerer, som satellitten gør over Europa i hver 24 timers periode. For de daglige dag-til-dag LST-kort er kompositkriteriet for de tre dag-til-dag-kort den maksimale NDVI-værdi, og for daglige nat-til-dag LST-kort er kriteriet den maksimale nat-til-dag LST-værdi for de tre nat-til-dag-kort. Ugentlige og månedlige LST-kompositprodukter om dagen eller om natten fremstilles også ved at beregne gennemsnittet af LST-værdier om dagen eller om natten. Rækken af LST-værdier skaleres mellem – 39,5 °C og + 87 °C med en radiometrisk opløsning på 0,5 °C. Der anvendes en værdi på – 40 °C for vand. Skyer er maskeret som dårlige værdier. Yderligere oplysninger findes på: https://wdc.dlr.de/sensors/avhrr/</dct:description>
+    <dct:title xml:lang="hr-t-en-t0-mtec">AVHRR – temperatura kopnene površine (LST) – Europa, noć</dct:title>
+  </dcat:DatasetSeries>
+</rdf:RDF>

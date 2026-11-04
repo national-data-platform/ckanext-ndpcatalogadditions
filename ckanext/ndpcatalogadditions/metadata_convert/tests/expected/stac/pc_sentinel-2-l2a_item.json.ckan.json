@@ -1,0 +1,567 @@
+{
+  "package": {
+    "name": "s2c_msil2a_20261029t162311_r097_t16nef_20261029t184003-e1d866b0",
+    "title": "S2C_MSIL2A_20261029T162311_R097_T16NEF_20261029T184003",
+    "resources": [
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R10m/T16NEF_20261029T162311_AOT_10m.tif",
+        "name": "Aerosol optical thickness (AOT)",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "AOT",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[10980, 10980]",
+        "proj:transform": "[10.0, 0.0, 499980.0, 0.0, -10.0, 100020.0]",
+        "gsd": 10,
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Aerosol optical thickness (AOT)' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R60m/T16NEF_20261029T162311_B01_60m.tif",
+        "name": "Band 1 - Coastal aerosol - 60m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B01",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[1830, 1830]",
+        "proj:transform": "[60.0, 0.0, 499980.0, 0.0, -60.0, 100020.0]",
+        "gsd": 60,
+        "eo:bands": "[{\"name\": \"B01\", \"common_name\": \"coastal\", \"description\": \"Band 1 - Coastal aerosol\", \"center_wavelength\": 0.443, \"full_width_half_max\": 0.027}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 1 - Coastal aerosol - 60m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R10m/T16NEF_20261029T162311_B02_10m.tif",
+        "name": "Band 2 - Blue - 10m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B02",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[10980, 10980]",
+        "proj:transform": "[10.0, 0.0, 499980.0, 0.0, -10.0, 100020.0]",
+        "gsd": 10,
+        "eo:bands": "[{\"name\": \"B02\", \"common_name\": \"blue\", \"description\": \"Band 2 - Blue\", \"center_wavelength\": 0.49, \"full_width_half_max\": 0.098}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 2 - Blue - 10m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R10m/T16NEF_20261029T162311_B03_10m.tif",
+        "name": "Band 3 - Green - 10m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B03",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[10980, 10980]",
+        "proj:transform": "[10.0, 0.0, 499980.0, 0.0, -10.0, 100020.0]",
+        "gsd": 10,
+        "eo:bands": "[{\"name\": \"B03\", \"common_name\": \"green\", \"description\": \"Band 3 - Green\", \"center_wavelength\": 0.56, \"full_width_half_max\": 0.045}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 3 - Green - 10m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R10m/T16NEF_20261029T162311_B04_10m.tif",
+        "name": "Band 4 - Red - 10m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B04",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[10980, 10980]",
+        "proj:transform": "[10.0, 0.0, 499980.0, 0.0, -10.0, 100020.0]",
+        "gsd": 10,
+        "eo:bands": "[{\"name\": \"B04\", \"common_name\": \"red\", \"description\": \"Band 4 - Red\", \"center_wavelength\": 0.665, \"full_width_half_max\": 0.038}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 4 - Red - 10m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R20m/T16NEF_20261029T162311_B05_20m.tif",
+        "name": "Band 5 - Vegetation red edge 1 - 20m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B05",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[5490, 5490]",
+        "proj:transform": "[20.0, 0.0, 499980.0, 0.0, -20.0, 100020.0]",
+        "gsd": 20,
+        "eo:bands": "[{\"name\": \"B05\", \"common_name\": \"rededge\", \"description\": \"Band 5 - Vegetation red edge 1\", \"center_wavelength\": 0.704, \"full_width_half_max\": 0.019}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 5 - Vegetation red edge 1 - 20m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R20m/T16NEF_20261029T162311_B06_20m.tif",
+        "name": "Band 6 - Vegetation red edge 2 - 20m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B06",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[5490, 5490]",
+        "proj:transform": "[20.0, 0.0, 499980.0, 0.0, -20.0, 100020.0]",
+        "gsd": 20,
+        "eo:bands": "[{\"name\": \"B06\", \"common_name\": \"rededge\", \"description\": \"Band 6 - Vegetation red edge 2\", \"center_wavelength\": 0.74, \"full_width_half_max\": 0.018}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 6 - Vegetation red edge 2 - 20m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R20m/T16NEF_20261029T162311_B07_20m.tif",
+        "name": "Band 7 - Vegetation red edge 3 - 20m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B07",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[5490, 5490]",
+        "proj:transform": "[20.0, 0.0, 499980.0, 0.0, -20.0, 100020.0]",
+        "gsd": 20,
+        "eo:bands": "[{\"name\": \"B07\", \"common_name\": \"rededge\", \"description\": \"Band 7 - Vegetation red edge 3\", \"center_wavelength\": 0.783, \"full_width_half_max\": 0.028}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 7 - Vegetation red edge 3 - 20m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R10m/T16NEF_20261029T162311_B08_10m.tif",
+        "name": "Band 8 - NIR - 10m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B08",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[10980, 10980]",
+        "proj:transform": "[10.0, 0.0, 499980.0, 0.0, -10.0, 100020.0]",
+        "gsd": 10,
+        "eo:bands": "[{\"name\": \"B08\", \"common_name\": \"nir\", \"description\": \"Band 8 - NIR\", \"center_wavelength\": 0.842, \"full_width_half_max\": 0.145}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 8 - NIR - 10m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R60m/T16NEF_20261029T162311_B09_60m.tif",
+        "name": "Band 9 - Water vapor - 60m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B09",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[1830, 1830]",
+        "proj:transform": "[60.0, 0.0, 499980.0, 0.0, -60.0, 100020.0]",
+        "gsd": 60,
+        "eo:bands": "[{\"name\": \"B09\", \"description\": \"Band 9 - Water vapor\", \"center_wavelength\": 0.945, \"full_width_half_max\": 0.026}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 9 - Water vapor - 60m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R20m/T16NEF_20261029T162311_B11_20m.tif",
+        "name": "Band 11 - SWIR (1.6) - 20m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B11",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[5490, 5490]",
+        "proj:transform": "[20.0, 0.0, 499980.0, 0.0, -20.0, 100020.0]",
+        "gsd": 20,
+        "eo:bands": "[{\"name\": \"B11\", \"common_name\": \"swir16\", \"description\": \"Band 11 - SWIR (1.6)\", \"center_wavelength\": 1.61, \"full_width_half_max\": 0.143}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 11 - SWIR (1.6) - 20m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R20m/T16NEF_20261029T162311_B12_20m.tif",
+        "name": "Band 12 - SWIR (2.2) - 20m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B12",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[5490, 5490]",
+        "proj:transform": "[20.0, 0.0, 499980.0, 0.0, -20.0, 100020.0]",
+        "gsd": 20,
+        "eo:bands": "[{\"name\": \"B12\", \"common_name\": \"swir22\", \"description\": \"Band 12 - SWIR (2.2)\", \"center_wavelength\": 2.19, \"full_width_half_max\": 0.242}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 12 - SWIR (2.2) - 20m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R20m/T16NEF_20261029T162311_B8A_20m.tif",
+        "name": "Band 8A - Vegetation red edge 4 - 20m",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "B8A",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[5490, 5490]",
+        "proj:transform": "[20.0, 0.0, 499980.0, 0.0, -20.0, 100020.0]",
+        "gsd": 20,
+        "eo:bands": "[{\"name\": \"B8A\", \"common_name\": \"rededge\", \"description\": \"Band 8A - Vegetation red edge 4\", \"center_wavelength\": 0.865, \"full_width_half_max\": 0.033}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Band 8A - Vegetation red edge 4 - 20m' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R20m/T16NEF_20261029T162311_SCL_20m.tif",
+        "name": "Scene classfication map (SCL)",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "SCL",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[5490, 5490]",
+        "proj:transform": "[20.0, 0.0, 499980.0, 0.0, -20.0, 100020.0]",
+        "gsd": 20,
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Scene classfication map (SCL)' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R10m/T16NEF_20261029T162311_WVP_10m.tif",
+        "name": "Water vapour (WVP)",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "WVP",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[10980, 10980]",
+        "proj:transform": "[10.0, 0.0, 499980.0, 0.0, -10.0, 100020.0]",
+        "gsd": 10,
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'Water vapour (WVP)' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/IMG_DATA/R10m/T16NEF_20261029T162311_TCI_10m.tif",
+        "name": "True color image",
+        "format": "COG",
+        "mimetype": "image/tiff",
+        "stac_asset_key": "visual",
+        "roles": "data",
+        "proj:bbox": "[499980.0, -9780.0, 609780.0, 100020.0]",
+        "proj:shape": "[10980, 10980]",
+        "proj:transform": "[10.0, 0.0, 499980.0, 0.0, -10.0, 100020.0]",
+        "gsd": 10,
+        "eo:bands": "[{\"name\": \"B04\", \"common_name\": \"red\", \"description\": \"Band 4 - Red\", \"center_wavelength\": 0.665, \"full_width_half_max\": 0.038}, {\"name\": \"B03\", \"common_name\": \"green\", \"description\": \"Band 3 - Green\", \"center_wavelength\": 0.56, \"full_width_half_max\": 0.045}, {\"name\": \"B02\", \"common_name\": \"blue\", \"description\": \"Band 2 - Blue\", \"center_wavelength\": 0.49, \"full_width_half_max\": 0.098}]",
+        "status": "active",
+        "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+        "description": "COG resource 'True color image' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/manifest.safe",
+        "name": "SAFE manifest",
+        "format": "XML",
+        "mimetype": "application/xml",
+        "stac_asset_key": "safe-manifest",
+        "roles": "metadata",
+        "resource_type": "auxiliary",
+        "status": "active",
+        "description": "XML resource 'SAFE manifest' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/GRANULE/L2A_T16NEF_A011221_20261029T162310/MTD_TL.xml",
+        "name": "Granule metadata",
+        "format": "XML",
+        "mimetype": "application/xml",
+        "stac_asset_key": "granule-metadata",
+        "roles": "metadata",
+        "resource_type": "auxiliary",
+        "status": "active",
+        "description": "XML resource 'Granule metadata' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/INSPIRE.xml",
+        "name": "INSPIRE metadata",
+        "format": "XML",
+        "mimetype": "application/xml",
+        "stac_asset_key": "inspire-metadata",
+        "roles": "metadata",
+        "resource_type": "auxiliary",
+        "status": "active",
+        "description": "XML resource 'INSPIRE metadata' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/MTD_MSIL2A.xml",
+        "name": "Product metadata",
+        "format": "XML",
+        "mimetype": "application/xml",
+        "stac_asset_key": "product-metadata",
+        "roles": "metadata",
+        "resource_type": "auxiliary",
+        "status": "active",
+        "description": "XML resource 'Product metadata' from the source record"
+      },
+      {
+        "url": "https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/16/N/EF/2026/10/29/S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE/DATASTRIP/DS_2CPS_20261029T184003_S20261029T162310/MTD_DS.xml",
+        "name": "Datastrip metadata",
+        "format": "XML",
+        "mimetype": "application/xml",
+        "stac_asset_key": "datastrip-metadata",
+        "roles": "metadata",
+        "resource_type": "auxiliary",
+        "status": "active",
+        "description": "XML resource 'Datastrip metadata' from the source record"
+      },
+      {
+        "url": "https://planetarycomputer.microsoft.com/api/data/v1/item/tilejson.json?collection=sentinel-2-l2a&item=S2C_MSIL2A_20261029T162311_R097_T16NEF_20261029T184003&assets=visual&asset_bidx=visual%7C1,2,3&nodata=0&format=png",
+        "name": "TileJSON with default rendering",
+        "format": "JSON",
+        "mimetype": "application/json",
+        "stac_asset_key": "tilejson",
+        "roles": "tiles",
+        "status": "active",
+        "description": "JSON resource 'TileJSON with default rendering' from the source record"
+      },
+      {
+        "url": "https://planetarycomputer.microsoft.com/api/data/v1/item/preview.png?collection=sentinel-2-l2a&item=S2C_MSIL2A_20261029T162311_R097_T16NEF_20261029T184003&assets=visual&asset_bidx=visual%7C1,2,3&nodata=0&format=png",
+        "name": "Rendered preview",
+        "format": "PNG",
+        "mimetype": "image/png",
+        "stac_asset_key": "rendered_preview",
+        "roles": "overview",
+        "rel": "preview",
+        "resource_type": "auxiliary",
+        "status": "active",
+        "description": "PNG resource 'Rendered preview' from the source record"
+      }
+    ],
+    "tags": [],
+    "extras": [
+      {
+        "key": "bbox",
+        "value": "[-87.0001797, -0.0102347, -86.8987211, 0.4801377]"
+      },
+      {
+        "key": "stac:platform",
+        "value": "Sentinel-2C"
+      },
+      {
+        "key": "proj:epsg",
+        "value": "32616"
+      },
+      {
+        "key": "stac:instruments",
+        "value": "msi"
+      },
+      {
+        "key": "s2:mgrs_tile",
+        "value": "16NEF"
+      },
+      {
+        "key": "stac:constellation",
+        "value": "Sentinel 2"
+      },
+      {
+        "key": "s2:granule_id",
+        "value": "S2C_OPER_MSI_L2A_TL_2CPS_20261029T184003_A011221_T16NEF_N05.13"
+      },
+      {
+        "key": "eo:cloud_cover",
+        "value": "69.814461"
+      },
+      {
+        "key": "s2:datatake_id",
+        "value": "GS2C_20261029T162311_011221_N05.13"
+      },
+      {
+        "key": "s2:product_uri",
+        "value": "S2C_MSIL2A_20261029T162311_N0513_R097_T16NEF_20261029T184003.SAFE"
+      },
+      {
+        "key": "s2:datastrip_id",
+        "value": "S2C_OPER_MSI_L2A_DS_2CPS_20261029T184003_S20261029T162310_N05.13"
+      },
+      {
+        "key": "s2:product_type",
+        "value": "S2MSI2A"
+      },
+      {
+        "key": "sat:orbit_state",
+        "value": "descending"
+      },
+      {
+        "key": "s2:datatake_type",
+        "value": "INS-NOBS"
+      },
+      {
+        "key": "s2:generation_time",
+        "value": "2026-10-29T18:40:03.000000Z"
+      },
+      {
+        "key": "sat:relative_orbit",
+        "value": "97"
+      },
+      {
+        "key": "s2:water_percentage",
+        "value": "30.185542"
+      },
+      {
+        "key": "s2:mean_solar_zenith",
+        "value": "21.6216307637926"
+      },
+      {
+        "key": "s2:mean_solar_azimuth",
+        "value": "131.039070467573"
+      },
+      {
+        "key": "s2:processing_baseline",
+        "value": "05.13"
+      },
+      {
+        "key": "s2:snow_ice_percentage",
+        "value": "0.0"
+      },
+      {
+        "key": "s2:vegetation_percentage",
+        "value": "0.0"
+      },
+      {
+        "key": "s2:thin_cirrus_percentage",
+        "value": "0.0"
+      },
+      {
+        "key": "s2:cloud_shadow_percentage",
+        "value": "0.0"
+      },
+      {
+        "key": "s2:nodata_pixel_percentage",
+        "value": "97.543007"
+      },
+      {
+        "key": "s2:unclassified_percentage",
+        "value": "0.0"
+      },
+      {
+        "key": "s2:not_vegetated_percentage",
+        "value": "0.0"
+      },
+      {
+        "key": "s2:degraded_msi_data_percentage",
+        "value": "0.0"
+      },
+      {
+        "key": "s2:high_proba_clouds_percentage",
+        "value": "0.219164"
+      },
+      {
+        "key": "s2:reflectance_conversion_factor",
+        "value": "1.01209181343167"
+      },
+      {
+        "key": "s2:medium_proba_clouds_percentage",
+        "value": "69.595295"
+      },
+      {
+        "key": "s2:saturated_defective_pixel_percentage",
+        "value": "0.0"
+      },
+      {
+        "key": "stac_type",
+        "value": "Item"
+      },
+      {
+        "key": "stac_collection",
+        "value": "sentinel-2-l2a; https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a"
+      },
+      {
+        "key": "stac_parent",
+        "value": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a"
+      },
+      {
+        "key": "stac_root",
+        "value": "https://planetarycomputer.microsoft.com/api/stac/v1/"
+      },
+      {
+        "key": "link_preview",
+        "value": "https://planetarycomputer.microsoft.com/api/data/v1/item/map?collection=sentinel-2-l2a&item=S2C_MSIL2A_20261029T162311_R097_T16NEF_20261029T184003"
+      },
+      {
+        "key": "resource_type",
+        "value": "dataset"
+      },
+      {
+        "key": "stac_extensions",
+        "value": "https://stac-extensions.github.io/eo/v1.0.0/schema.json; https://stac-extensions.github.io/sat/v1.0.0/schema.json; https://stac-extensions.github.io/projection/v1.0.0/schema.json"
+      },
+      {
+        "key": "stac_version",
+        "value": "1.0.0"
+      },
+      {
+        "key": "rights_statement",
+        "value": "https://sentinel.esa.int/documents/247904/690755/Sentinel_Data_Legal_Notice"
+      },
+      {
+        "key": "spatial",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-87.0001797, 0.4801377], [-86.8987211, 0.4520115], [-86.9313888, 0.3033495], [-86.963989, 0.154718], [-86.9965779, 0.006162], [-87.0001797, -0.0102347], [-87.0001797, 0.4801377]]]}"
+      },
+      {
+        "key": "spatialCovFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "spatialCov",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-87.0001797, 0.4801377], [-86.8987211, 0.4520115], [-86.9313888, 0.3033495], [-86.963989, 0.154718], [-86.9965779, 0.006162], [-87.0001797, -0.0102347], [-87.0001797, 0.4801377]]]}"
+      },
+      {
+        "key": "dataBboxFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "dataBbox",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-87.0001797, -0.0102347], [-86.8987211, -0.0102347], [-86.8987211, 0.4801377], [-87.0001797, 0.4801377], [-87.0001797, -0.0102347]]]}"
+      },
+      {
+        "key": "startDateTime",
+        "value": "2026-10-29T16:23:11Z"
+      },
+      {
+        "key": "endDateTime",
+        "value": "2026-10-29T16:23:11Z"
+      },
+      {
+        "key": "temporal",
+        "value": "{\"startTime\": \"2026-10-29T16:23:11Z\", \"endTime\": \"2026-10-29T16:23:11Z\"}"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2C_MSIL2A_20261029T162311_R097_T16NEF_20261029T184003"
+      },
+      {
+        "key": "source_format",
+        "value": "stac"
+      },
+      {
+        "key": "source_identifier",
+        "value": "sentinel-2-l2a/S2C_MSIL2A_20261029T162311_R097_T16NEF_20261029T184003"
+      },
+      {
+        "key": "source_url",
+        "value": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items/S2C_MSIL2A_20261029T162311_R097_T16NEF_20261029T184003"
+      }
+    ]
+  },
+  "source_format": "stac",
+  "external_id": "sentinel-2-l2a/S2C_MSIL2A_20261029T162311_R097_T16NEF_20261029T184003",
+  "warnings": [
+    "no description/abstract found",
+    "no recognizable license; license_id left unset",
+    "no issue or modification date in source; NDP requires extras.lastUpdateDate",
+    "no keywords in source; NDP requires tags for public datasets"
+  ],
+  "unmapped": [],
+  "errors": []
+}

@@ -1,0 +1,175 @@
+{
+  "package": {
+    "name": "cumulative-influenza-vaccination-coverage-differences-by-race-ethnicity-children-6-months-t-65ebc3d4",
+    "title": "Cumulative Influenza Vaccination Coverage Differences by Race/Ethnicity, Children 6 months through 17 years, United States",
+    "notes": "Cumulative Influenza Vaccination Coverage Differences by Race/Ethnicity, Children 6 months through 17 years, United States Vaccinations\n\n• Influenza vaccination coverage among children is assessed through the National Immunization Survey-Flu (NIS-Flu) annually, providing weekly influenza vaccination coverage estimates for children 6 months–17 years based upon parental report. (https://www.cdc.gov/vaccines/imz-managers/nis/about.html)\n\no NIS-Flu is a national random-digit-dialed cellular telephone survey of households conducted during the flu season (October-June).\n\n• Final estimates for prior seasons and other flu vaccination data are available at CDC’s FluVaxView: https://www.cdc.gov/flu/fluvaxview/index.htm.",
+    "license_id": "other-pd",
+    "maintainer": "Vax Views",
+    "maintainer_email": "VaxView@cdc.gov",
+    "resources": [
+      {
+        "url": "https://www.cdc.gov/flu/fluvaxview/dashboard/vaccination-dashboard.html",
+        "name": "Landing page",
+        "format": "HTML",
+        "mimetype": "text/html",
+        "description": "Dataset landing page",
+        "status": "active"
+      },
+      {
+        "url": "https://data.cdc.gov/api/v3/views/2den-c3u2/export.csv?accessType=DOWNLOAD",
+        "name": "export.csv",
+        "format": "CSV",
+        "mimetype": "text/csv",
+        "status": "active",
+        "description": "CSV resource 'export.csv' from the source record"
+      },
+      {
+        "url": "https://data.cdc.gov/api/v3/views/2den-c3u2/query.json?accessType=DOWNLOAD",
+        "name": "query.json",
+        "format": "JSON",
+        "mimetype": "application/json",
+        "described_by": "https://data.cdc.gov/api/views/2den-c3u2/columns.json",
+        "status": "active",
+        "description": "JSON resource 'query.json' from the source record"
+      },
+      {
+        "url": "https://data.cdc.gov/api/v3/views/2den-c3u2/query.xml?accessType=DOWNLOAD",
+        "name": "query.xml",
+        "format": "XML",
+        "mimetype": "application/xml",
+        "described_by": "https://data.cdc.gov/api/views/2den-c3u2/columns.xml",
+        "status": "active",
+        "description": "XML resource 'query.xml' from the source record"
+      }
+    ],
+    "tags": [
+      {
+        "name": "vaccine-coverage",
+        "display_name": "vaccine coverage"
+      },
+      {
+        "name": "children",
+        "display_name": "children"
+      },
+      {
+        "name": "flu",
+        "display_name": "flu"
+      },
+      {
+        "name": "flu-shot",
+        "display_name": "flu shot"
+      },
+      {
+        "name": "influenza",
+        "display_name": "influenza"
+      },
+      {
+        "name": "nis",
+        "display_name": "nis"
+      }
+    ],
+    "extras": [
+      {
+        "key": "theme",
+        "value": "Vaccinations"
+      },
+      {
+        "key": "access_level",
+        "value": "public"
+      },
+      {
+        "key": "frequency",
+        "value": "Weekly"
+      },
+      {
+        "key": "language",
+        "value": "English"
+      },
+      {
+        "key": "bureau_code",
+        "value": "009:20"
+      },
+      {
+        "key": "program_code",
+        "value": "009:020"
+      },
+      {
+        "key": "references",
+        "value": "Centers for Medicare & Medicaid Services Chronic Conditions Warehouse"
+      },
+      {
+        "key": "spatial_place",
+        "value": "United States"
+      },
+      {
+        "key": "temporal_text",
+        "value": "2019-2020, 2020-2021, 2021-2022, 2022-2023"
+      },
+      {
+        "key": "distribution.describedByType",
+        "value": "application/json; application/xml"
+      },
+      {
+        "key": "pocName",
+        "value": "Vax Views"
+      },
+      {
+        "key": "pocEmail",
+        "value": "VaxView@cdc.gov"
+      },
+      {
+        "key": "publisherName",
+        "value": "National Center for Immunization and Respiratory Diseases (NCIRD)"
+      },
+      {
+        "key": "rights_statement",
+        "value": "https://www.usa.gov/government-works"
+      },
+      {
+        "key": "spatialCovFormat",
+        "value": "text"
+      },
+      {
+        "key": "spatialCov",
+        "value": "United States"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "issueDate",
+        "value": "2023-12-01"
+      },
+      {
+        "key": "lastUpdateDate",
+        "value": "2026-09-10"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://www.cdc.gov/flu/fluvaxview/dashboard/vaccination-dashboard.html"
+      },
+      {
+        "key": "source_format",
+        "value": "dcat"
+      },
+      {
+        "key": "source_identifier",
+        "value": "https://data.cdc.gov/api/views/2den-c3u2"
+      },
+      {
+        "key": "source_url",
+        "value": "https://www.cdc.gov/flu/fluvaxview/dashboard/vaccination-dashboard.html"
+      }
+    ]
+  },
+  "source_format": "dcat",
+  "external_id": "https://data.cdc.gov/api/views/2den-c3u2",
+  "warnings": [
+    "temporal: could not parse '2019-2020, 2020-2021, 2021-2022, 2022-2023'; kept as temporal_text"
+  ],
+  "unmapped": [
+    "distribution.describedByType"
+  ],
+  "errors": []
+}

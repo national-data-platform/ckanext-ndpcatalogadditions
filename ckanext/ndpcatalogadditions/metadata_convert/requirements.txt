@@ -1,0 +1,9 @@
+# Dev/test dependencies for metadata_convert, installed into a local venv
+# (ckanext-ndp/metadata_convert/.venv) rather than the shared CKAN container's
+# Python environment. If/when this endpoint is deployed into that container,
+# these same packages need to be installed there too — that's a separate,
+# later deploy-time task.
+
+lxml>=5.0,<6.0          # DataCite / Dublin Core / ISO 19115 XML parsing
+rdflib>=7.0,<8.0        # DCAT/DCAT-AP: JSON-LD, Turtle, RDF-XML
+pytest>=8.0,<9.0        # test runner

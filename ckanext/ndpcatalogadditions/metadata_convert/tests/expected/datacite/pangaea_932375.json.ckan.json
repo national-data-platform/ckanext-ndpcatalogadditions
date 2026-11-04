@@ -1,0 +1,215 @@
+{
+  "package": {
+    "name": "other-measurements-at-10-m-from-station-payerne-2020-09-50de9239",
+    "title": "Other measurements at 10 m from station Payerne (2020-09)",
+    "author": "Vuilleumier, Laurent",
+    "resources": [
+      {
+        "url": "https://doi.pangaea.de/10.1594/PANGAEA.932375",
+        "name": "Landing page",
+        "format": "HTML",
+        "mimetype": "text/html",
+        "description": "Dataset landing page",
+        "status": "active"
+      }
+    ],
+    "tags": [
+      {
+        "name": "date-time",
+        "display_name": "DATE/TIME"
+      },
+      {
+        "name": "height-above-ground",
+        "display_name": "HEIGHT above ground"
+      },
+      {
+        "name": "short-wave-upward-reflex-radiation",
+        "display_name": "Short-wave upward (REFLEX) radiation"
+      },
+      {
+        "name": "short-wave-upward-reflex-radiation-standard-deviation",
+        "display_name": "Short-wave upward (REFLEX) radiation, standard deviation"
+      },
+      {
+        "name": "short-wave-upward-reflex-radiation-minimum",
+        "display_name": "Short-wave upward (REFLEX) radiation, minimum"
+      },
+      {
+        "name": "short-wave-upward-reflex-radiation-maximum",
+        "display_name": "Short-wave upward (REFLEX) radiation, maximum"
+      },
+      {
+        "name": "long-wave-upward-radiation",
+        "display_name": "Long-wave upward radiation"
+      },
+      {
+        "name": "long-wave-upward-radiation-standard-deviation",
+        "display_name": "Long-wave upward radiation, standard deviation"
+      },
+      {
+        "name": "long-wave-upward-radiation-minimum",
+        "display_name": "Long-wave upward radiation, minimum"
+      },
+      {
+        "name": "long-wave-upward-radiation-maximum",
+        "display_name": "Long-wave upward radiation, maximum"
+      },
+      {
+        "name": "temperature-air",
+        "display_name": "Temperature, air"
+      },
+      {
+        "name": "humidity-relative",
+        "display_name": "Humidity, relative"
+      },
+      {
+        "name": "monitoring-station",
+        "display_name": "Monitoring station"
+      },
+      {
+        "name": "pyranometer-kipp-zonen-cm21-sn-041303-wrmc-no.-21074",
+        "display_name": "Pyranometer, Kipp & Zonen, CM21, SN 041303, WRMC No. 21074"
+      },
+      {
+        "name": "pyrgeometer-eppley-pir-sn-31964f3-wrmc-no.-21089",
+        "display_name": "Pyrgeometer, Eppley, PIR, SN 31964F3, WRMC No. 21089"
+      },
+      {
+        "name": "thermometer",
+        "display_name": "Thermometer"
+      },
+      {
+        "name": "hygrometer",
+        "display_name": "Hygrometer"
+      },
+      {
+        "name": "baseline-surface-radiation-network-bsrn",
+        "display_name": "Baseline Surface Radiation Network (BSRN)"
+      }
+    ],
+    "extras": [
+      {
+        "key": "doi",
+        "value": "10.1594/pangaea.932375"
+      },
+      {
+        "key": "contributors",
+        "value": "[{\"name\": \"Swiss Meteorological Agency, Payerne\", \"type\": \"HostingInstitution\"}]"
+      },
+      {
+        "key": "publication_year",
+        "value": "2021"
+      },
+      {
+        "key": "language",
+        "value": "en"
+      },
+      {
+        "key": "resource_type",
+        "value": "Dataset"
+      },
+      {
+        "key": "subject_classifications",
+        "value": "[{\"subject\": \"DATE/TIME\", \"scheme\": \"Parameter\"}, {\"subject\": \"HEIGHT above ground\", \"scheme\": \"Parameter\"}, {\"subject\": \"Short-wave upward (REFLEX) radiation\", \"scheme\": \"Parameter\"}, {\"subject\": \"Short-wave upward (REFLEX) radiation, standard deviation\", \"scheme\": \"Parameter\"}, {\"subject\": \"Short-wave upward (REFLEX) radiation, minimum\", \"scheme\": \"Parameter\"}, {\"subject\": \"Short-wave upward (REFLEX) radiation, maximum\", \"scheme\": \"Parameter\"}, {\"subject\": \"Long-wave upward radiation\", \"scheme\": \"Parameter\"}, {\"subject\": \"Long-wave upward radiation, standard deviation\", \"scheme\": \"Parameter\"}, {\"subject\": \"Long-wave upward radiation, minimum\", \"scheme\": \"Parameter\"}, {\"subject\": \"Long-wave upward radiation, maximum\", \"scheme\": \"Parameter\"}, {\"subject\": \"Temperature, air\", \"scheme\": \"Parameter\"}, {\"subject\": \"Humidity, relative\", \"scheme\": \"Parameter\"}, {\"subject\": \"Monitoring station\", \"scheme\": \"Method\"}, {\"subject\": \"Pyranometer, Kipp &amp; Zonen, CM21, SN 041303, WRMC No. 21074\", \"scheme\": \"Method\"}, {\"subject\": \"Pyrgeometer, Eppley, PIR, SN 31964F3, WRMC No. 21089\", \"scheme\": \"Method\"}, {\"subject\": \"Thermometer\", \"scheme\": \"Method\"}, {\"subject\": \"Hygrometer\", \"scheme\": \"Method\"}, {\"subject\": \"Baseline Surface Radiation Network (BSRN)\", \"scheme\": \"Project\"}]"
+      },
+      {
+        "key": "source_metadata_modified",
+        "value": "2024-07-20T19:08:39.000Z"
+      },
+      {
+        "key": "related_identifiers",
+        "value": "[{\"relation\": \"IsVariantFormOf\", \"identifier\": \"ftp://ftp.bsrn.awi.de/pay/pay0920.dat.gz\", \"type\": \"URL\"}]"
+      },
+      {
+        "key": "sizes",
+        "value": "430587 data points"
+      },
+      {
+        "key": "formats",
+        "value": "text/tab-separated-values"
+      },
+      {
+        "key": "spatial_place",
+        "value": "Switzerland"
+      },
+      {
+        "key": "creators",
+        "value": "[{\"name\": \"Vuilleumier, Laurent\", \"identifier\": \"https://orcid.org/0000-0003-0222-2566\"}]"
+      },
+      {
+        "key": "creatorName",
+        "value": "Vuilleumier, Laurent"
+      },
+      {
+        "key": "creatorWebsite",
+        "value": "https://orcid.org/0000-0003-0222-2566"
+      },
+      {
+        "key": "pocName",
+        "value": "Vuilleumier, Laurent"
+      },
+      {
+        "key": "pocWebsite",
+        "value": "https://orcid.org/0000-0003-0222-2566"
+      },
+      {
+        "key": "publisherName",
+        "value": "PANGAEA"
+      },
+      {
+        "key": "rights_statement",
+        "value": "bsrn-1.0; https://bsrn.awi.de/data/conditions-of-data-release/; Baseline Surface Radiation Network License 1.0"
+      },
+      {
+        "key": "spatial",
+        "value": "{\"type\": \"Point\", \"coordinates\": [6.9422, 46.8123]}"
+      },
+      {
+        "key": "spatialCovFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "spatialCov",
+        "value": "{\"type\": \"Point\", \"coordinates\": [6.9422, 46.8123]}"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "issueDate",
+        "value": "2021"
+      },
+      {
+        "key": "lastUpdateDate",
+        "value": "2024-07-20T19:08:39Z"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://doi.pangaea.de/10.1594/PANGAEA.932375"
+      },
+      {
+        "key": "source_format",
+        "value": "datacite"
+      },
+      {
+        "key": "source_identifier",
+        "value": "doi:10.1594/pangaea.932375"
+      },
+      {
+        "key": "source_url",
+        "value": "https://doi.org/10.1594/pangaea.932375"
+      }
+    ]
+  },
+  "source_format": "datacite",
+  "external_id": "doi:10.1594/pangaea.932375",
+  "warnings": [
+    "no description/abstract found",
+    "no contact point in source; pocName/pocEmail taken from the first creator",
+    "no point-of-contact email in source; NDP requires extras.pocEmail for public datasets",
+    "no recognizable license; license_id left unset"
+  ],
+  "unmapped": [],
+  "errors": []
+}

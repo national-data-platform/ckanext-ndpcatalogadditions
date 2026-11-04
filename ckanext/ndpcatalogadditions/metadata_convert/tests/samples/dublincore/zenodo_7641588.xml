@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet type="text/xsl" href="/static/oai2.xsl"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-10-30T03:36:02Z</responseDate>
+  <request verb="GetRecord" identifier="oai:zenodo.org:7641588" metadataPrefix="oai_dc">https://zenodo.org/oai2d</request>
+  <GetRecord>
+    <record>
+      <header>
+        <identifier>oai:zenodo.org:7641588</identifier>
+        <datestamp>2023-04-26T15:21:36Z</datestamp>
+        <setSpec>openaire_data</setSpec>
+      </header>
+      <metadata>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:creator>Jared B. Ellenbogen, Mikayla A. Borton, Kelly C. Wrighton</dc:creator>
+          <dc:date>2023-02-14</dc:date>
+          <dc:description>&amp;lt;p&amp;gt;Newick trees provided for phylogenomic and phylogenetic analyses from Ellenbogen&amp;nbsp;&amp;lt;em&amp;gt;et al.&amp;nbsp;&amp;lt;/em&amp;gt;(in prep). The methanogen genome tree (&amp;lt;a href="https://zenodo.org/api/files/ab7737bc-895d-472d-9db1-363b2868fa1d/Newick_tree_for_methanogen_genome_tree.suptree"&amp;gt;Newick_tree_for_methanogen_genome_tree.suptree&amp;lt;/a&amp;gt;) was built using an alignment generated with GTDB-Tk v1.5.0 r202, and the tree&amp;nbsp;made&amp;nbsp;using IQ Tree v1.6.12. All other trees are RAxML gene trees built using ProtPipeliner (&amp;lt;a href="https://github.com/TheWrightonLab/Protpipeliner/blob/master/protpipeliner.py"&amp;gt;https://github.com/TheWrightonLab/Protpipeliner/blob/master/protpipeliner.py&amp;lt;/a&amp;gt;)&amp;nbsp;to confirm the functional identity of identified methylotrophic genes from methanogens and bacteria. The names of the Newick trees correspond to relevant gene groupings as discussed in the associated manuscript.&amp;lt;/p&amp;gt;
+
+&amp;lt;p&amp;gt;FUNDING:&amp;lt;br&amp;gt;
+This research is a contribution of the EMERGE Biology Integration Institute, funded by the National Science Foundation, Biology Integration Institutes Program, Award # 2022070.&amp;lt;br&amp;gt;
+We thank the Swedish Polar Research Secretariat and SITES for the support of the work done at the Abisko Scientific Research Station. SITES is supported by the Swedish Research Council&amp;#39;s grant 4.3-2021-00164.&amp;lt;br&amp;gt;
+This study was also funded by the Genomic Science Program of the United States Department of Energy Office of Biological and Environmental Research, grant #s DE-SC0010580 and DE-SC0016440.&amp;lt;/p&amp;gt;</dc:description>
+          <dc:identifier>https://doi.org/10.5281/zenodo.7641588</dc:identifier>
+          <dc:identifier>oai:zenodo.org:7641588</dc:identifier>
+          <dc:publisher>Zenodo</dc:publisher>
+          <dc:relation>https://doi.org/10.5281/zenodo.7641587</dc:relation>
+          <dc:rights>info:eu-repo/semantics/openAccess</dc:rights>
+          <dc:rights>Creative Commons Attribution 4.0 International</dc:rights>
+          <dc:rights>https://creativecommons.org/licenses/by/4.0/legalcode</dc:rights>
+          <dc:title>Newick Trees for EMERGE methanogen genome tree, and methylotrophic gene trees</dc:title>
+          <dc:type>info:eu-repo/semantics/other</dc:type>
+        </oai_dc:dc>
+      </metadata>
+    </record>
+  </GetRecord>
+</OAI-PMH>

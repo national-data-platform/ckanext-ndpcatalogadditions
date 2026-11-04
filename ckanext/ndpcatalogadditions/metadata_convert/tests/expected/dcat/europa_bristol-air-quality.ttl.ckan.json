@@ -1,0 +1,101 @@
+{
+  "package": {
+    "name": "bristol-air-quality-d5eaddaa",
+    "title": "Bristol Air quality",
+    "notes": "Air quality is monitored continuously at several sites in and around the city with continuous analysers. Real time data from our air quality monitoring network, and from sites in Bristol that are part of the national network. Monitoring focuses on the key traffic pollutants as prescribed by the [National Air Quality Strategy](http://www.defra.gov.uk/environment/quality/air/airquality/strategy/) so the network is dominated by oxides of nitrogen (NOx) analysers which are located at roadside (<5m from kerb) locations and represent residential exposure.",
+    "license_id": "uk-ogl",
+    "resources": [
+      {
+        "url": "http://www.bristol.gov.uk/413/2/",
+        "name": "Ozone [ppb]",
+        "format": "CSV",
+        "license": "http://reference.data.gov.uk/id/open-government-licence",
+        "distribution_uri": "http://data.europa.eu/88u/distribution/8a623fbe-1853-47ce-90f0-29eee8d9a065",
+        "status": "active",
+        "mimetype": "text/csv",
+        "description": "CSV resource 'Ozone [ppb]' from the source record"
+      },
+      {
+        "url": "http://www.bristol.gov.uk/413/3/",
+        "name": "Nitrogen Oxides NOx [ppb]",
+        "format": "CSV",
+        "license": "http://reference.data.gov.uk/id/open-government-licence",
+        "distribution_uri": "http://data.europa.eu/88u/distribution/a4dfe5b0-0dbb-4353-a838-8f7bfea4fb53",
+        "status": "active",
+        "mimetype": "text/csv",
+        "description": "CSV resource 'Nitrogen Oxides NOx [ppb]' from the source record"
+      },
+      {
+        "url": "http://www.bristol.gov.uk/413/1/",
+        "name": "Bristol Air Quality Monitoring Station Information",
+        "format": "CSV",
+        "license": "http://reference.data.gov.uk/id/open-government-licence",
+        "distribution_uri": "http://data.europa.eu/88u/distribution/ce4ecfe4-cf77-4520-a98e-059d9fd34b07",
+        "status": "active",
+        "mimetype": "text/csv",
+        "description": "CSV resource 'Bristol Air Quality Monitoring Station Information' from the source record"
+      },
+      {
+        "url": "http://www.bristol.gov.uk/413/",
+        "name": "Bristol Air Quality [ppb]",
+        "format": "CSV",
+        "license": "http://reference.data.gov.uk/id/open-government-licence",
+        "distribution_uri": "http://data.europa.eu/88u/distribution/fef8d2c7-8fa5-48e3-9a04-25f02a5b2ea5",
+        "status": "active",
+        "mimetype": "text/csv",
+        "description": "CSV resource 'Bristol Air Quality [ppb]' from the source record"
+      }
+    ],
+    "tags": [],
+    "extras": [
+      {
+        "key": "dataset_uri",
+        "value": "http://data.europa.eu/88u/dataset/bristol-air-quality"
+      },
+      {
+        "key": "theme",
+        "value": "ENVI"
+      },
+      {
+        "key": "publisher_type",
+        "value": "NationalAuthority"
+      },
+      {
+        "key": "publisherName",
+        "value": "Bristol City Council"
+      },
+      {
+        "key": "rights_statement",
+        "value": "http://reference.data.gov.uk/id/open-government-licence"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "http://data.europa.eu/88u/dataset/bristol-air-quality"
+      },
+      {
+        "key": "source_format",
+        "value": "dcat"
+      },
+      {
+        "key": "source_identifier",
+        "value": "http://data.europa.eu/88u/dataset/bristol-air-quality"
+      },
+      {
+        "key": "source_url",
+        "value": "http://data.europa.eu/88u/dataset/bristol-air-quality"
+      }
+    ]
+  },
+  "source_format": "dcat",
+  "external_id": "http://data.europa.eu/88u/dataset/bristol-air-quality",
+  "warnings": [
+    "no issue or modification date in source; NDP requires extras.lastUpdateDate",
+    "no keywords in source; NDP requires tags for public datasets"
+  ],
+  "unmapped": [],
+  "errors": []
+}

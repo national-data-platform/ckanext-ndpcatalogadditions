@@ -1,0 +1,67 @@
+{
+ "accessLevel": "public",
+ "landingPage": "https://www.cdc.gov/flu/fluvaxview/dashboard/vaccination-dashboard.html",
+ "bureauCode": [
+  "009:20"
+ ],
+ "issued": "2023-12-01",
+ "@type": "dcat:Dataset",
+ "temporal": "2019-2020, 2020-2021, 2021-2022, 2022-2023",
+ "modified": "2026-09-10",
+ "references": [
+  "Centers for Medicare & Medicaid Services Chronic Conditions Warehouse"
+ ],
+ "keyword": [
+  "vaccine coverage",
+  "children",
+  "flu",
+  "flu shot",
+  "influenza",
+  "nis"
+ ],
+ "contactPoint": {
+  "@type": "vcard:Contact",
+  "fn": "Vax Views",
+  "hasEmail": "mailto:VaxView@cdc.gov"
+ },
+ "publisher": {
+  "@type": "org:Organization",
+  "name": "National Center for Immunization and Respiratory Diseases (NCIRD)"
+ },
+ "identifier": "https://data.cdc.gov/api/views/2den-c3u2",
+ "description": "Cumulative Influenza Vaccination Coverage Differences by Race/Ethnicity, Children 6 months through 17 years, United States Vaccinations \n\n\u2022 Influenza vaccination coverage among children is assessed through the National Immunization Survey-Flu (NIS-Flu) annually, providing weekly influenza vaccination coverage estimates for children 6 months\u201317 years based upon parental report. (https://www.cdc.gov/vaccines/imz-managers/nis/about.html)  \n\no NIS-Flu is a national random-digit-dialed cellular telephone survey of households conducted during the flu season (October-June).  \n\n\u2022 Final estimates for prior seasons and other flu vaccination data are available at CDC\u2019s FluVaxView:  https://www.cdc.gov/flu/fluvaxview/index.htm.",
+ "title": "Cumulative Influenza Vaccination Coverage Differences by Race/Ethnicity, Children 6 months through 17 years, United States",
+ "programCode": [
+  "009:020"
+ ],
+ "distribution": [
+  {
+   "@type": "dcat:Distribution",
+   "downloadURL": "https://data.cdc.gov/api/v3/views/2den-c3u2/export.csv?accessType=DOWNLOAD",
+   "mediaType": "text/csv"
+  },
+  {
+   "mediaType": "application/json",
+   "downloadURL": "https://data.cdc.gov/api/v3/views/2den-c3u2/query.json?accessType=DOWNLOAD",
+   "describedBy": "https://data.cdc.gov/api/views/2den-c3u2/columns.json",
+   "describedByType": "application/json",
+   "@type": "dcat:Distribution"
+  },
+  {
+   "mediaType": "application/xml",
+   "downloadURL": "https://data.cdc.gov/api/v3/views/2den-c3u2/query.xml?accessType=DOWNLOAD",
+   "describedBy": "https://data.cdc.gov/api/views/2den-c3u2/columns.xml",
+   "describedByType": "application/xml",
+   "@type": "dcat:Distribution"
+  }
+ ],
+ "spatial": "United States",
+ "license": "https://www.usa.gov/government-works",
+ "accrualPeriodicity": "Weekly",
+ "theme": [
+  "Vaccinations"
+ ],
+ "language": [
+  "English"
+ ]
+}

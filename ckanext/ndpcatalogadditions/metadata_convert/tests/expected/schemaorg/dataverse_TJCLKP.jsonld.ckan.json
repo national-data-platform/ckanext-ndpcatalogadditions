@@ -1,0 +1,138 @@
+{
+  "package": {
+    "name": "open-source-at-harvard-e867e698",
+    "title": "Open Source at Harvard",
+    "notes": "The tabular file contains information on known Harvard repositories on GitHub, such as the number of stars, programming language, day last updated, number of open issues, size, number of forks, repository URL, create date, and description. Each repository has a corresponding JSON file (see primary-data.zip) that was retrieved using the GitHub API with code and a list of repositories available from https://github.com/IQSS/open-source-at-harvard.",
+    "license_id": "cc-zero",
+    "author": "Durbin, Philip",
+    "version": "5",
+    "resources": [
+      {
+        "url": "https://dataverse.harvard.edu/api/access/datafile/6867336",
+        "name": "language.py",
+        "format": "Python",
+        "mimetype": "text/x-python-script",
+        "description": "Creates a TSV file with the language and repo URL.",
+        "size": 590,
+        "status": "active"
+      },
+      {
+        "url": "https://dataverse.harvard.edu/api/access/datafile/14027661",
+        "name": "2026-06-24.tab",
+        "mimetype": "text/tab-separated-values",
+        "description": "Information on known Harvard repositories on GitHub, such as the number of stars, programming language, day last updated, number of open issues, size, number of forks, repository URL, create date, and description.",
+        "size": 26344,
+        "status": "active"
+      },
+      {
+        "url": "https://dataverse.harvard.edu/api/access/datafile/14027662",
+        "name": "primary-data.zip",
+        "format": "ZIP",
+        "mimetype": "application/zip",
+        "description": "JSON files about each repo from the GitHub API.",
+        "size": 276577,
+        "status": "active"
+      },
+      {
+        "url": "https://doi.org/10.7910/dvn/tjclkp",
+        "name": "Landing page",
+        "format": "HTML",
+        "mimetype": "text/html",
+        "description": "Dataset landing page",
+        "status": "active"
+      }
+    ],
+    "tags": [
+      {
+        "name": "social-sciences",
+        "display_name": "Social Sciences"
+      }
+    ],
+    "extras": [
+      {
+        "key": "doi",
+        "value": "10.7910/dvn/tjclkp"
+      },
+      {
+        "key": "provider",
+        "value": "Harvard Dataverse"
+      },
+      {
+        "key": "resource_type",
+        "value": "Dataset"
+      },
+      {
+        "key": "data_catalog",
+        "value": "Harvard Dataverse"
+      },
+      {
+        "key": "creators",
+        "value": "[{\"name\": \"Durbin, Philip\", \"affiliation\": \"https://ror.org/03vek6s52\", \"identifier\": \"https://orcid.org/0000-0002-9528-9470\"}]"
+      },
+      {
+        "key": "creatorName",
+        "value": "Durbin, Philip"
+      },
+      {
+        "key": "creatorWebsite",
+        "value": "https://orcid.org/0000-0002-9528-9470"
+      },
+      {
+        "key": "creatorAffiliation",
+        "value": "https://ror.org/03vek6s52"
+      },
+      {
+        "key": "pocName",
+        "value": "Durbin, Philip"
+      },
+      {
+        "key": "pocWebsite",
+        "value": "https://orcid.org/0000-0002-9528-9470"
+      },
+      {
+        "key": "publisherName",
+        "value": "Harvard Dataverse"
+      },
+      {
+        "key": "rights_statement",
+        "value": "http://creativecommons.org/publicdomain/zero/1.0"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "issueDate",
+        "value": "2017-07-06"
+      },
+      {
+        "key": "lastUpdateDate",
+        "value": "2026-06-24"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://doi.org/10.7910/dvn/tjclkp"
+      },
+      {
+        "key": "source_format",
+        "value": "schemaorg"
+      },
+      {
+        "key": "source_identifier",
+        "value": "doi:10.7910/dvn/tjclkp"
+      },
+      {
+        "key": "source_url",
+        "value": "https://doi.org/10.7910/dvn/tjclkp"
+      }
+    ]
+  },
+  "source_format": "schemaorg",
+  "external_id": "doi:10.7910/dvn/tjclkp",
+  "warnings": [
+    "no contact point in source; pocName/pocEmail taken from the first creator",
+    "no point-of-contact email in source; NDP requires extras.pocEmail for public datasets"
+  ],
+  "unmapped": [],
+  "errors": []
+}

@@ -1,0 +1,148 @@
+{
+  "package": {
+    "name": "newick-trees-for-emerge-methanogen-genome-tree-and-methylotrophic-gene-trees-8307c5b7",
+    "title": "Newick Trees for EMERGE methanogen genome tree, and methylotrophic gene trees",
+    "notes": "Newick trees provided for phylogenomic and phylogenetic analyses from Ellenbogen *et al. *(in prep). The methanogen genome tree ([Newick_tree_for_methanogen_genome_tree.suptree](https://zenodo.org/api/files/ab7737bc-895d-472d-9db1-363b2868fa1d/Newick_tree_for_methanogen_genome_tree.suptree)) was built using an alignment generated with GTDB-Tk v1.5.0 r202, and the tree made using IQ Tree v1.6.12. All other trees are RAxML gene trees built using ProtPipeliner ([https://github.com/TheWrightonLab/Protpipeliner/blob/master/protpipeliner.py](https://github.com/TheWrightonLab/Protpipeliner/blob/master/protpipeliner.py)) to confirm the functional identity of identified methylotrophic genes from methanogens and bacteria. The names of the Newick trees correspond to relevant gene groupings as discussed in the associated manuscript.\n\nFUNDING:\n\nThis research is a contribution of the EMERGE Biology Integration Institute, funded by the National Science Foundation, Biology Integration Institutes Program, Award # 2022070.\n\nWe thank the Swedish Polar Research Secretariat and SITES for the support of the work done at the Abisko Scientific Research Station. SITES is supported by the Swedish Research Council's grant 4.3-2021-00164.\n\nThis study was also funded by the Genomic Science Program of the United States Department of Energy Office of Biological and Environmental Research, grant #s DE-SC0010580 and DE-SC0016440.",
+    "license_id": "cc-by",
+    "author": "Jared B. Ellenbogen, Mikayla A. Borton, Kelly C. Wrighton",
+    "resources": [
+      {
+        "url": "https://zenodo.org/api/records/7641588/files/Newick_tree_for_methanogen_genome_tree.suptree/content",
+        "name": "Newick_tree_for_methanogen_genome_tree.suptree",
+        "mimetype": "application/octet-stream",
+        "status": "active",
+        "description": "resource 'Newick_tree_for_methanogen_genome_tree.suptree' from the source record"
+      },
+      {
+        "url": "https://zenodo.org/api/records/7641588/files/Newick_tree_MtxB_methylO_homologs/content",
+        "name": "Newick_tree_MtxB_methylO_homologs",
+        "mimetype": "application/octet-stream",
+        "status": "active",
+        "description": "resource 'Newick_tree_MtxB_methylO_homologs' from the source record"
+      },
+      {
+        "url": "https://zenodo.org/api/records/7641588/files/Newick_tree_Corrinoid_homologs/content",
+        "name": "Newick_tree_Corrinoid_homologs",
+        "mimetype": "application/octet-stream",
+        "status": "active",
+        "description": "resource 'Newick_tree_Corrinoid_homologs' from the source record"
+      },
+      {
+        "url": "https://zenodo.org/api/records/7641588/files/Newick_tree_MtxA_homologs/content",
+        "name": "Newick_tree_MtxA_homologs",
+        "mimetype": "application/octet-stream",
+        "status": "active",
+        "description": "resource 'Newick_tree_MtxA_homologs' from the source record"
+      },
+      {
+        "url": "https://zenodo.org/api/records/7641588/files/Newick_tree_sulfur_gene_homologs/content",
+        "name": "Newick_tree_sulfur_gene_homologs",
+        "mimetype": "application/octet-stream",
+        "status": "active",
+        "description": "resource 'Newick_tree_sulfur_gene_homologs' from the source record"
+      },
+      {
+        "url": "https://zenodo.org/api/records/7641588/files/Newick_tree_bacterial_MtxB_homologs_top_3_phyla/content",
+        "name": "Newick_tree_bacterial_MtxB_homologs_top_3_phyla",
+        "mimetype": "application/octet-stream",
+        "status": "active",
+        "description": "resource 'Newick_tree_bacterial_MtxB_homologs_top_3_phyla' from the source record"
+      },
+      {
+        "url": "https://zenodo.org/api/records/7641588/files/Newick_tree_Ram_homologs/content",
+        "name": "Newick_tree_Ram_homologs",
+        "mimetype": "application/octet-stream",
+        "status": "active",
+        "description": "resource 'Newick_tree_Ram_homologs' from the source record"
+      },
+      {
+        "url": "https://zenodo.org/records/7641588",
+        "name": "Landing page",
+        "format": "HTML",
+        "mimetype": "text/html",
+        "description": "Dataset landing page",
+        "status": "active"
+      }
+    ],
+    "tags": [],
+    "extras": [
+      {
+        "key": "doi",
+        "value": "10.5281/zenodo.7641588"
+      },
+      {
+        "key": "date_created",
+        "value": "2023-02-14T21:36:55.855361+00:00"
+      },
+      {
+        "key": "resource_type",
+        "value": "Dataset"
+      },
+      {
+        "key": "size",
+        "value": "206.36 KB"
+      },
+      {
+        "key": "creators",
+        "value": "[{\"name\": \"Jared B. Ellenbogen, Mikayla A. Borton, Kelly C. Wrighton\", \"affiliation\": \"Colorado State University\"}]"
+      },
+      {
+        "key": "creatorName",
+        "value": "Jared B. Ellenbogen, Mikayla A. Borton, Kelly C. Wrighton"
+      },
+      {
+        "key": "creatorAffiliation",
+        "value": "Colorado State University"
+      },
+      {
+        "key": "pocName",
+        "value": "Jared B. Ellenbogen, Mikayla A. Borton, Kelly C. Wrighton"
+      },
+      {
+        "key": "publisherName",
+        "value": "Zenodo"
+      },
+      {
+        "key": "rights_statement",
+        "value": "https://creativecommons.org/licenses/by/4.0/legalcode"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "issueDate",
+        "value": "2023-02-14"
+      },
+      {
+        "key": "lastUpdateDate",
+        "value": "2023-04-26T15:21:36Z"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://zenodo.org/records/7641588"
+      },
+      {
+        "key": "source_format",
+        "value": "schemaorg"
+      },
+      {
+        "key": "source_identifier",
+        "value": "doi:10.5281/zenodo.7641588"
+      },
+      {
+        "key": "source_url",
+        "value": "https://zenodo.org/records/7641588"
+      }
+    ]
+  },
+  "source_format": "schemaorg",
+  "external_id": "doi:10.5281/zenodo.7641588",
+  "warnings": [
+    "no contact point in source; pocName/pocEmail taken from the first creator",
+    "no point-of-contact email in source; NDP requires extras.pocEmail for public datasets",
+    "no keywords in source; NDP requires tags for public datasets"
+  ],
+  "unmapped": [],
+  "errors": []
+}

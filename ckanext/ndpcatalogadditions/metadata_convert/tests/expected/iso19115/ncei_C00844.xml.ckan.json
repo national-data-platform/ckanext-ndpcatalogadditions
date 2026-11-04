@@ -1,0 +1,704 @@
+{
+  "package": {
+    "name": "noaa-optimum-interpolation-1-4-degree-daily-sea-surface-temperature-oisst-analysis-version-bfb6dd65",
+    "title": "NOAA Optimum Interpolation 1/4 Degree Daily Sea Surface Temperature (OISST) Analysis, Version 2",
+    "notes": "This high-resolution sea surface temperature (SST) analysis product was developed using an optimum interpolation (OI) technique. The SST analysis has a spatial grid resolution of 0.25 (1/4) degree and temporal resolution of 1 day. The product uses Advanced Very High Resolution Radiometer (AVHRR) satellite data from the Pathfinder AVHRR SST dataset when available for September 1981 through December 2005, and the operational Navy AVHRR Multi-Channel SST data for 2006 to the present day. Pathfinder AVHRR SST was chosen because of good agreement with the in situ observation data. The product also uses sea ice datasets, in situ data from ships and buoys, and includes a large-scale adjustment of satellite biases with respect to the in situ data. In areas where sea ice is present, SST is estimated from sea ice concentration datasets from NASA GSFC before 2005 and then from NOAA NCEP from 2005 onwards. Preliminary products are produced daily in near real-time (1-day latency) and may be updated in the first few days if critical input data become available after the initial production time. After two weeks, a complete or final product is generated with no additional changes expected. The preliminary products from near real-time data productions began in October 2008 for Version 2.0. The product is in netCDF-3 following the Climate and Forecast (CF) Conventions, and is accompanied by algorithm documentation, data flow diagram and source code under the NOAA CDR Program.",
+    "author": "Reynolds, Richard W.",
+    "maintainer": "DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce",
+    "version": "Version 2",
+    "resources": [
+      {
+        "url": "https://doi.org/10.7289/V5SQ8XB5",
+        "name": "NCEI Dataset Landing Page",
+        "format": "HTML",
+        "description": "Landing page for the dataset.",
+        "protocol": "HTTPS",
+        "function": "information",
+        "application_profile": "Landing Page",
+        "status": "active",
+        "mimetype": "text/html"
+      },
+      {
+        "url": "https://www.ncei.noaa.gov/products/optimum-interpolation-sst",
+        "name": "NCEI Product Information Page",
+        "format": "HTML",
+        "description": "Description of the data and related resources.",
+        "protocol": "HTTPS",
+        "function": "information",
+        "application_profile": "Information",
+        "status": "active",
+        "mimetype": "text/html"
+      },
+      {
+        "url": "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2/access/",
+        "name": "NCEI Direct Download (Dataset Files)",
+        "format": "HTML",
+        "description": "Direct download for the dataset.",
+        "protocol": "HTTPS",
+        "function": "download",
+        "application_profile": "Download",
+        "status": "active",
+        "mimetype": "text/html"
+      },
+      {
+        "url": "https://www.ncei.noaa.gov/thredds/blended-global/oisst-catalog.html",
+        "name": "NCEI THREDDS",
+        "format": "THREDDS",
+        "description": "THREDDS Data Server (TDS) for the dataset.",
+        "protocol": "HTTPS",
+        "function": "download",
+        "application_profile": "THREDDS",
+        "status": "active",
+        "mimetype": "text/html"
+      }
+    ],
+    "tags": [
+      {
+        "name": "sea-surface-temperature",
+        "display_name": "Sea Surface Temperature"
+      },
+      {
+        "name": "oceanic-surface-sea-surface-temperature",
+        "display_name": "Oceanic - Surface - Sea-surface Temperature"
+      },
+      {
+        "name": "global-ocean",
+        "display_name": "Global Ocean"
+      }
+    ],
+    "extras": [
+      {
+        "key": "alternate_title",
+        "value": "Sea Surface Temperature - Optimum Interpolation"
+      },
+      {
+        "key": "purpose",
+        "value": "This dataset provides a high quality Climate Data Record (CDR) of Sea Surface Temperature. The NOAA 1/4 degree daily Optimum Interpolation Sea Surface Temperature (or daily OISST) provides complete ocean temperature fields constructed by combining bias-adjusted observations from different platforms (satellite, ships, buoys) on a regular global grid, with gaps filled in by interpolation. Satellite data from the Advanced Very High Resolution Radiometer (AVHRR) provides the main input which permits the high temporal-spatial coverage beginning in late 1981 to the present; this must be adjusted to the buoys due to erroneous cold SSTs following the Mount Pinatubo and El Chichon eruptions. Applications include climate modelling, resource management, ecological studies on annual to daily scales."
+      },
+      {
+        "key": "supplemental_information",
+        "value": "A companion OISST product was produced using a combination of data from the Advanced Microwave Scanning Radiometer from NASA Earth Observing System (AMSR-E) and AVHRR with coverage from June 2002 through October 2011, when the AMSR-E instrument ceased to function properly."
+      },
+      {
+        "key": "frequency",
+        "value": "daily"
+      },
+      {
+        "key": "status",
+        "value": "onGoing"
+      },
+      {
+        "key": "doi",
+        "value": "10.7289/v5sq8xb5"
+      },
+      {
+        "key": "citation_identifier",
+        "value": "NCEI DSI 3650_01; gov.noaa.ncdc:C00844"
+      },
+      {
+        "key": "other_parties",
+        "value": "{\"organisation\": \"NOAA CDR Program\", \"role\": \"collaborator\"}"
+      },
+      {
+        "key": "theme_keywords",
+        "value": "Earth Science > Oceans > Ocean Temperature > Sea Surface Temperature; Oceanic - Surface - Sea-surface Temperature"
+      },
+      {
+        "key": "product_keywords",
+        "value": "Satellite"
+      },
+      {
+        "key": "place_keywords",
+        "value": "Geographic Region > Global Ocean"
+      },
+      {
+        "key": "stratum_keywords",
+        "value": "Vertical Location > Sea Surface"
+      },
+      {
+        "key": "project_keywords",
+        "value": "NOAA Climate Data Record (CDR) Program; NOAA OneStop Project"
+      },
+      {
+        "key": "instrument_keywords",
+        "value": "AVHRR > Advanced Very High Resolution Radiometer"
+      },
+      {
+        "key": "dataCentre_keywords",
+        "value": "DOC/NOAA/NESDIS/NCDC > National Climatic Data Center, NESDIS, NOAA, U.S. Department of Commerce; DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "keyword_thesauri",
+        "value": "Global Change Master Directory (GCMD) Science Keywords; Global Climate Observing System (GCOS) Essential Climate Variables (ECVs); Keyword Thesaurus Title; Global Change Master Directory (GCMD) Location Keywords; Global Change Master Directory (GCMD) Project Keywords; Global Change Master Directory (GCMD) Instrument Keywords; Global Change Master Directory (GCMD) Data Center Keywords"
+      },
+      {
+        "key": "constraint_codes",
+        "value": "otherRestrictions"
+      },
+      {
+        "key": "temporal_end_indeterminate",
+        "value": "now"
+      },
+      {
+        "key": "graphic_overview",
+        "value": "https://www.ncei.noaa.gov/pub/data/oisst/navy-sst-ss.gif"
+      },
+      {
+        "key": "language",
+        "value": "eng; USA"
+      },
+      {
+        "key": "related",
+        "value": "{\"title\": \"Data Stewardship Maturity Report for NOAA Daily 0.25Ã‚Â° Optimum Interpolation Sea Surface Temperature (OISST) CDR\", \"association\": \"crossReference\", \"initiative\": \"sciencePaper\"}; {\"title\": \"Daily High-Resolution-Blended Analyses for Sea Surface Temperature\", \"association\": \"crossReference\", \"initiative\": \"sciencePaper\"}; {\"title\": \"Other publications that cite this dataset\", \"association\": \"crossReference\", \"initiative\": \"project\"}; {\"title\": \"GHRSST Level 4 AVHRR_OI Global Blended Sea Surface Temperature Analysis (GDS version 2) from NCEI (GDS versions 1 and 2)\", \"association\": \"crossReference\", \"initiative\": \"project\"}"
+      },
+      {
+        "key": "project",
+        "value": "Other publications that cite this dataset; GHRSST Level 4 AVHRR_OI Global Blended Sea Surface Temperature Analysis (GDS version 2) from NCEI (GDS versions 1 and 2)"
+      },
+      {
+        "key": "formats",
+        "value": "NetCDF"
+      },
+      {
+        "key": "distributor",
+        "value": "NOAA National Centers for Environmental Information"
+      },
+      {
+        "key": "fees",
+        "value": "In most cases, electronic downloads of the data are free. However, fees may apply for custom orders, data certifications, copies of analog materials, and data distribution on physical media."
+      },
+      {
+        "key": "ordering_instructions",
+        "value": "Contact NCEI for other distribution options and instructions."
+      },
+      {
+        "key": "lineage",
+        "value": "This dataset was produced by and is archived at the NOAA National Centers for Environmental Information (NCEI)."
+      },
+      {
+        "key": "resource_type",
+        "value": "dataset"
+      },
+      {
+        "key": "metadata_date",
+        "value": "2023-09-06"
+      },
+      {
+        "key": "metadata_standard_version",
+        "value": "ISO 19115-2:2009(E)"
+      },
+      {
+        "key": "metadata_standard",
+        "value": "ISO 19115-2 Geographic Information - Metadata - Part 2: Extensions for Imagery and Gridded Data"
+      },
+      {
+        "key": "metadata_language",
+        "value": "eng; USA"
+      },
+      {
+        "key": "contentInfo.attributeDescription",
+        "value": "avhrr-only-v2.YYYYMMDD.nc.gz"
+      },
+      {
+        "key": "contentInfo.contentType",
+        "value": "physicalMeasurement"
+      },
+      {
+        "key": "contentInfo.dimension.descriptor",
+        "value": "Center time of the day; Sea surface height; Latitude; Longitude; Daily sea surface temperature; Daily sea surface temperature anomalies; Estimated error standard deviation of analysed_sst; Sea ice concentration"
+      },
+      {
+        "key": "contentInfo.dimension.sequenceIdentifier.aName",
+        "value": "time; zlev; lat; lon; sst; anom; err; ice"
+      },
+      {
+        "key": "contentInfo.dimension.sequenceIdentifier.attributeType.aName",
+        "value": "float; short"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.dateTime",
+        "value": "2015-04-22T00:00:00"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.description",
+        "value": "For a description of the processing steps, see the Algorithm Theoretical Basis Document and Data Flow Diagram for this dataset.; NOAA created the National Centers for Environmental Information (NCEI) by merging NOAA's National Climatic Data Center (NCDC), National Geophysical Data Center (NGDC), and National Oceanographic Data Center (NODC), including the National Coastal Data Development Center (NCDDC), per the Consolidated and Further Continuing Appropriations Act, 2015, Public Law 113-235. NCEI launched publicly on April 22, 2015."
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.address.electronicMailAddress",
+        "value": "cdr_program.ncdc@noaa.gov"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.onlineResource.description",
+        "value": "ATBD for the CDR product."
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.onlineResource.linkage",
+        "value": "https://www.ncei.noaa.gov/pub/data/sds/cdr/CDRs/Sea_Surface_Temperature_Optimum_Interpolation/AlgorithmDescription.pdf"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.onlineResource.name",
+        "value": "Climate Algorithm Theoretical Basis Document"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.phone.voice",
+        "value": "+1 (828) 271-4800"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.organisationName",
+        "value": "DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.positionName",
+        "value": "NOAA Climate Data Record Program Office"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.role",
+        "value": "publisher"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.date.date",
+        "value": "2013-09"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.edition",
+        "value": "Revision 2"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.identifier.code",
+        "value": "CDRP-ATBD-0303"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.title",
+        "value": "Climate Algorithm Theoretical Basis Document"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.algorithm.description",
+        "value": "See Algorithm Citation"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.address.electronicMailAddress",
+        "value": "cdr_program.ncdc@noaa.gov"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.onlineResource.description",
+        "value": "Flowcharts for the CDR product."
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.onlineResource.linkage",
+        "value": "https://www.ncei.noaa.gov/pub/data/sds/cdr/CDRs/Sea_Surface_Temperature_Optimum_Interpolation/DataFlowDiagram.pdf"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.onlineResource.name",
+        "value": "CDR Data Flow Diagram"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.phone.voice",
+        "value": "+1 (828) 271-4800"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.organisationName",
+        "value": "DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.positionName",
+        "value": "NOAA Climate Data Record Program Office"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.role",
+        "value": "publisher"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.date.date",
+        "value": "2013-09"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.documentation.title",
+        "value": "CDR Data Flow Diagram"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.identifier.code",
+        "value": "CDR Version 2"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.address.electronicMailAddress",
+        "value": "cdr_program.ncdc@noaa.gov"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.onlineResource.description",
+        "value": "This source code is for reference only. The source code is provided to maintain transparency of the algorithm and processes used in creating the Climate Data Record (CDR). The source code is not intended to be portable to any computer system(s) beyond that of the original CDR producer's environment."
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.onlineResource.linkage",
+        "value": "https://www.ncei.noaa.gov/pub/data/sds/cdr/CDRs/Sea_Surface_Temperature_Optimum_Interpolation/SourceCode.tar.gz"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.onlineResource.name",
+        "value": "CDR Source Code"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.phone.voice",
+        "value": "+1 (828) 271-4800"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.organisationName",
+        "value": "DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.positionName",
+        "value": "NOAA Climate Data Record Program Office"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.role",
+        "value": "publisher"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.date.date",
+        "value": "2013-09"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.title",
+        "value": "CDR Source Code"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processor.organisationName",
+        "value": "DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.processor.role",
+        "value": "processor"
+      },
+      {
+        "key": "dataQualityInfo.lineage.source.sourceCitation.title",
+        "value": "NOAA Pathfinder AVHRR SST (PFSST); Navy 6-hourly AVHRR SST data; International Comprehensive Ocean Atmosphere Dataset (ICOADS) Release 2.5; Global Telecommunications System (GTS) SST observations from ships and buoys (moored and drifting); NASA GSFC Sea Ice Concentration; NOAA NCEP 1/2 Degree Grid Sea Ice Concentration; Land/Sea Mask"
+      },
+      {
+        "key": "dataQualityInfo.report.dateTime",
+        "value": "2015-11-13T00:00:00"
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationMethodDescription",
+        "value": "Data Stewardship Maturity Assessment was evaluated by the metadata content editor for the NOAA OneStop project using the Scientific Data Stewardship Maturity Assessment Model Template v4.0."
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.contactInfo.onlineResource.description",
+        "value": "Landing page for quality evaluation procedure."
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.contactInfo.onlineResource.linkage",
+        "value": "https://doi.org/10.6084/m9.figshare.1211954"
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.contactInfo.onlineResource.name",
+        "value": "The Scientific Data Stewardship Maturity Assessment Model Template"
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.individualName",
+        "value": "Peng, Ge"
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.organisationName",
+        "value": "CICS-NC/NCEI"
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.role",
+        "value": "author"
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.date.date",
+        "value": "2015-06-23"
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.edition",
+        "value": "NCDC-CICS-SMM_0001_Rev.1 v4.0 06/23/2015"
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.identifier.code",
+        "value": "doi:10.10.6084/m9.figshare.1211954"
+      },
+      {
+        "key": "dataQualityInfo.report.evaluationProcedure.title",
+        "value": "The Scientific Data Stewardship Maturity Assessment Model Template"
+      },
+      {
+        "key": "dataQualityInfo.report.measureDescription",
+        "value": "The Data Stewardship Maturity Matrix (DSMM) is a unified framework that defines criteria for each of nine components based on measurable practices, which can be used to apply a progressive, 6-level rating to an individual dataset, representing stewardship maturity stages rated as Not Assessed or Not Available (Level 0), adHoc (Level 1), minimum (Level 2), intermediate (Level 3), advanced (Level 4), and optimal (Level 5)."
+      },
+      {
+        "key": "dataQualityInfo.report.measureIdentification.code",
+        "value": "MM-Stew"
+      },
+      {
+        "key": "dataQualityInfo.report.nameOfMeasure",
+        "value": "Data Stewardship Maturity Assessment"
+      },
+      {
+        "key": "dataQualityInfo.report.result.explanation",
+        "value": "Data Stewardship Maturity Assessment was evaluated by the metadata content editor for the NOAA OneStop project using the Scientific Data Stewardship Maturity Assessment Model Template v4.0."
+      },
+      {
+        "key": "dataQualityInfo.report.result.specification.citedResponsibleParty.contactInfo.onlineResource.description",
+        "value": "PDF of the Data Stewardship Maturity Matrix (SMM)"
+      },
+      {
+        "key": "dataQualityInfo.report.result.specification.citedResponsibleParty.contactInfo.onlineResource.linkage",
+        "value": "https://www.ncei.noaa.gov/pub/data/metadata/documents/OISST_CDR_MM_Stew_v01r00_draft_review_20160212.pdf"
+      },
+      {
+        "key": "dataQualityInfo.report.result.specification.citedResponsibleParty.contactInfo.onlineResource.name",
+        "value": "Stewardship Maturity Matrix (SMM) for OISST_CDR_Daily_v2"
+      },
+      {
+        "key": "dataQualityInfo.report.result.specification.citedResponsibleParty.organisationName",
+        "value": "DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "dataQualityInfo.report.result.specification.citedResponsibleParty.role",
+        "value": "publisher"
+      },
+      {
+        "key": "dataQualityInfo.report.result.specification.date.date",
+        "value": "2015-11-13"
+      },
+      {
+        "key": "dataQualityInfo.report.result.specification.edition",
+        "value": "v01r00"
+      },
+      {
+        "key": "dataQualityInfo.report.result.specification.title",
+        "value": "Stewardship Maturity Matrix (SMM) for OISST_CDR_Daily_v2"
+      },
+      {
+        "key": "dataQualityInfo.report.result.value",
+        "value": "advanced; intermediate"
+      },
+      {
+        "key": "dataQualityInfo.scope.level",
+        "value": "dataset; repository; series"
+      },
+      {
+        "key": "dataQualityInfo.scope.levelDescription.other",
+        "value": "NOAA National Centers for Environmental Information; Data Stewardship"
+      },
+      {
+        "key": "distributionInfo.distributor.distributorFormat.version",
+        "value": "3"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.description",
+        "value": "Report documenting the Scientific Data Stewardship Maturity for this dataset.; Reynolds, R. W., T. M. Smith, C. Liu, D. B. Chelton, K. S. Casey, and M. G. Schlax, 2007: Daily High-Resolution-Blended Analyses for Sea Surface Temperature. Journal of Climate, 20, 5473–5496, doi:10.1175/2007jcli1824.1.; Search results for publications that cite this dataset by its DOI(s).; Related dataset landing page."
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.linkage",
+        "value": "https://doi.org/10.25923/x3hv-yb57; https://doi.org/10.1175/2007JCLI1824.1; https://scholar.google.com/scholar?q=10.7289/V5SQ8XB5+OR+10.1175/2007jcli1824.1; https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.nodc:GHRSST-AVHRR_OI-NCEI-L4-GLOB/html"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.name",
+        "value": "DSMR Publication at the NOAA Institutional Repository; Journal article published November 2007 by the American Meteorological Society; Google Scholar search results; NCEI landing page for the GHRSST product"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.individualName",
+        "value": "NOAA Institutional Repository"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.organisationName",
+        "value": "American Meteorological Society; Reynolds, Richard W.; DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.role",
+        "value": "publisher; author"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.date.date",
+        "value": "2022; 2021; 2007; 2010-11-10"
+      },
+      {
+        "key": "identificationInfo.extent.temporalElement.extent.timeInterval",
+        "value": "1"
+      },
+      {
+        "key": "metadataMaintenance.maintenanceAndUpdateFrequency",
+        "value": "asNeeded"
+      },
+      {
+        "key": "metadataMaintenance.maintenanceNote",
+        "value": "Bulk metadata change applied on 2023-06-23. See version control repository history for metadata change details."
+      },
+      {
+        "key": "creators",
+        "value": "[{\"name\": \"Reynolds, Richard W.\", \"affiliation\": \"DOC/NOAA/NESDIS/NCDC > National Climatic Data Center, NESDIS, NOAA, U.S. Department of Commerce\", \"role\": \"principalInvestigator\"}, {\"name\": \"Reynolds, Richard W.\", \"affiliation\": \"DOC/NOAA/NESDIS/NCDC > National Climatic Data Center, NESDIS, NOAA, U.S. Department of Commerce\", \"role\": \"author\"}, {\"name\": \"Banzon, Viva F.\", \"affiliation\": \"DOC/NOAA/NESDIS/NCDC > National Climatic Data Center, NESDIS, NOAA, U.S. Department of Commerce\", \"role\": \"principalInvestigator\"}, {\"name\": \"Banzon, Viva F.\", \"affiliation\": \"DOC/NOAA/NESDIS/NCDC > National Climatic Data Center, NESDIS, NOAA, U.S. Department of Commerce\", \"role\": \"author\"}, {\"name\": \"NOAA CDR Program\", \"role\": \"author\"}]"
+      },
+      {
+        "key": "contacts",
+        "value": "[{\"name\": \"DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce\", \"role\": \"publisher\"}, {\"name\": \"DOC/NOAA/NESDIS/NCDC > National Climatic Data Center, NESDIS, NOAA, U.S. Department of Commerce\", \"role\": \"publisher\"}, {\"name\": \"DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce\", \"email\": \"oisst_contacts@noaa.gov\", \"role\": \"pointOfContact\", \"website\": \"https://www.ncei.noaa.gov/products/climate-data-records\", \"position\": \"NOAA Climate Data Record Program Office\", \"phone\": \"+1 (828) 271-4800\", \"address\": \"151 Patton Avenue, Asheville, NC, 28801-5001, USA\"}, {\"name\": \"NOAA National Centers for Environmental Information\", \"email\": \"ncei.info@noaa.gov\", \"role\": \"pointOfContact\", \"website\": \"https://www.ncei.noaa.gov/contact\"}]"
+      },
+      {
+        "key": "creatorName",
+        "value": "Reynolds, Richard W.; Banzon, Viva F.; NOAA CDR Program"
+      },
+      {
+        "key": "creatorAffiliation",
+        "value": "DOC/NOAA/NESDIS/NCDC > National Climatic Data Center, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "pocName",
+        "value": "DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "publisherName",
+        "value": "DOC/NOAA/NESDIS/NCEI > National Centers for Environmental Information, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "rights_statement",
+        "value": "See the Algorithm Theoretical Basis Document for a description of use limitations.; Cite dataset when used as a source: Richard W. Reynolds, Viva F. Banzon, and NOAA CDR Program (2008): NOAA Optimum Interpolation 1/4 Degree Daily Sea Surface Temperature (OISST) Analysis, Version 2. [indicate subset used]. NOAA National Centers for Environmental Information. doi:10.7289/V5SQ8XB5 [access date].; See the Use Agreement for this CDR available on the CDR page.; Distribution liability: NOAA and NCEI make no warranty, expressed or implied, regarding these data, nor does the fact of distribution constitute such a warranty. NOAA and NCEI cannot assume liability for any damages caused by any errors or omissions in these data. If appropriate, NCEI can only certify that the data it distributes are an authentic copy of the records that were accepted for inclusion in the NCEI archives.; Use liability: NOAA and NCEI cannot provide any warranty as to the accuracy, reliability, or completeness of furnished data. Users assume responsibility to determine the usability of these data. The user is responsible for the results of any application of this data for other than its intended purpose."
+      },
+      {
+        "key": "spatial",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0], [-180.0, -90.0]]]}"
+      },
+      {
+        "key": "spatialCovFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "spatialCov",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0], [-180.0, -90.0]]]}"
+      },
+      {
+        "key": "dataBboxFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "dataBbox",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0], [-180.0, -90.0]]]}"
+      },
+      {
+        "key": "startDateTime",
+        "value": "1981-09-01T00:00:00Z"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "issueDate",
+        "value": "2008-11-12"
+      },
+      {
+        "key": "lastUpdateDate",
+        "value": "2023-09-06"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://doi.org/10.7289/V5SQ8XB5"
+      },
+      {
+        "key": "docsURL",
+        "value": "https://www.ncei.noaa.gov/products/optimum-interpolation-sst"
+      },
+      {
+        "key": "source_format",
+        "value": "iso19115"
+      },
+      {
+        "key": "source_identifier",
+        "value": "gov.noaa.ncdc:C00844"
+      },
+      {
+        "key": "source_url",
+        "value": "https://doi.org/10.7289/v5sq8xb5"
+      }
+    ]
+  },
+  "source_format": "iso19115",
+  "external_id": "gov.noaa.ncdc:C00844",
+  "warnings": [
+    "no point-of-contact email in source; NDP requires extras.pocEmail for public datasets",
+    "no recognizable license; license_id left unset",
+    "temporal: coverage is open-ended; extras.temporal omitted, see startDateTime/endDateTime"
+  ],
+  "unmapped": [
+    "contentInfo.attributeDescription",
+    "contentInfo.contentType",
+    "contentInfo.dimension.descriptor",
+    "contentInfo.dimension.sequenceIdentifier.aName",
+    "contentInfo.dimension.sequenceIdentifier.attributeType.aName",
+    "dataQualityInfo.lineage.processStep.dateTime",
+    "dataQualityInfo.lineage.processStep.description",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.address.electronicMailAddress",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.onlineResource.description",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.onlineResource.linkage",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.onlineResource.name",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.contactInfo.phone.voice",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.organisationName",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.positionName",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.citedResponsibleParty.role",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.date.date",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.edition",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.identifier.code",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.citation.title",
+    "dataQualityInfo.lineage.processStep.processingInformation.algorithm.description",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.address.electronicMailAddress",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.onlineResource.description",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.onlineResource.linkage",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.onlineResource.name",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.contactInfo.phone.voice",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.organisationName",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.positionName",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.citedResponsibleParty.role",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.date.date",
+    "dataQualityInfo.lineage.processStep.processingInformation.documentation.title",
+    "dataQualityInfo.lineage.processStep.processingInformation.identifier.code",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.address.electronicMailAddress",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.onlineResource.description",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.onlineResource.linkage",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.onlineResource.name",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.contactInfo.phone.voice",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.organisationName",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.positionName",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.citedResponsibleParty.role",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.date.date",
+    "dataQualityInfo.lineage.processStep.processingInformation.softwareReference.title",
+    "dataQualityInfo.lineage.processStep.processor.organisationName",
+    "dataQualityInfo.lineage.processStep.processor.role",
+    "dataQualityInfo.lineage.source.sourceCitation.title",
+    "dataQualityInfo.report.dateTime",
+    "dataQualityInfo.report.evaluationMethodDescription",
+    "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.contactInfo.onlineResource.description",
+    "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.contactInfo.onlineResource.linkage",
+    "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.contactInfo.onlineResource.name",
+    "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.individualName",
+    "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.organisationName",
+    "dataQualityInfo.report.evaluationProcedure.citedResponsibleParty.role",
+    "dataQualityInfo.report.evaluationProcedure.date.date",
+    "dataQualityInfo.report.evaluationProcedure.edition",
+    "dataQualityInfo.report.evaluationProcedure.identifier.code",
+    "dataQualityInfo.report.evaluationProcedure.title",
+    "dataQualityInfo.report.measureDescription",
+    "dataQualityInfo.report.measureIdentification.code",
+    "dataQualityInfo.report.nameOfMeasure",
+    "dataQualityInfo.report.result.explanation",
+    "dataQualityInfo.report.result.specification.citedResponsibleParty.contactInfo.onlineResource.description",
+    "dataQualityInfo.report.result.specification.citedResponsibleParty.contactInfo.onlineResource.linkage",
+    "dataQualityInfo.report.result.specification.citedResponsibleParty.contactInfo.onlineResource.name",
+    "dataQualityInfo.report.result.specification.citedResponsibleParty.organisationName",
+    "dataQualityInfo.report.result.specification.citedResponsibleParty.role",
+    "dataQualityInfo.report.result.specification.date.date",
+    "dataQualityInfo.report.result.specification.edition",
+    "dataQualityInfo.report.result.specification.title",
+    "dataQualityInfo.report.result.value",
+    "dataQualityInfo.scope.level",
+    "dataQualityInfo.scope.levelDescription.other",
+    "distributionInfo.distributor.distributorFormat.version",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.description",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.linkage",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.name",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.individualName",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.organisationName",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.role",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.date.date",
+    "identificationInfo.extent.temporalElement.extent.timeInterval",
+    "metadataMaintenance.maintenanceAndUpdateFrequency",
+    "metadataMaintenance.maintenanceNote"
+  ],
+  "errors": []
+}

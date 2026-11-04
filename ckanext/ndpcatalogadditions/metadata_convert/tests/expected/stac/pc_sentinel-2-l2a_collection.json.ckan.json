@@ -1,0 +1,278 @@
+{
+  "package": {
+    "name": "sentinel-2-level-2a-4c89b830",
+    "title": "Sentinel-2 Level-2A",
+    "notes": "The [Sentinel-2](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) program provides global imagery in thirteen spectral bands at 10m-60m resolution and a revisit time of approximately five days. This dataset represents the global Sentinel-2 archive, from 2016 to the present, processed to L2A (bottom-of-atmosphere) using [Sen2Cor](https://step.esa.int/main/snap-supported-plugins/sen2cor/) and converted to [cloud-optimized GeoTIFF](https://www.cogeo.org/) format.",
+    "author": "ESA",
+    "maintainer": "Microsoft",
+    "resources": [
+      {
+        "url": "https://ai4edatasetspublicassets.blob.core.windows.net/assets/pc_thumbnails/sentinel-2.png",
+        "name": "Sentinel 2 L2A",
+        "format": "PNG",
+        "mimetype": "image/png",
+        "stac_asset_key": "thumbnail",
+        "roles": "thumbnail",
+        "resource_type": "auxiliary",
+        "status": "active",
+        "description": "PNG resource 'Sentinel 2 L2A' from the source record"
+      },
+      {
+        "url": "abfs://items/sentinel-2-l2a.parquet",
+        "name": "GeoParquet STAC items",
+        "format": "Parquet",
+        "mimetype": "application/x-parquet",
+        "description": "Snapshot of the collection's STAC items exported to GeoParquet format.",
+        "stac_asset_key": "geoparquet-items",
+        "roles": "stac-items",
+        "msft:partition_info": "{\"is_partitioned\": true, \"partition_frequency\": \"W-MON\"}",
+        "table:storage_options": "{\"account_name\": \"pcstacitems\"}",
+        "status": "active"
+      },
+      {
+        "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/items",
+        "name": "STAC items endpoint",
+        "format": "STAC API",
+        "status": "active",
+        "mimetype": "application/json",
+        "description": "STAC API resource 'STAC items endpoint' from the source record"
+      }
+    ],
+    "tags": [
+      {
+        "name": "sentinel",
+        "display_name": "Sentinel"
+      },
+      {
+        "name": "copernicus",
+        "display_name": "Copernicus"
+      },
+      {
+        "name": "esa",
+        "display_name": "ESA"
+      },
+      {
+        "name": "satellite",
+        "display_name": "Satellite"
+      },
+      {
+        "name": "global",
+        "display_name": "Global"
+      },
+      {
+        "name": "imagery",
+        "display_name": "Imagery"
+      },
+      {
+        "name": "reflectance",
+        "display_name": "Reflectance"
+      }
+    ],
+    "extras": [
+      {
+        "key": "license_type",
+        "value": "proprietary"
+      },
+      {
+        "key": "providers",
+        "value": "[{\"url\": \"https://sentinel.esa.int/web/sentinel/missions/sentinel-2\", \"name\": \"ESA\", \"roles\": [\"producer\", \"licensor\"]}, {\"url\": \"https://www.esri.com/\", \"name\": \"Esri\", \"roles\": [\"processor\"]}, {\"url\": \"https://planetarycomputer.microsoft.com\", \"name\": \"Microsoft\", \"roles\": [\"host\", \"processor\"]}]"
+      },
+      {
+        "key": "stac:platform",
+        "value": "Sentinel-2A; Sentinel-2B"
+      },
+      {
+        "key": "stac:constellation",
+        "value": "sentinel-2"
+      },
+      {
+        "key": "stac:instruments",
+        "value": "msi"
+      },
+      {
+        "key": "stac_summaries",
+        "value": "{\"gsd\": [10, 20, 60], \"eo:bands\": [{\"name\": \"AOT\", \"description\": \"aerosol optical thickness\"}, {\"gsd\": 60, \"name\": \"B01\", \"common_name\": \"coastal\", \"description\": \"coastal aerosol\", \"center_wavelength\": 0.443, \"full_width_half_max\": 0.027}, {\"gsd\": 10, \"name\": \"B02\", \"common_name\": \"blue\", \"description\": \"visible blue\", \"center_wavelength\": 0.49, \"full_width_half_max\": 0.098}, {\"gsd\": 10, \"name\": \"B03\", \"common_name\": \"green\", \"description\": \"visible green\", \"center_wavelength\": 0.56, \"full_width_half_max\": 0.045}, {\"gsd\": 10, \"name\": \"B04\", \"common_name\": \"red\", \"description\": \"visible red\", \"center_wavelength\": 0.665, \"full_width_half_max\": 0.038}, {\"gsd\": 20, \"name\": \"B05\", \"common_name\": \"rededge\", \"description\": \"vegetation classification red edge\", \"center_wavelength\": 0.704, \"full_width_half_max\": 0.019}, {\"gsd\": 20, \"name\": \"B06\", \"common_name\": \"rededge\", \"description\": \"vegetation classification red edge\", \"center_wavelength\": 0.74, \"full_width_half_max\": 0.018}, {\"gsd\": 20, \"name\": \"B07\", \"common_name\": \"rededge\", \"description\": \"vegetation classification red edge\", \"center_wavelength\": 0.783, \"full_width_half_max\": 0.028}, {\"gsd\": 10, \"name\": \"B08\", \"common_name\": \"nir\", \"description\": \"near infrared\", \"center_wavelength\": 0.842, \"full_width_half_max\": 0.145}, {\"gsd\": 20, \"name\": \"B8A\", \"common_name\": \"rededge\", \"description\": \"vegetation classification red edge\", \"center_wavelength\": 0.865, \"full_width_half_max\": 0.033}, {\"gsd\": 60, \"name\": \"B09\", \"description\": \"water vapor\", \"center_wavelength\": 0.945, \"full_width_half_max\": 0.026}, {\"gsd\": 20, \"name\": \"B11\", \"common_name\": \"swir16\", \"description\": \"short-wave infrared, snow/ice/cloud classification\", \"center_wavelength\": 1.61, \"full_width_half_max\": 0.143}, {\"gsd\": 20, \"name\": \"B12\", \"common_name\": \"swir22\", \"description\": \"short-wave infrared, snow/ice/cloud classification\", \"center_wavelength\": 2.19, \"full_width_half_max\": 0.242}], \"platform\": [\"Sentinel-2A\", \"Sentinel-2B\"], \"instruments\": [\"msi\"], \"constellation\": [\"sentinel-2\"], \"view:off_nadir\": [0]}"
+      },
+      {
+        "key": "stac_item_assets",
+        "value": "AOT; B01; B02; B03; B04; B05; B06; B07; B08; B09; B11; B12; B8A; SCL; WVP; datastrip-metadata; granule-metadata; inspire-metadata; preview; product-metadata; safe-manifest; visual"
+      },
+      {
+        "key": "stac_type",
+        "value": "Collection"
+      },
+      {
+        "key": "stac_parent",
+        "value": "https://planetarycomputer.microsoft.com/api/stac/v1/"
+      },
+      {
+        "key": "stac_root",
+        "value": "https://planetarycomputer.microsoft.com/api/stac/v1/"
+      },
+      {
+        "key": "link_describedby",
+        "value": "https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a"
+      },
+      {
+        "key": "related_links",
+        "value": "http://www.opengis.net/def/rel/ogc/1.0/queryables: https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a/queryables"
+      },
+      {
+        "key": "resource_type",
+        "value": "dataset"
+      },
+      {
+        "key": "stac_extensions",
+        "value": "https://stac-extensions.github.io/item-assets/v1.0.0/schema.json; https://stac-extensions.github.io/table/v1.2.0/schema.json; https://stac-extensions.github.io/storage/v2.0.0/schema.json; https://stac-extensions.github.io/eo/v1.1.0/schema.json"
+      },
+      {
+        "key": "stac_version",
+        "value": "1.0.0"
+      },
+      {
+        "key": "msft:container",
+        "value": "sentinel2-l2"
+      },
+      {
+        "key": "msft:region",
+        "value": "westeurope"
+      },
+      {
+        "key": "msft:short_description",
+        "value": "The Sentinel-2 program provides global imagery in thirteen spectral bands at 10m-60m resolution and a revisit time of approximately five days.  This dataset contains the global Sentinel-2 archive, from 2016 to the present, processed to L2A (bottom-of-atmosphere)."
+      },
+      {
+        "key": "msft:storage_account",
+        "value": "sentinel2l2a01"
+      },
+      {
+        "key": "storage:schemes.azure.account",
+        "value": "sentinel2l2a01"
+      },
+      {
+        "key": "storage:schemes.azure.container",
+        "value": "sentinel2-l2"
+      },
+      {
+        "key": "storage:schemes.azure.platform",
+        "value": "https://{account}.blob.core.windows.net"
+      },
+      {
+        "key": "storage:schemes.azure.region",
+        "value": "westeurope"
+      },
+      {
+        "key": "storage:schemes.azure.type",
+        "value": "ms-azure"
+      },
+      {
+        "key": "creators",
+        "value": "[{\"name\": \"ESA\", \"identifier\": \"https://sentinel.esa.int/web/sentinel/missions/sentinel-2\", \"role\": \"producer,licensor\"}]"
+      },
+      {
+        "key": "contacts",
+        "value": "[{\"name\": \"Microsoft\", \"role\": \"host\", \"website\": \"https://planetarycomputer.microsoft.com\"}]"
+      },
+      {
+        "key": "creatorName",
+        "value": "ESA"
+      },
+      {
+        "key": "creatorWebsite",
+        "value": "https://sentinel.esa.int/web/sentinel/missions/sentinel-2"
+      },
+      {
+        "key": "pocName",
+        "value": "Microsoft"
+      },
+      {
+        "key": "pocWebsite",
+        "value": "https://planetarycomputer.microsoft.com"
+      },
+      {
+        "key": "publisherName",
+        "value": "Microsoft"
+      },
+      {
+        "key": "publisherWebsite",
+        "value": "https://planetarycomputer.microsoft.com"
+      },
+      {
+        "key": "rights_statement",
+        "value": "https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf"
+      },
+      {
+        "key": "spatial",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0], [-180.0, -90.0]]]}"
+      },
+      {
+        "key": "spatialCovFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "spatialCov",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0], [-180.0, -90.0]]]}"
+      },
+      {
+        "key": "dataBboxFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "dataBbox",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0], [-180.0, -90.0]]]}"
+      },
+      {
+        "key": "startDateTime",
+        "value": "2015-06-27T10:25:31Z"
+      },
+      {
+        "key": "spatialRes",
+        "value": "10 meter"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a"
+      },
+      {
+        "key": "docsURL",
+        "value": "https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a"
+      },
+      {
+        "key": "source_format",
+        "value": "stac"
+      },
+      {
+        "key": "source_identifier",
+        "value": "sentinel-2-l2a"
+      },
+      {
+        "key": "source_url",
+        "value": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a"
+      }
+    ]
+  },
+  "source_format": "stac",
+  "external_id": "sentinel-2-l2a",
+  "warnings": [
+    "no point-of-contact email in source; NDP requires extras.pocEmail for public datasets",
+    "no recognizable license; license_id left unset",
+    "temporal: coverage is open-ended; extras.temporal omitted, see startDateTime/endDateTime",
+    "no issue or modification date in source; NDP requires extras.lastUpdateDate"
+  ],
+  "unmapped": [
+    "msft:container",
+    "msft:region",
+    "msft:short_description",
+    "msft:storage_account",
+    "storage:schemes.azure.account",
+    "storage:schemes.azure.container",
+    "storage:schemes.azure.platform",
+    "storage:schemes.azure.region",
+    "storage:schemes.azure.type"
+  ],
+  "errors": []
+}

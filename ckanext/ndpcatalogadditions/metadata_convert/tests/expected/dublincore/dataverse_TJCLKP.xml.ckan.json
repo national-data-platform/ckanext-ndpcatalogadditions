@@ -1,0 +1,88 @@
+{
+  "package": {
+    "name": "open-source-at-harvard-e867e698",
+    "title": "Open Source at Harvard",
+    "notes": "The tabular file contains information on known Harvard repositories on GitHub, such as the number of stars, programming language, day last updated, number of open issues, size, number of forks, repository URL, create date, and description. Each repository has a corresponding JSON file (see primary-data.zip) that was retrieved using the GitHub API with code and a list of repositories available from [https://github.com/IQSS/open-source-at-harvard](https://github.com/IQSS/open-source-at-harvard).",
+    "author": "Durbin, Philip",
+    "resources": [
+      {
+        "url": "https://doi.org/10.7910/DVN/TJCLKP",
+        "name": "Landing page",
+        "format": "HTML",
+        "mimetype": "text/html",
+        "description": "Dataset landing page",
+        "status": "active"
+      }
+    ],
+    "tags": [
+      {
+        "name": "social-sciences",
+        "display_name": "Social Sciences"
+      }
+    ],
+    "extras": [
+      {
+        "key": "doi",
+        "value": "10.7910/dvn/tjclkp"
+      },
+      {
+        "key": "contributors",
+        "value": "Durbin, Philip"
+      },
+      {
+        "key": "resource_type",
+        "value": "Dataset"
+      },
+      {
+        "key": "creatorName",
+        "value": "Durbin, Philip"
+      },
+      {
+        "key": "pocName",
+        "value": "Durbin, Philip"
+      },
+      {
+        "key": "publisherName",
+        "value": "Harvard Dataverse"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "issueDate",
+        "value": "2017-07-06"
+      },
+      {
+        "key": "lastUpdateDate",
+        "value": "2017-07-06"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://doi.org/10.7910/DVN/TJCLKP"
+      },
+      {
+        "key": "source_format",
+        "value": "dublincore"
+      },
+      {
+        "key": "source_identifier",
+        "value": "doi:10.7910/dvn/tjclkp"
+      },
+      {
+        "key": "source_url",
+        "value": "https://doi.org/10.7910/dvn/tjclkp"
+      }
+    ]
+  },
+  "source_format": "dublincore",
+  "external_id": "doi:10.7910/dvn/tjclkp",
+  "warnings": [
+    "no contact point in source; pocName/pocEmail taken from the first creator",
+    "no point-of-contact email in source; NDP requires extras.pocEmail for public datasets",
+    "no recognizable license; license_id left unset",
+    "no modification date in source; lastUpdateDate set to issueDate"
+  ],
+  "unmapped": [],
+  "errors": []
+}

@@ -18,6 +18,10 @@ from ckanext.ndpcatalogadditions.keycloak_token import get_user_info
 from flask import request, jsonify
 from ckanext.ndpcatalogadditions.package_validation import ndp_package_validate
 
+# STAC integration
+from .ckan_to_stac_migration import save_to_stac, STAC_ENABLED
+from .prestac_migration import migrate_prestac_resources
+
 server_url = os.getenv('CKANEXT__KEYCLOAK__REDIRECT_URI')
 ckan_url = server_url.replace('/user/sso_login', '')
 ckan_url = ckan_url.replace('catalog2', 'catalog')
@@ -40,6 +44,14 @@ POP_SECRET_TOKEN = os.getenv('CKANEXT__NDPCATALOGADDITIONS__POP_SECRET_TOKEN')
 # Solr Indexing Configuration
 # SOLR_INDEX_URL = os.getenv('SOLR_INDEX_URL', 'http://awesome-compute.sdsc.edu:8081/v1/ckan-api/add_to_index')
 SOLR_INDEX_URL = os.getenv('SOLR_INDEX_URL', 'http://awesome-compute.sdsc.edu:8081/v1/ckan-api/secure/add_to_index')
+
+# Contextual Insights Pipeline Configuration
+CONTEXTUAL_INSIGHTS_URL = os.getenv(
+    'CONTEXTUAL_INSIGHTS_URL',
+    'https://vdc-192.chpc.utah.edu/testddapi/pipelines/trigger'
+)
+CONTEXTUAL_INSIGHTS_USERNAME = os.getenv('CONTEXTUAL_INSIGHTS_USERNAME', 'utah_university')
+CONTEXTUAL_INSIGHTS_PASSWORD = os.getenv('CONTEXTUAL_INSIGHTS_PASSWORD')
 
 def post_request(api_url, endpoint, data, headers=None):
     url = f"{api_url}{endpoint}"
@@ -354,7 +366,168 @@ def index_approved_dataset(dataset_id, ckan_api_token):
         logger.error(f"Unexpected error indexing dataset {dataset_id}: {e}")
         return False
 
-        
+
+def start_contextual_insights_process(remote_dataset, remote_user):
+    """
+    Trigger the contextual insights pipeline for a dataset if enabled.
+
+    If the dataset has 'enable_contextual_insight' = True in extras, sends a request
+    to the contextual insights pipeline and saves the returned contextual_insight_id
+    back to the CKAN dataset.
+
+    Args:
+        remote_dataset: The dataset dict saved to remote CKAN
+        remote_user: The remote user dict (contains API key for CKAN updates)
+
+    Returns:
+        True if process completed (successfully or gracefully failed),
+        False only if critical errors occurred that should halt the workflow
+    """
+    try:
+        # Check if contextual insights is enabled for this dataset
+        extras = remote_dataset.get('extras', [])
+        enable_contextual_insight = False
+
+        for extra in extras:
+            if extra.get('key') == 'enable_contextual_insight':
+                # Check if the value is a boolean true or string "true"
+                value = extra.get('value')
+                if value is True or (isinstance(value, str) and value.lower() == 'true'):
+                    enable_contextual_insight = True
+                break
+
+        if not enable_contextual_insight:
+            logger.info(f"Contextual insights not enabled for dataset {remote_dataset.get('id')}, skipping.")
+            return True
+
+        dataset_id = remote_dataset.get('id')
+        logger.info(f"Triggering contextual insights pipeline for dataset: {dataset_id}")
+
+        # Prepare the request with basic authentication
+        url = CONTEXTUAL_INSIGHTS_URL
+        auth = (CONTEXTUAL_INSIGHTS_USERNAME, CONTEXTUAL_INSIGHTS_PASSWORD)
+        headers = {'Content-Type': 'application/json'}
+
+        # Send the dataset metadata as JSON
+        logger.info(f"Calling contextual insights endpoint: {url}")
+        response = requests.post(
+            url,
+            json=remote_dataset,
+            headers=headers,
+            auth=auth,
+            timeout=30
+        )
+
+        if response.status_code in [200, 201, 202]:
+            response_data = response.json()
+            contextual_insight_id = response_data.get('contextual_insight_id')
+            dashboard_url = response_data.get('Dashboard')
+
+            if contextual_insight_id:
+                logger.info(
+                    f"Received contextual_insight_id: {contextual_insight_id} "
+                    f"for dataset: {dataset_id}"
+                )
+
+                # Save the contextual_insight_id back to CKAN dataset
+                # Add it to extras - modify remote_dataset directly for package_update
+                remote_dataset['extras'].append({
+                    'key': 'contextual_insight_id',
+                    'value': contextual_insight_id
+                })
+
+                # Prepare the update request to update the dataset
+                # NOTE: Using package_update instead of package_patch because package_patch
+                # is broken on the formal CKAN (returns AttributeError)
+                update_url = f"{ckan_url}/api/3/action/package_update"
+                update_headers = {
+                    'X-CKAN-API-Key': api_key,
+                    'Content-Type': 'application/json'
+                }
+
+                # Send the complete remote_dataset to preserve all fields
+                update_data = remote_dataset
+
+                logger.info(f"Updating dataset {dataset_id} with contextual_insight_id")
+                update_response = requests.post(
+                    update_url,
+                    data=json.dumps(update_data),
+                    headers=update_headers,
+                    timeout=10
+                )
+
+                if update_response.status_code in [200, 201]:
+                    logger.info(
+                        f"Successfully saved contextual_insight_id to dataset: {dataset_id}"
+                    )
+
+                    # Add Dashboard URL as a resource if provided
+                    if dashboard_url:
+                        logger.info(f"Adding Dashboard URL as resource: {dashboard_url}")
+                        resource_url = f"{ckan_url}/api/3/action/resource_create"
+                        resource_data = {
+                            'package_id': dataset_id,
+                            'name': 'Contextual Insight Dashboard',
+                            'url': dashboard_url,
+                            'format': 'HTML',
+                            'resource_type': 'file'
+                        }
+
+                        resource_response = requests.post(
+                            resource_url,
+                            data=json.dumps(resource_data),
+                            headers=update_headers,
+                            timeout=10
+                        )
+
+                        if resource_response.status_code in [200, 201]:
+                            logger.info(
+                                f"Successfully added Dashboard resource to dataset: {dataset_id}"
+                            )
+                        else:
+                            logger.warning(
+                                f"Failed to add Dashboard resource. "
+                                f"Status: {resource_response.status_code}, "
+                                f"Response: {resource_response.text}"
+                            )
+
+                    return True
+                else:
+                    logger.warning(
+                        f"Failed to update dataset with contextual_insight_id. "
+                        f"Status: {update_response.status_code}, "
+                        f"Response: {update_response.text}"
+                    )
+                    # Don't fail the workflow - just log the warning
+                    return True
+            else:
+                logger.warning(
+                    f"Contextual insights response did not contain contextual_insight_id. "
+                    f"Response: {response.text}"
+                )
+                return True
+        else:
+            logger.warning(
+                f"Contextual insights pipeline returned status {response.status_code}. "
+                f"Response: {response.text}"
+            )
+            # Don't fail the workflow - just log the warning
+            return True
+
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout calling contextual insights endpoint for dataset: {remote_dataset.get('id')}")
+        # Don't fail the workflow - just log the error
+        return True
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling contextual insights endpoint: {e}")
+        # Don't fail the workflow - just log the error
+        return True
+    except Exception as e:
+        logger.error(f"Unexpected error in contextual insights process: {e}")
+        # Don't fail the workflow - just log the error
+        return True
+
+
 def get_accept_notification_text(fullname, title, submit_date):
     return f"""
 <!DOCTYPE html>
@@ -516,10 +689,15 @@ def create_package():
             dataset_dict = add_or_update_ndp_creator_md5(dataset_dict, calculate_md5(user_id))
             
             context = {'user': user.name}
-            dataset = logic.get_action('package_create')(context, dataset_dict)                
+            dataset = logic.get_action('package_create')(context, dataset_dict)
+
+            # remove the user as an editor in the organization
+            if 'owner_org' in dataset_dict.keys():
+               remove_member(user, organization)
+
             return dataset
         except Exception as e:
-            traceback.print_exc() 
+            traceback.print_exc()
             return f'Error: {str(e)}', 401
 
     return "Method not allowed", 405  # For unsupported methods
@@ -628,6 +806,40 @@ def check_package_ownership(user, package_id):
         return False, 'You are not authorized to view this package.', 403
 
 
+def remove_member(user, organization):
+    """
+    Remove a user from an organization by deleting their membership record.
+
+    Args:
+        user: The user object to be removed from the organization
+        organization: The organization object from which to remove the user
+
+    Returns:
+        bool: True if member was successfully removed, False if member was not found
+    """
+    try:
+        # Find the member record for this user in this organization
+        member = model.Session.query(model.Member).filter(
+            model.Member.group_id == organization.id,
+            model.Member.table_id == user.id,
+            model.Member.table_name == 'user'
+        ).first()
+
+        if member:
+            # Delete the member record
+            model.Session.delete(member)
+            model.Session.commit()
+            return True
+        else:
+            # Member not found
+            return False
+
+    except Exception as e:
+        # Rollback in case of error
+        model.Session.rollback()
+        raise e
+
+
 def update_package():
     if request.method == 'POST':
         try:
@@ -640,6 +852,13 @@ def update_package():
             if not is_authorized:
                 return f'Error: {error_msg}', status_code
 
+            # Get the existing package to check current owner_org
+            context = {'ignore_auth': True}
+            existing_package = logic.get_action('package_show')(context, {'id': package_id})
+            old_owner_org = existing_package.get('owner_org')
+            if old_owner_org:
+                old_organization = process_user_and_organization(user, old_owner_org)
+
             # Preserve ndp_creator_md5
             username, email, roles, user_id = get_username_from_keycloak_token()
             dataset_dict = preserve_ndp_creator_md5(dataset_dict, user_id)
@@ -649,14 +868,24 @@ def update_package():
                 organization = process_user_and_organization(user, dataset_dict['owner_org'])
                 dataset_dict['owner_org'] = organization.name
 
-            logger.info("Process private setting")    
+            logger.info("Process private setting")
             process_private_setting(dataset_dict, user.email)
 
             context = {'user': user.name}
-            result = logic.get_action('package_update')(context, dataset_dict)
+            try:
+                result = logic.get_action('package_update')(context, dataset_dict)
+            finally:
+                # remove the user as an editor in the old organization
+                if old_owner_org:
+                    remove_member(user, old_organization)
+
+                # remove the user as an editor in the new organization
+                if 'owner_org' in dataset_dict.keys():
+                    remove_member(user, organization)
+
             return result
         except Exception as e:
-            traceback.print_exc()            
+            traceback.print_exc()
             return f'Error: {str(e)}', 401
 
     return "Method not allowed", 405  # For unsupported methods
@@ -674,7 +903,11 @@ def delete_package():
             if not is_authorized:
                 return f'Error: {error_msg}', status_code
 
-            context = {'user': user.id}
+            # ignore_auth: check_package_ownership() above already performs the real
+            # authorization check (sysadmin or creator); CKAN's own package_delete auth
+            # would otherwise also require current org membership, which submitters lose
+            # right after submitting (see remove_member() in create_package()).
+            context = {'ignore_auth': True}
             logic.get_action('package_delete')(context, dataset_dict)
             return f"The package '{dataset_dict['id']}' is deleted."
         except Exception as e:
@@ -940,15 +1173,30 @@ def approve_package():
                 for resource in dataset['resources']:
                     del resource['package_id']
                     del resource['id']
-                    
+
+            # ==== preSTAC -> production STAC migration ====
+            # Any resource pointing at a preSTAC collection/item gets that collection
+            # (and its items) moved to production STAC, and its url rewritten.
+            migrate_prestac_resources(dataset, logger)
+            # ==== End preSTAC migration ====
+
             # save the dataset to the remote CKAN
             remote_dataset = save_remote_dataset(remote_user, dataset)
 
+            # ==== Contextual Insights Pipeline ====
+            start_contextual_insights_process(remote_dataset, remote_user)
+            # ==== End Contextual Insights Pipeline ====
+
             # ==== Solr Indexing ====
             index_approved_dataset(remote_dataset['id'], api_key)
-            # ==== End Solr Indexing ====  
-            
-            # if this dataset is private, save the id of the remote_dataset as an attribute of all groups in the existingGroupIds 
+            # ==== End Solr Indexing ====
+
+            # ==== STAC Registration (if enabled and dataset has spatial+temporal coverage) ====
+            if STAC_ENABLED and organization:
+                save_to_stac(dataset, organization, logger)
+            # ==== End STAC Registration ====
+
+            # if this dataset is private, save the id of the remote_dataset as an attribute of all groups in the existingGroupIds
            
             if 'private' in remote_dataset.keys() and remote_dataset['private']:
                 try:
@@ -1036,9 +1284,6 @@ def approve_package():
                         raise ValueError(f"Not authorized to add a dataset")
                 finally:
                     delete_api_token(token)
-
-            if input_groups:
-                index_approved_dataset(remote_dataset['id'], api_key)
 
             return remote_dataset
 
@@ -1656,8 +1901,36 @@ def update_my_approved_package():
                                 
                     # save this dataset id to the new groups
                     save_dataset_to_groups(list(set(allowed_groups) - set(old_allowed_groups)), package['id'])
-                
-                response = requests.post(api_url, data=json.dumps(dataset_dict), headers=new_headers)
+
+                # -----------------------------------------------------------------------
+                # TEMPORARY BLOCK (added for demo, remove after demo to rollback)
+                # Allows org transfer to any org the user does not belong to.
+                # To rollback: delete everything between the TEMPORARY BLOCK markers
+                # and restore the original two lines:
+                #   response = requests.post(api_url, data=json.dumps(dataset_dict), headers=new_headers)
+                #   if response.status_code == 200:
+                #       return response.json()['result']
+                #   else:
+                #       raise ValueError(f"Failed to create dataset: {response.text}")
+                new_owner_org = dataset_dict.get('owner_org')
+                old_owner_org = package.get('owner_org')
+                org_changed = new_owner_org and new_owner_org != old_owner_org
+
+                if org_changed:
+                    # First call with user token (owner_org unchanged) to verify edit rights
+                    dataset_dict_no_org = dict(dataset_dict)
+                    dataset_dict_no_org['owner_org'] = old_owner_org
+                    response = requests.post(api_url, data=json.dumps(dataset_dict_no_org), headers=new_headers)
+                    if response.status_code != 200:
+                        raise ValueError(f"Failed to update dataset: {response.text}")
+                    # User proved edit rights; transfer org using admin token
+                    patch_url = f"{ckan_url}/api/3/action/package_patch"
+                    response = requests.post(patch_url, data=json.dumps({'id': package['id'], 'owner_org': new_owner_org}), headers=headers)
+                else:
+                    response = requests.post(api_url, data=json.dumps(dataset_dict), headers=new_headers)
+                # END TEMPORARY BLOCK
+                # -----------------------------------------------------------------------
+
                 if response.status_code == 200:
                     updated_dataset = response.json()['result']
 
@@ -1881,11 +2154,9 @@ def get_pop_prekan_token():
                     token_name = token_names[0]['name']
                     logger.info(f"Got the first api token name: {token_name}")
                     if not token_name.startswith(f'pop__{org_name}__{user.name}__'):
-                        pass
-                        # return f'Error: Invalid request', 401
+                        return f'Error: Invalid request', 401
                 else:
-                    pass
-                    # return f'Error: Invalid organization {org_name}', 401
+                    return f'Error: Invalid organization {org_name}', 401
 
             token_dict = {
                 'name': f'pop__{org_name}__{user.name}__{int(datetime.now().timestamp())}',

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://datacite.org/schema/kernel-4" xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4/metadata.xsd">
+  <identifier identifierType="DOI">10.5281/ZENODO.7641588</identifier>
+  <creators>
+    <creator>
+      <creatorName nameType="Personal">Jared B. Ellenbogen, Mikayla A. Borton</creatorName>
+      <givenName>Mikayla A. Borton</givenName>
+      <familyName>Jared B. Ellenbogen</familyName>
+      <affiliation>Colorado State University</affiliation>
+    </creator>
+  </creators>
+  <titles>
+    <title>Newick Trees for EMERGE methanogen genome tree, and methylotrophic gene trees</title>
+  </titles>
+  <publisher>Zenodo</publisher>
+  <publicationYear>2023</publicationYear>
+  <resourceType resourceTypeGeneral="Dataset"/>
+  <dates>
+    <date dateType="Issued">2023-02-14</date>
+  </dates>
+  <alternateIdentifiers>
+    <alternateIdentifier alternateIdentifierType="URL">https://zenodo.org/record/7641588</alternateIdentifier>
+  </alternateIdentifiers>
+  <relatedIdentifiers>
+    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf">10.5281/zenodo.7641587</relatedIdentifier>
+  </relatedIdentifiers>
+  <sizes/>
+  <formats/>
+  <version/>
+  <rightsList>
+    <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode" rightsIdentifier="cc-by-4.0" rightsIdentifierScheme="SPDX" schemeURI="https://spdx.org/licenses/">Creative Commons Attribution 4.0 International</rights>
+    <rights rightsURI="info:eu-repo/semantics/openAccess">Open Access</rights>
+  </rightsList>
+  <descriptions>
+    <description descriptionType="Abstract">Newick trees provided for phylogenomic and phylogenetic analyses from Ellenbogen &lt;em&gt;et al. &lt;/em&gt;(in prep). The methanogen genome tree (Newick_tree_for_methanogen_genome_tree.suptree) was built using an alignment generated with GTDB-Tk v1.5.0 r202, and the tree made using IQ Tree v1.6.12. All other trees are RAxML gene trees built using ProtPipeliner (https://github.com/TheWrightonLab/Protpipeliner/blob/master/protpipeliner.py) to confirm the functional identity of identified methylotrophic genes from methanogens and bacteria. The names of the Newick trees correspond to relevant gene groupings as discussed in the associated manuscript. FUNDING:&lt;br&gt; This research is a contribution of the EMERGE Biology Integration Institute, funded by the National Science Foundation, Biology Integration Institutes Program, Award # 2022070.&lt;br&gt; We thank the Swedish Polar Research Secretariat and SITES for the support of the work done at the Abisko Scientific Research Station. SITES is supported by the Swedish Research Council's grant 4.3-2021-00164.&lt;br&gt; This study was also funded by the Genomic Science Program of the United States Department of Energy Office of Biological and Environmental Research, grant #s DE-SC0010580 and DE-SC0016440.</description>
+  </descriptions>
+</resource>

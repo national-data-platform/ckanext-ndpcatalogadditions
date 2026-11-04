@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://datacite.org/schema/kernel-4" xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4/metadata.xsd">
+  <identifier identifierType="DOI">10.1594/PANGAEA.932375</identifier>
+  <creators>
+    <creator>
+      <creatorName>Vuilleumier, Laurent</creatorName>
+      <givenName>Laurent</givenName>
+      <familyName>Vuilleumier</familyName>
+      <nameIdentifier nameIdentifierScheme="ORCID" schemeURI="https://orcid.org">https://orcid.org/0000-0003-0222-2566</nameIdentifier>
+    </creator>
+  </creators>
+  <titles>
+    <title>Other measurements at 10 m from station Payerne (2020-09)</title>
+  </titles>
+  <publisher>PANGAEA</publisher>
+  <publicationYear>2021</publicationYear>
+  <resourceType resourceTypeGeneral="Dataset">Dataset</resourceType>
+  <subjects>
+    <subject subjectScheme="Parameter">DATE/TIME</subject>
+    <subject subjectScheme="Parameter">HEIGHT above ground</subject>
+    <subject subjectScheme="Parameter">Short-wave upward (REFLEX) radiation</subject>
+    <subject subjectScheme="Parameter">Short-wave upward (REFLEX) radiation, standard deviation</subject>
+    <subject subjectScheme="Parameter">Short-wave upward (REFLEX) radiation, minimum</subject>
+    <subject subjectScheme="Parameter">Short-wave upward (REFLEX) radiation, maximum</subject>
+    <subject subjectScheme="Parameter">Long-wave upward radiation</subject>
+    <subject subjectScheme="Parameter">Long-wave upward radiation, standard deviation</subject>
+    <subject subjectScheme="Parameter">Long-wave upward radiation, minimum</subject>
+    <subject subjectScheme="Parameter">Long-wave upward radiation, maximum</subject>
+    <subject subjectScheme="Parameter">Temperature, air</subject>
+    <subject subjectScheme="Parameter">Humidity, relative</subject>
+    <subject subjectScheme="Method">Monitoring station</subject>
+    <subject subjectScheme="Method">Pyranometer, Kipp &amp;amp; Zonen, CM21, SN 041303, WRMC No. 21074</subject>
+    <subject subjectScheme="Method">Pyrgeometer, Eppley, PIR, SN 31964F3, WRMC No. 21089</subject>
+    <subject subjectScheme="Method">Thermometer</subject>
+    <subject subjectScheme="Method">Hygrometer</subject>
+    <subject subjectScheme="Project">Baseline Surface Radiation Network (BSRN)</subject>
+  </subjects>
+  <contributors>
+    <contributor contributorType="HostingInstitution">
+      <contributorName nameType="Personal">Swiss Meteorological Agency, Payerne</contributorName>
+      <givenName>Payerne</givenName>
+      <familyName>Swiss Meteorological Agency</familyName>
+    </contributor>
+  </contributors>
+  <dates>
+    <date dateType="Issued">2021</date>
+  </dates>
+  <language>en</language>
+  <relatedIdentifiers>
+    <relatedIdentifier relatedIdentifierType="URL" relationType="IsVariantFormOf">ftp://ftp.bsrn.awi.de/pay/pay0920.dat.gz</relatedIdentifier>
+  </relatedIdentifiers>
+  <sizes>
+    <size>430587 data points</size>
+  </sizes>
+  <formats>
+    <format>text/tab-separated-values</format>
+  </formats>
+  <version/>
+  <rightsList>
+    <rights rightsURI="https://bsrn.awi.de/data/conditions-of-data-release/" rightsIdentifier="bsrn-1.0" rightsIdentifierScheme="SPDX">Baseline Surface Radiation Network License 1.0</rights>
+  </rightsList>
+  <geoLocations>
+    <geoLocation>
+      <geoLocationPoint>
+        <pointLatitude>46.8123</pointLatitude>
+        <pointLongitude>6.9422</pointLongitude>
+      </geoLocationPoint>
+    </geoLocation>
+    <geoLocation>
+      <geoLocationPlace>Switzerland</geoLocationPlace>
+    </geoLocation>
+  </geoLocations>
+</resource>

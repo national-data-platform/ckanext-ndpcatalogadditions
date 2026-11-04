@@ -1,0 +1,283 @@
+{
+  "package": {
+    "name": "tidbit-probe-network-sea-temperature-68c6efa2",
+    "title": "TidbiT Probe Network Sea Temperature",
+    "notes": "The dataset provides sea surface temperature and sea temperature information from a network of internal logging temperature sensors at 17 locations around the Irish coast. The TidbiT Temperature loggers have recorded hourly at each site providing a comprehensive time series dataset on sea temperature around Ireland at aquaculture sites. The majority of TidbiT sites are located along the west coast of Ireland. TidbiT data has been collected since 2004. Temperature is measured by ONSET TidbiT data loggers attached mostly to mussel ropes in the water column with sensor precision ±0.2 °C accuracy over a wide temperature range. Sea temperature is invaluable in understanding the marine conditions at aquaculture sites. TidbiT sea temperature collected by the Aquaculture team of the Marine Institute (Ireland) and data managed by the Data Management team. Data completed for sensor operational periods. There are incomplete periods of sea temperature coverage where issues with sensors arise",
+    "license_id": "cc-nc",
+    "maintainer": "Marine Institute",
+    "maintainer_email": "opendata@marine.ie",
+    "resources": [
+      {
+        "url": "http://atlas.marine.ie/arcgis/services/OceanFeatures/MapServer/WMSServer?REQUEST=GetMap&SERVICE=WMS&LAYERS=18&VERSION=1.3.0&FORMAT=image/png&CRS=CRS:84&BBOX=-10.5%2C51.5%2C-7.4%2C55.2&WIDTH=1000&HEIGHT=1000&STYLES=default",
+        "name": "Landing page",
+        "format": "HTML",
+        "mimetype": "text/html",
+        "description": "Dataset landing page",
+        "status": "active"
+      },
+      {
+        "url": "http://atlas.marine.ie/midata/OceanFeatures/TidbiT_Sea_Temperature_Probe_Network.csv.zip",
+        "name": "Download CSV",
+        "format": "CSV",
+        "mimetype": "application/zip",
+        "description": "available as CSV",
+        "license": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+        "issued": "2024-02-26T01:52:17",
+        "modified": "2026-07-21T09:55:05",
+        "distribution_uri": "http://data.europa.eu/88u/distribution/1a4489bc-8da5-436f-9897-c83b222f115e",
+        "status": "active"
+      },
+      {
+        "url": "http://atlas.marine.ie/arcgis/rest/services/OceanFeatures/MapServer/15?f=pjson",
+        "name": "Download JSON",
+        "format": "JSON",
+        "description": "available as json",
+        "license": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+        "issued": "2024-02-26T01:52:17",
+        "modified": "2026-07-21T09:55:05",
+        "distribution_uri": "http://data.europa.eu/88u/distribution/486b2e20-666f-495b-b2f8-160029d667c9",
+        "status": "active",
+        "mimetype": "application/json"
+      },
+      {
+        "url": "http://atlas.marine.ie/arcgis/services/OceanFeatures/MapServer/WFSServer?request=GetFeature&service=WFS&TYPENAME=OceanFeatures:TidbiT_Sea_Temperature_Probe_Network",
+        "name": "WFS GetFeature",
+        "format": "GML",
+        "license": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+        "issued": "2024-08-27T12:18:57",
+        "modified": "2026-07-21T09:55:05",
+        "distribution_uri": "http://data.europa.eu/88u/distribution/a813d27f-e12b-4cf4-92c8-da62c8b5d07b",
+        "status": "active",
+        "mimetype": "application/gml+xml",
+        "description": "GML resource 'WFS GetFeature' from the source record"
+      },
+      {
+        "url": "http://atlas.marine.ie/midata/OceanFeatures/TidbiT_Sea_Temperature_Probe_Network.shapezip.zip",
+        "name": "Download Shapefile",
+        "format": "SHP",
+        "mimetype": "application/zip",
+        "description": "available as shp",
+        "license": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+        "issued": "2024-02-26T01:52:17",
+        "modified": "2026-07-21T09:55:05",
+        "distribution_uri": "http://data.europa.eu/88u/distribution/dc4f7b12-04be-43d7-9677-4634acac95f3",
+        "status": "active"
+      },
+      {
+        "url": "http://atlas.marine.ie/midata/OceanFeatures/TidbiT_Sea_Temperature_Probe_Network.kml.zip",
+        "name": "Download KML",
+        "format": "KML",
+        "mimetype": "application/zip",
+        "description": "available as KML",
+        "license": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+        "issued": "2024-02-26T01:52:17",
+        "modified": "2026-07-21T09:55:05",
+        "distribution_uri": "http://data.europa.eu/88u/distribution/f483a70f-9a27-4490-a683-9d3baf7050f4",
+        "status": "active"
+      }
+    ],
+    "tags": [
+      {
+        "name": "animal-husbandry",
+        "display_name": "animal husbandry"
+      },
+      {
+        "name": "aquaculture",
+        "display_name": "aquaculture"
+      },
+      {
+        "name": "atlantic-ocean",
+        "display_name": "atlantic ocean"
+      },
+      {
+        "name": "bantry-bay",
+        "display_name": "bantry bay"
+      },
+      {
+        "name": "donegal-bay",
+        "display_name": "donegal bay"
+      },
+      {
+        "name": "environment",
+        "display_name": "environment"
+      },
+      {
+        "name": "finfish",
+        "display_name": "finfish"
+      },
+      {
+        "name": "hydrosphere",
+        "display_name": "hydrosphere"
+      },
+      {
+        "name": "killary-harbour",
+        "display_name": "killary harbour"
+      },
+      {
+        "name": "north-atlantic-ocean",
+        "display_name": "north atlantic ocean"
+      },
+      {
+        "name": "north-east-atlantic-ocean",
+        "display_name": "north-east atlantic ocean"
+      },
+      {
+        "name": "oceanographic-geographical-features",
+        "display_name": "oceanographic geographical features"
+      },
+      {
+        "name": "oceanography",
+        "display_name": "oceanography"
+      },
+      {
+        "name": "oceans",
+        "display_name": "oceans"
+      },
+      {
+        "name": "physical-property",
+        "display_name": "physical property"
+      },
+      {
+        "name": "sea",
+        "display_name": "sea"
+      },
+      {
+        "name": "sea-surface-temperature",
+        "display_name": "sea surface temperature"
+      },
+      {
+        "name": "sea-temperature",
+        "display_name": "sea temperature"
+      },
+      {
+        "name": "temperature",
+        "display_name": "temperature"
+      },
+      {
+        "name": "temperature-probe",
+        "display_name": "temperature probe"
+      },
+      {
+        "name": "tidbit-probe-network",
+        "display_name": "tidbit probe network"
+      },
+      {
+        "name": "water-science",
+        "display_name": "water science"
+      }
+    ],
+    "extras": [
+      {
+        "key": "dataset_uri",
+        "value": "http://data.europa.eu/88u/dataset/8a6905b1-bfc1-4ed5-ae13-5c1dfa40b98b"
+      },
+      {
+        "key": "theme",
+        "value": "ENVI; Environment"
+      },
+      {
+        "key": "publisher_uri",
+        "value": "https://data.gov.ie/organization/marine-institute"
+      },
+      {
+        "key": "date_created",
+        "value": "2018-12-07T22:14:00"
+      },
+      {
+        "key": "language",
+        "value": "ENG"
+      },
+      {
+        "key": "frequency",
+        "value": "Irregular"
+      },
+      {
+        "key": "conforms_to",
+        "value": "http://www.opengis.net/def/crs/EPSG/0/4326; The INSPIRE Directive or INSPIRE lays down a general framework for a Spatial Data Infrastructure (SDI) for the purposes of European Community environmental policies and policies or activities which may have an impact on the environment."
+      },
+      {
+        "key": "provenance",
+        "value": "Data is collected by ONSET TidbiT temperature loggers which collects data in a proprietary binary file format and this is then exported using a tool into spreadsheets. The spreadsheet csv data is then loaded to a SQL Server database table and quality flagged after collection from the field sites."
+      },
+      {
+        "key": "pocName",
+        "value": "Marine Institute"
+      },
+      {
+        "key": "pocEmail",
+        "value": "opendata@marine.ie"
+      },
+      {
+        "key": "publisherName",
+        "value": "Marine Institute"
+      },
+      {
+        "key": "publisherWebsite",
+        "value": "https://data.gov.ie/organization/marine-institute"
+      },
+      {
+        "key": "rights_statement",
+        "value": "['Creative Commons Non Commercial No Derivatives licence  conditions apply', 'https://creativecommons.org/licenses/by-nc-nd/3.0/ie/', 'license']; https://creativecommons.org/licenses/by-nc-nd/4.0/"
+      },
+      {
+        "key": "spatial",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-10.2123, 51.6444], [-10.2123, 55.17], [-7.5503, 55.17], [-7.5503, 51.6444], [-10.2123, 51.6444]]]}"
+      },
+      {
+        "key": "spatialCovFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "spatialCov",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-10.2123, 51.6444], [-10.2123, 55.17], [-7.5503, 55.17], [-7.5503, 51.6444], [-10.2123, 51.6444]]]}"
+      },
+      {
+        "key": "dataBboxFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "dataBbox",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-10.2123, 51.6444], [-7.5503, 51.6444], [-7.5503, 55.17], [-10.2123, 55.17], [-10.2123, 51.6444]]]}"
+      },
+      {
+        "key": "startDateTime",
+        "value": "2003-04-01T00:00:00Z"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "issueDate",
+        "value": "2003-04-01"
+      },
+      {
+        "key": "lastUpdateDate",
+        "value": "2026-07-21T09:55:05Z"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "http://atlas.marine.ie/arcgis/services/OceanFeatures/MapServer/WMSServer?REQUEST=GetMap&SERVICE=WMS&LAYERS=18&VERSION=1.3.0&FORMAT=image/png&CRS=CRS:84&BBOX=-10.5%2C51.5%2C-7.4%2C55.2&WIDTH=1000&HEIGHT=1000&STYLES=default"
+      },
+      {
+        "key": "source_format",
+        "value": "dcat"
+      },
+      {
+        "key": "source_identifier",
+        "value": "8a6905b1-bfc1-4ed5-ae13-5c1dfa40b98b"
+      },
+      {
+        "key": "source_url",
+        "value": "http://atlas.marine.ie/arcgis/services/OceanFeatures/MapServer/WMSServer?REQUEST=GetMap&SERVICE=WMS&LAYERS=18&VERSION=1.3.0&FORMAT=image/png&CRS=CRS:84&BBOX=-10.5%2C51.5%2C-7.4%2C55.2&WIDTH=1000&HEIGHT=1000&STYLES=default"
+      }
+    ]
+  },
+  "source_format": "dcat",
+  "external_id": "8a6905b1-bfc1-4ed5-ae13-5c1dfa40b98b",
+  "warnings": [
+    "temporal: coverage is open-ended; extras.temporal omitted, see startDateTime/endDateTime"
+  ],
+  "unmapped": [],
+  "errors": []
+}

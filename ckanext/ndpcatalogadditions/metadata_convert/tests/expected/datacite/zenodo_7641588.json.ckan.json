@@ -1,0 +1,103 @@
+{
+  "package": {
+    "name": "newick-trees-for-emerge-methanogen-genome-tree-and-methylotrophic-gene-trees-8307c5b7",
+    "title": "Newick Trees for EMERGE methanogen genome tree, and methylotrophic gene trees",
+    "notes": "Newick trees provided for phylogenomic and phylogenetic analyses from Ellenbogen *et al. *(in prep). The methanogen genome tree (Newick_tree_for_methanogen_genome_tree.suptree) was built using an alignment generated with GTDB-Tk v1.5.0 r202, and the tree made using IQ Tree v1.6.12. All other trees are RAxML gene trees built using ProtPipeliner (https://github.com/TheWrightonLab/Protpipeliner/blob/master/protpipeliner.py) to confirm the functional identity of identified methylotrophic genes from methanogens and bacteria. The names of the Newick trees correspond to relevant gene groupings as discussed in the associated manuscript. FUNDING:\nThis research is a contribution of the EMERGE Biology Integration Institute, funded by the National Science Foundation, Biology Integration Institutes Program, Award # 2022070.\nWe thank the Swedish Polar Research Secretariat and SITES for the support of the work done at the Abisko Scientific Research Station. SITES is supported by the Swedish Research Council's grant 4.3-2021-00164.\nThis study was also funded by the Genomic Science Program of the United States Department of Energy Office of Biological and Environmental Research, grant #s DE-SC0010580 and DE-SC0016440.",
+    "license_id": "cc-by",
+    "author": "Jared B. Ellenbogen, Mikayla A. Borton",
+    "resources": [
+      {
+        "url": "https://zenodo.org/record/7641588",
+        "name": "Landing page",
+        "format": "HTML",
+        "mimetype": "text/html",
+        "description": "Dataset landing page",
+        "status": "active"
+      }
+    ],
+    "tags": [],
+    "extras": [
+      {
+        "key": "doi",
+        "value": "10.5281/zenodo.7641588"
+      },
+      {
+        "key": "publication_year",
+        "value": "2023"
+      },
+      {
+        "key": "resource_type",
+        "value": "Dataset"
+      },
+      {
+        "key": "source_metadata_modified",
+        "value": "2023-04-26T15:21:42.000Z"
+      },
+      {
+        "key": "related_identifiers",
+        "value": "[{\"relation\": \"IsVersionOf\", \"identifier\": \"10.5281/zenodo.7641587\", \"type\": \"DOI\"}]"
+      },
+      {
+        "key": "creators",
+        "value": "[{\"name\": \"Jared B. Ellenbogen, Mikayla A. Borton\", \"affiliation\": \"Colorado State University\"}]"
+      },
+      {
+        "key": "creatorName",
+        "value": "Jared B. Ellenbogen, Mikayla A. Borton"
+      },
+      {
+        "key": "creatorAffiliation",
+        "value": "Colorado State University"
+      },
+      {
+        "key": "pocName",
+        "value": "Jared B. Ellenbogen, Mikayla A. Borton"
+      },
+      {
+        "key": "publisherName",
+        "value": "Zenodo"
+      },
+      {
+        "key": "rights_statement",
+        "value": "cc-by-4.0; https://creativecommons.org/licenses/by/4.0/legalcode; Creative Commons Attribution 4.0 International; info:eu-repo/semantics/openAccess; Open Access"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "issueDate",
+        "value": "2023-02-14"
+      },
+      {
+        "key": "lastUpdateDate",
+        "value": "2023-04-26T15:21:42Z"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://zenodo.org/record/7641588"
+      },
+      {
+        "key": "source_format",
+        "value": "datacite"
+      },
+      {
+        "key": "source_identifier",
+        "value": "doi:10.5281/zenodo.7641588"
+      },
+      {
+        "key": "source_url",
+        "value": "https://doi.org/10.5281/zenodo.7641588"
+      }
+    ]
+  },
+  "source_format": "datacite",
+  "external_id": "doi:10.5281/zenodo.7641588",
+  "warnings": [
+    "no contact point in source; pocName/pocEmail taken from the first creator",
+    "no point-of-contact email in source; NDP requires extras.pocEmail for public datasets",
+    "no keywords in source; NDP requires tags for public datasets"
+  ],
+  "unmapped": [],
+  "errors": []
+}

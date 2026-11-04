@@ -20,7 +20,15 @@ def verify_and_decode_token(token, server_url, realm, client_id):
     try:
         # Verify and decode the token
         header = jwt.get_unverified_header(token)
-        key = [k for k in keys if k['kid'] == header['kid']][0]
+
+        matching_keys = [k for k in keys if k.get('kid') == header['kid']]
+        if not matching_keys:
+            logger.error(f"Not matched key for kid")
+            return None
+
+        # key = [k for k in keys if k['kid'] == header['kid']][0]
+        key = matching_keys[0]
+
         decoded_token = jwt.decode(
             token,
             key,
@@ -30,7 +38,7 @@ def verify_and_decode_token(token, server_url, realm, client_id):
         )
         return decoded_token
     except JWTError as e:
-        print(f"Token verification failed: {str(e)}")
+        logger.error(f"Token verification failed: {str(e)}")
         return None
 
 

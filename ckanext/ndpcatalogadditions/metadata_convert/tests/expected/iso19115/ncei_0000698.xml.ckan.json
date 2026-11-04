@@ -1,0 +1,735 @@
+{
+  "package": {
+    "name": "global-near-real-time-temperature-and-salinity-profile-data-from-the-gtspp-project-from-200-65d5cf26",
+    "title": "Global Near Real-Time Temperature and Salinity Profile Data from the GTSPP project from 2002-02-27 to 2002-04-29 (NCEI Accession 0000698)",
+    "notes": "Physical, current, meteorological, and other data were collected from XBT casts, buoys, and other instruments from a World-Wide distribution. Data were collected from 27 February 2002 to 29 April 2002. Data were submitted by the Marine Environmental Data Service (MEDS) in support of the Array for Real-time Geostrophic Oceanography (Argo), the Gulf of Mexico NOAA/NMFS Ship of Opportunity (SOOP), the World Ocean Circulation Experiment (WOCE), and the Global Temperature-Salinity Pilot Project (GTSPP). Physical parameters include profiles of temperature and salinity. Current parameters include current direction and speed. Meteorological data include dry bulb temperature, wind speed, wind direction, relative humidity, and air pressure.",
+    "author": "Menard, Roger",
+    "author_email": "menard@meds-sdmm.dfo-mpo.gc.ca",
+    "maintainer": "NOAA National Centers for Environmental Information",
+    "maintainer_email": "ncei.info@noaa.gov",
+    "resources": [
+      {
+        "url": "https://www.ncei.noaa.gov/products/global-temperature-and-salinity-profile-programme",
+        "name": "The Global Temperature and Salinity Profile Programme (GTSPP)",
+        "format": "HTML",
+        "description": "Navigate directly to the URL for a descriptive web page.",
+        "protocol": "HTTPS",
+        "function": "information",
+        "application_profile": "Web browser",
+        "status": "active",
+        "mimetype": "text/html"
+      },
+      {
+        "url": "https://www.ncei.noaa.gov/access/global-temperature-salinity-profile-programme/gwi.html",
+        "name": "GTSPP Data Search",
+        "format": "HTML",
+        "description": "Search for data by spatial range, date, season, data mode, data type, PLAT code, call sign, and/or product.",
+        "protocol": "HTTPS",
+        "function": "search",
+        "application_profile": "Web browser",
+        "status": "active",
+        "mimetype": "text/html"
+      },
+      {
+        "url": "https://www.ncei.noaa.gov/archive/accession/0000698",
+        "name": "NCEI Dataset Landing Page",
+        "format": "HTML",
+        "description": "Navigate directly to the URL for a descriptive web page with download links.",
+        "protocol": "HTTPS",
+        "function": "information",
+        "application_profile": "Web browser",
+        "status": "active",
+        "mimetype": "text/html"
+      },
+      {
+        "url": "https://www.ncei.noaa.gov/archive/accession/oas/698",
+        "name": "Descriptive Information",
+        "format": "HTML",
+        "description": "Navigate directly to the URL for a descriptive web page with download links.",
+        "protocol": "HTTPS",
+        "function": "information",
+        "application_profile": "Web browser",
+        "status": "active",
+        "mimetype": "text/html"
+      },
+      {
+        "url": "https://www.ncei.noaa.gov/archive/accession/download/698",
+        "name": "HTTPS",
+        "format": "HTML",
+        "description": "Navigate directly to the URL for data access and direct download.",
+        "protocol": "HTTPS",
+        "function": "download",
+        "application_profile": "Web browser",
+        "status": "active",
+        "mimetype": "text/html"
+      },
+      {
+        "url": "ftp://ftp-oceans.ncei.noaa.gov/nodc/archive/arc0001/0000698/",
+        "name": "FTP",
+        "format": "FTP",
+        "description": "These data are available through the File Transfer Protocol (FTP). FTP is no longer supported by most internet browsers. You may copy and paste the FTP link to the data into an FTP client (e.g., FileZilla or WinSCP).",
+        "protocol": "FTP",
+        "function": "download",
+        "application_profile": "Any FTP client",
+        "status": "active"
+      }
+    ],
+    "tags": [
+      {
+        "name": "air-temperature-dry-bulb",
+        "display_name": "AIR TEMPERATURE - DRY BULB"
+      },
+      {
+        "name": "barometric-pressure",
+        "display_name": "BAROMETRIC PRESSURE"
+      },
+      {
+        "name": "current-direction",
+        "display_name": "CURRENT DIRECTION"
+      },
+      {
+        "name": "current-speed",
+        "display_name": "CURRENT SPEED"
+      },
+      {
+        "name": "relative-humidity",
+        "display_name": "RELATIVE HUMIDITY"
+      },
+      {
+        "name": "salinity",
+        "display_name": "SALINITY"
+      },
+      {
+        "name": "sea-surface-temperature",
+        "display_name": "SEA SURFACE TEMPERATURE"
+      },
+      {
+        "name": "water-depth",
+        "display_name": "water depth"
+      },
+      {
+        "name": "water-temperature",
+        "display_name": "WATER TEMPERATURE"
+      },
+      {
+        "name": "wind-direction",
+        "display_name": "WIND DIRECTION"
+      },
+      {
+        "name": "wind-speed",
+        "display_name": "WIND SPEED"
+      },
+      {
+        "name": "current-measurements",
+        "display_name": "current measurements"
+      },
+      {
+        "name": "meteorological",
+        "display_name": "meteorological"
+      },
+      {
+        "name": "physical",
+        "display_name": "physical"
+      },
+      {
+        "name": "profile",
+        "display_name": "profile"
+      },
+      {
+        "name": "arabian-sea",
+        "display_name": "Arabian Sea"
+      },
+      {
+        "name": "arafura-sea",
+        "display_name": "Arafura Sea"
+      },
+      {
+        "name": "bali-sea",
+        "display_name": "Bali Sea"
+      },
+      {
+        "name": "baltic-sea",
+        "display_name": "Baltic Sea"
+      },
+      {
+        "name": "banda-sea",
+        "display_name": "Banda Sea"
+      },
+      {
+        "name": "bass-strait",
+        "display_name": "Bass Strait"
+      },
+      {
+        "name": "bay-of-bengal",
+        "display_name": "Bay of Bengal"
+      },
+      {
+        "name": "bay-of-fundy",
+        "display_name": "Bay of Fundy"
+      },
+      {
+        "name": "bering-sea",
+        "display_name": "Bering Sea"
+      },
+      {
+        "name": "black-sea",
+        "display_name": "Black Sea"
+      },
+      {
+        "name": "caribbean-sea",
+        "display_name": "Caribbean Sea"
+      },
+      {
+        "name": "ceram-sea-or-seram-sea",
+        "display_name": "Ceram Sea or Seram Sea"
+      },
+      {
+        "name": "coral-sea",
+        "display_name": "Coral Sea"
+      },
+      {
+        "name": "davis-strait",
+        "display_name": "Davis Strait"
+      },
+      {
+        "name": "east-china-sea-tung-hai",
+        "display_name": "East China Sea (Tung Hai)"
+      },
+      {
+        "name": "english-channel-la-manche",
+        "display_name": "English Channel (La Manche)"
+      },
+      {
+        "name": "flores-sea",
+        "display_name": "Flores Sea"
+      },
+      {
+        "name": "great-australian-bight",
+        "display_name": "Great Australian Bight"
+      },
+      {
+        "name": "gulf-of-alaska",
+        "display_name": "Gulf of Alaska"
+      },
+      {
+        "name": "gulf-of-guinea",
+        "display_name": "Gulf of Guinea"
+      },
+      {
+        "name": "gulf-of-mexico",
+        "display_name": "Gulf of Mexico"
+      },
+      {
+        "name": "gulf-of-oman",
+        "display_name": "Gulf of Oman"
+      },
+      {
+        "name": "indian-ocean",
+        "display_name": "Indian Ocean"
+      },
+      {
+        "name": "japan-sea",
+        "display_name": "Japan Sea"
+      },
+      {
+        "name": "labrador-sea",
+        "display_name": "Labrador Sea"
+      },
+      {
+        "name": "laccadive-sea",
+        "display_name": "Laccadive Sea"
+      },
+      {
+        "name": "mediterranean-sea-eastern-basin",
+        "display_name": "Mediterranean Sea - Eastern Basin"
+      },
+      {
+        "name": "mediterranean-sea-western-basin",
+        "display_name": "Mediterranean Sea - Western Basin"
+      },
+      {
+        "name": "molucca-sea",
+        "display_name": "Molucca Sea"
+      },
+      {
+        "name": "north-atlantic-ocean",
+        "display_name": "North Atlantic Ocean"
+      },
+      {
+        "name": "north-greenland-sea",
+        "display_name": "North Greenland Sea"
+      },
+      {
+        "name": "north-pacific-ocean",
+        "display_name": "North Pacific Ocean"
+      },
+      {
+        "name": "north-sea",
+        "display_name": "North Sea"
+      },
+      {
+        "name": "norwegian-sea",
+        "display_name": "Norwegian Sea"
+      },
+      {
+        "name": "papahānaumokuākea-marine-national-monument",
+        "display_name": "Papahānaumokuākea Marine National Monument"
+      },
+      {
+        "name": "persian-gulf-gulf-of-iran-strait-of-hormuz",
+        "display_name": "Persian Gulf (Gulf of Iran), Strait of Hormuz"
+      },
+      {
+        "name": "philippine-sea",
+        "display_name": "Philippine Sea"
+      },
+      {
+        "name": "red-sea",
+        "display_name": "Red Sea"
+      },
+      {
+        "name": "sawu-sea",
+        "display_name": "Sawu Sea"
+      },
+      {
+        "name": "south-atlantic-ocean",
+        "display_name": "South Atlantic Ocean"
+      },
+      {
+        "name": "south-china-sea-nan-hai",
+        "display_name": "South China Sea (Nan Hai)"
+      },
+      {
+        "name": "south-pacific-ocean",
+        "display_name": "South Pacific Ocean"
+      },
+      {
+        "name": "tasman-sea",
+        "display_name": "Tasman Sea"
+      },
+      {
+        "name": "timor-sea",
+        "display_name": "Timor Sea"
+      },
+      {
+        "name": "tyrrhenian-sea",
+        "display_name": "Tyrrhenian Sea"
+      },
+      {
+        "name": "world-wide-distribution",
+        "display_name": "World-Wide Distribution"
+      },
+      {
+        "name": "oceanography",
+        "display_name": "oceanography"
+      },
+      {
+        "name": "atmospheric-pressure",
+        "display_name": "ATMOSPHERIC PRESSURE"
+      },
+      {
+        "name": "air-temperature",
+        "display_name": "AIR TEMPERATURE"
+      },
+      {
+        "name": "ocean-currents",
+        "display_name": "OCEAN CURRENTS"
+      },
+      {
+        "name": "global-ocean",
+        "display_name": "GLOBAL OCEAN"
+      },
+      {
+        "name": "arctic-ocean",
+        "display_name": "ARCTIC OCEAN"
+      },
+      {
+        "name": "gulf-of-america",
+        "display_name": "GULF OF AMERICA"
+      },
+      {
+        "name": "mediterranean-sea",
+        "display_name": "MEDITERRANEAN SEA"
+      },
+      {
+        "name": "persian-gulf",
+        "display_name": "PERSIAN GULF"
+      },
+      {
+        "name": "hawaiian-islands",
+        "display_name": "HAWAIIAN ISLANDS"
+      },
+      {
+        "name": "sea-of-japan",
+        "display_name": "SEA OF JAPAN"
+      },
+      {
+        "name": "east-china-sea",
+        "display_name": "EAST CHINA SEA"
+      },
+      {
+        "name": "south-china-and-eastern-archipelagic-seas",
+        "display_name": "SOUTH CHINA AND EASTERN ARCHIPELAGIC SEAS"
+      },
+      {
+        "name": "south-china-sea",
+        "display_name": "SOUTH CHINA SEA"
+      }
+    ],
+    "extras": [
+      {
+        "key": "purpose",
+        "value": "This dataset is available to the public for a wide variety of uses including scientific research and analysis."
+      },
+      {
+        "key": "supplemental_information",
+        "value": "These data are processed and incorporated into the Global Temperature-Salinity Profile Programme (GTSPP) database."
+      },
+      {
+        "key": "frequency",
+        "value": "asNeeded"
+      },
+      {
+        "key": "status",
+        "value": "completed"
+      },
+      {
+        "key": "date_creation",
+        "value": "2002-04-04"
+      },
+      {
+        "key": "citation_identifier",
+        "value": "gov.noaa.nodc:0000698; 0000698"
+      },
+      {
+        "key": "theme_keywords",
+        "value": "0000698; AIR TEMPERATURE - DRY BULB; BAROMETRIC PRESSURE; CURRENT DIRECTION; CURRENT SPEED; RELATIVE HUMIDITY; SALINITY; SEA SURFACE TEMPERATURE; water depth; WATER TEMPERATURE; WIND DIRECTION; WIND SPEED; current measurements; meteorological; physical; profile; oceanography; EARTH SCIENCE > ATMOSPHERE > ATMOSPHERIC PRESSURE; EARTH SCIENCE > ATMOSPHERE > ATMOSPHERIC TEMPERATURE > SURFACE TEMPERATURE > AIR TEMPERATURE; EARTH SCIENCE > ATMOSPHERE > ATMOSPHERIC WATER VAPOR > WATER VAPOR INDICATORS > HUMIDITY > RELATIVE HUMIDITY; EARTH SCIENCE > ATMOSPHERE > ATMOSPHERIC WINDS > SURFACE WINDS > WIND DIRECTION; EARTH SCIENCE > ATMOSPHERE > ATMOSPHERIC WINDS > SURFACE WINDS > WIND SPEED; EARTH SCIENCE > OCEANS > BATHYMETRY/SEAFLOOR TOPOGRAPHY > WATER DEPTH; EARTH SCIENCE > OCEANS > OCEAN CIRCULATION > OCEAN CURRENTS; EARTH SCIENCE > OCEANS > OCEAN TEMPERATURE > SEA SURFACE TEMPERATURE; EARTH SCIENCE > OCEANS > OCEAN TEMPERATURE > WATER TEMPERATURE; EARTH SCIENCE > OCEANS > SALINITY/DENSITY > SALINITY"
+      },
+      {
+        "key": "instrument_keywords",
+        "value": "bathythermograph - XBT; buoy - moored buoy; profiling float; XBT > Expendable Bathythermographs"
+      },
+      {
+        "key": "dataCentre_keywords",
+        "value": "Fisheries and Oceans Canada, Marine Environmental Data Section; CA/DFO > Fisheries and Oceans, Canada; DOC/NOAA/NESDIS/NODC > National Oceanographic Data Center, NESDIS, NOAA, U.S. Department of Commerce"
+      },
+      {
+        "key": "project_keywords",
+        "value": "Array for Real-time Geostrophic Oceanography (Argo); Global Temperature and Salinity Profile Programme (GTSPP); GULF OF MEXICO NOAA/NMFS SHIP OF OPPORTUNITY (SOOP); World Ocean Circulation Experiment (WOCE); ARGO > A Broad-Scale Global Array of Temperature/Salinity Profiling Floats; GTSPP > The Global Temperature and Salinity Profile Programme; WOCE > World Ocean Circulation Experiment"
+      },
+      {
+        "key": "place_keywords",
+        "value": "Arabian Sea; Arafura Sea; Bali Sea; Baltic Sea; Banda Sea; Bass Strait; Bay of Bengal; Bay of Fundy; Bering Sea; Black Sea; Caribbean Sea; Ceram Sea or Seram Sea; Coral Sea; Davis Strait; East China Sea (Tung Hai); English Channel (La Manche); Flores Sea; Great Australian Bight; Gulf of Alaska; Gulf of Guinea; Gulf of Mexico; Gulf of Oman; Indian Ocean; Japan Sea; Labrador Sea; Laccadive Sea; Mediterranean Sea - Eastern Basin; Mediterranean Sea - Western Basin; Molucca Sea; North Atlantic Ocean; North Greenland Sea; North Pacific Ocean; North Sea; Norwegian Sea; Papahānaumokuākea Marine National Monument; Persian Gulf (Gulf of Iran), Strait of Hormuz; Philippine Sea; Red Sea; Sawu Sea; South Atlantic Ocean; South China Sea (Nan Hai); South Pacific Ocean; Tasman Sea; Timor Sea; Tyrrhenian Sea; World-Wide Distribution; CONTINENT > ASIA > WESTERN ASIA > BLACK SEA; CONTINENT > EUROPE > EASTERN EUROPE > BLACK SEA; GEOGRAPHIC REGION > GLOBAL OCEAN; OCEAN > ARCTIC OCEAN; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN > BALTIC SEA; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN > BAY OF FUNDY; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN > CARIBBEAN SEA; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN > DAVIS STRAIT; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN > GULF OF AMERICA; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN > GULF OF MEXICO; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN > MEDITERRANEAN SEA; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN > NORTH SEA; OCEAN > ATLANTIC OCEAN > NORTH ATLANTIC OCEAN > NORWEGIAN SEA; OCEAN > ATLANTIC OCEAN > SOUTH ATLANTIC OCEAN; OCEAN > INDIAN OCEAN; OCEAN > INDIAN OCEAN > ARABIAN SEA; OCEAN > INDIAN OCEAN > ARABIAN SEA > PERSIAN GULF; OCEAN > INDIAN OCEAN > BAY OF BENGAL; OCEAN > INDIAN OCEAN > RED SEA; OCEAN > PACIFIC OCEAN > CENTRAL PACIFIC OCEAN > HAWAIIAN ISLANDS; OCEAN > PACIFIC OCEAN > NORTH PACIFIC OCEAN; OCEAN > PACIFIC OCEAN > NORTH PACIFIC OCEAN > BERING SEA; OCEAN > PACIFIC OCEAN > NORTH PACIFIC OCEAN > GULF OF ALASKA; OCEAN > PACIFIC OCEAN > NORTH PACIFIC OCEAN > SEA OF JAPAN; OCEAN > PACIFIC OCEAN > SOUTH PACIFIC OCEAN; OCEAN > PACIFIC OCEAN > WESTERN PACIFIC OCEAN > EAST CHINA SEA; OCEAN > PACIFIC OCEAN > WESTERN PACIFIC OCEAN > SOUTH CHINA AND EASTERN ARCHIPELAGIC SEAS; OCEAN > PACIFIC OCEAN > WESTERN PACIFIC OCEAN > SOUTH CHINA SEA"
+      },
+      {
+        "key": "keyword_thesauri",
+        "value": "NCEI ACCESSION NUMBER; NODC DATA TYPES THESAURUS; NODC INSTRUMENT TYPES THESAURUS; NODC OBSERVATION TYPES THESAURUS; NODC SUBMITTING INSTITUTION NAMES THESAURUS; NODC PROJECT NAMES THESAURUS; NODC SEA AREA NAMES THESAURUS; WMO_CategoryCode; Global Change Master Directory (GCMD) Data Center Keywords; Global Change Master Directory (GCMD) Project Keywords; Global Change Master Directory (GCMD) Science Keywords; Global Change Master Directory (GCMD) Instrument Keywords; Global Change Master Directory (GCMD) Location Keywords"
+      },
+      {
+        "key": "constraint_codes",
+        "value": "otherRestrictions"
+      },
+      {
+        "key": "graphic_overview",
+        "value": "https://www.ncei.noaa.gov/access/metadata/landing-page/bin/gfx?id=gov.noaa.nodc:0000698"
+      },
+      {
+        "key": "language",
+        "value": "eng"
+      },
+      {
+        "key": "related",
+        "value": "{\"title\": \"Real-time profile data assembled by Fisheries and Oceans Canada (DFO) for the Global Temperature-Salinity Profile Programme (GTSPP) and submitted since 1999-10-04\", \"identifier\": \"https://www.ncei.noaa.gov/archive/accession/MEDS-GTSPP\", \"association\": \"largerWorkCitation\", \"initiative\": \"collection\"}"
+      },
+      {
+        "key": "formats",
+        "value": "Originator data format"
+      },
+      {
+        "key": "distributor",
+        "value": "NOAA National Centers for Environmental Information"
+      },
+      {
+        "key": "fees",
+        "value": "In most cases, electronic downloads of the data are free. However, fees may apply for custom orders, data certifications, copies of analog materials, and data distribution on physical media."
+      },
+      {
+        "key": "ordering_instructions",
+        "value": "Contact NCEI for other distribution options and instructions."
+      },
+      {
+        "key": "instruments",
+        "value": "bathythermograph - XBT; buoy - moored buoy; profiling float"
+      },
+      {
+        "key": "resource_type",
+        "value": "dataset"
+      },
+      {
+        "key": "hierarchy_level_name",
+        "value": "granule"
+      },
+      {
+        "key": "metadata_date",
+        "value": "2026-04-02T17:08:39Z"
+      },
+      {
+        "key": "metadata_standard_version",
+        "value": "ISO 19115-2:2009(E)"
+      },
+      {
+        "key": "metadata_standard",
+        "value": "ISO 19115-2 Geographic Information - Metadata - Part 2: Extensions for Imagery and Gridded Data"
+      },
+      {
+        "key": "metadata_language",
+        "value": "eng"
+      },
+      {
+        "key": "parent_identifier",
+        "value": "gov.noaa.nodc:MEDS-GTSPP"
+      },
+      {
+        "key": "acquisitionInformation.instrument.description",
+        "value": "eXpendable BathyThermograph; a moored buoy does not measure anything. it is a platform for instruments, which do measure things.; PALACE and other types of profiling drifters\n\nany one of several types of free-drifting (floating) instrument\npackages that measure one or more water column parameters, such as\ntemperature, salinity, etc., along with reporting the date, time,\nand location of the measurements taken over time.  Examples include\nthe P-ALACE or PALACE floats, drifting buoys, etc."
+      },
+      {
+        "key": "acquisitionInformation.instrument.type",
+        "value": "bathythermograph - XBT; buoy - moored buoy; profiling float"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.dateTime",
+        "value": "2002-04-04T14:28:02Z; 2013-03-18T00:28:08Z; 2015-04-22T00:00:00"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.description",
+        "value": "NCEI Accession 0000698 v1.1 was published.; NCEI Accession 0000698 was revised and v1.2 was published.; NOAA created the National Centers for Environmental Information (NCEI) by merging NOAA's National Climatic Data Center (NCDC), National Geophysical Data Center (NGDC), and National Oceanographic Data Center (NODC), including the National Coastal Data Development Center (NCDDC), per the Consolidated and Further Continuing Appropriations Act, 2015, Public Law 113-235. NCEI launched publicly on April 22, 2015."
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.output.sourceCitation.citedResponsibleParty.contactInfo.onlineResource.description",
+        "value": "published 2002-04-04T14:28:02Z; published 2013-03-18T00:28:08Z"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.output.sourceCitation.citedResponsibleParty.contactInfo.onlineResource.linkage",
+        "value": "https://www.ncei.noaa.gov/archive/accession/0000698/1.1; https://www.ncei.noaa.gov/archive/accession/0000698/1.2"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.output.sourceCitation.citedResponsibleParty.contactInfo.onlineResource.name",
+        "value": "NCEI Accession 0000698 v1.1; NCEI Accession 0000698 v1.2"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.output.sourceCitation.title",
+        "value": "NCEI Accession 0000698 v1.1; NCEI Accession 0000698 v1.2"
+      },
+      {
+        "key": "dataQualityInfo.lineage.processStep.rationale",
+        "value": "Additional metadata files were received or created for this dataset. These updates were copied into the about/ directory of this accession. These updates may provide additional files or replace obsolete files. This version contains the most complete and up-to-date representation of this archival information package. All of the files received prior to this update are available in the preceding version of this accession."
+      },
+      {
+        "key": "dataQualityInfo.scope.level",
+        "value": "dataset; repository"
+      },
+      {
+        "key": "dataQualityInfo.scope.levelDescription.other",
+        "value": "NOAA National Centers for Environmental Information"
+      },
+      {
+        "key": "distributionInfo.distributor.distributorTransferOptions.transferSize",
+        "value": "17.976"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.description",
+        "value": "NCEI Collection"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.linkage",
+        "value": "https://www.ncei.noaa.gov/archive/accession/MEDS-GTSPP"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.name",
+        "value": "https://www.ncei.noaa.gov/archive/accession/MEDS-GTSPP"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.organisationName",
+        "value": "NOAA National Centers for Environmental Information"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.role",
+        "value": "publisher"
+      },
+      {
+        "key": "identificationInfo.aggregationInfo.aggregateDataSetName.date.date",
+        "value": "2001-04-16"
+      },
+      {
+        "key": "identificationInfo.resourceMaintenance.maintenanceNote",
+        "value": "NCEI Accession 0000698 was revised and a new version of the archival package was published. Updates to existing archival packages may provide additional files or replace obsolete files. The latest version contains the most complete and up-to-date representation of this archival information package. All of the files received prior to this update are available in the preceding version of this accession. Please see journal.txt in the /about directory for additional details on changes made."
+      },
+      {
+        "key": "metadataMaintenance.contact.organisationName",
+        "value": "NOAA National Centers for Environmental Information"
+      },
+      {
+        "key": "metadataMaintenance.contact.role",
+        "value": "custodian"
+      },
+      {
+        "key": "metadataMaintenance.maintenanceAndUpdateFrequency",
+        "value": "asNeeded"
+      },
+      {
+        "key": "metadataMaintenance.maintenanceNote",
+        "value": "Metadata are developed, maintained and distributed by NCEI. Updates are performed as needed to maintain currentness."
+      },
+      {
+        "key": "creators",
+        "value": "[{\"name\": \"Menard, Roger\", \"email\": \"menard@meds-sdmm.dfo-mpo.gc.ca\", \"affiliation\": \"Fisheries and Oceans Canada, Marine Environmental Data Section (MEDS)\", \"identifier\": \"http://www.meds-sdmm.dfo-mpo.gc.ca/isdm-gdsi/index-eng.html\", \"role\": \"author\"}, {\"name\": \"Fisheries and Oceans Canada, Marine Environmental Data Section\", \"identifier\": \"http://www.meds-sdmm.dfo-mpo.gc.ca/isdm-gdsi/index-eng.html\", \"role\": \"author\"}]"
+      },
+      {
+        "key": "contacts",
+        "value": "[{\"name\": \"NOAA National Centers for Environmental Information\", \"email\": \"ncei.info@noaa.gov\", \"role\": \"publisher\", \"website\": \"https://www.ncei.noaa.gov/contact\"}, {\"name\": \"Roger Menard\", \"email\": \"menard@meds-sdmm.dfo-mpo.gc.ca\", \"affiliation\": \"Fisheries and Oceans Canada, Marine Environmental Data Section (MEDS)\", \"role\": \"resourceProvider\", \"website\": \"http://www.meds-sdmm.dfo-mpo.gc.ca/isdm-gdsi/index-eng.html\"}, {\"name\": \"Fisheries and Oceans Canada, Marine Environmental Data Section (MEDS)\", \"role\": \"resourceProvider\", \"website\": \"http://www.meds-sdmm.dfo-mpo.gc.ca/isdm-gdsi/index-eng.html\"}, {\"name\": \"NOAA National Centers for Environmental Information\", \"email\": \"ncei.info@noaa.gov\", \"role\": \"pointOfContact\", \"website\": \"https://www.ncei.noaa.gov/contact\"}, {\"name\": \"NOAA National Centers for Environmental Information\", \"email\": \"ncei.info@noaa.gov\", \"role\": \"custodian\", \"website\": \"https://www.ncei.noaa.gov/contact\"}]"
+      },
+      {
+        "key": "creatorName",
+        "value": "Menard, Roger; Fisheries and Oceans Canada, Marine Environmental Data Section"
+      },
+      {
+        "key": "creatorEmail",
+        "value": "menard@meds-sdmm.dfo-mpo.gc.ca"
+      },
+      {
+        "key": "creatorWebsite",
+        "value": "http://www.meds-sdmm.dfo-mpo.gc.ca/isdm-gdsi/index-eng.html"
+      },
+      {
+        "key": "creatorAffiliation",
+        "value": "Fisheries and Oceans Canada, Marine Environmental Data Section (MEDS)"
+      },
+      {
+        "key": "pocName",
+        "value": "NOAA National Centers for Environmental Information"
+      },
+      {
+        "key": "pocEmail",
+        "value": "ncei.info@noaa.gov"
+      },
+      {
+        "key": "pocWebsite",
+        "value": "https://www.ncei.noaa.gov/contact"
+      },
+      {
+        "key": "publisherName",
+        "value": "NOAA National Centers for Environmental Information"
+      },
+      {
+        "key": "publisherEmail",
+        "value": "ncei.info@noaa.gov"
+      },
+      {
+        "key": "publisherWebsite",
+        "value": "https://www.ncei.noaa.gov/contact"
+      },
+      {
+        "key": "rights_statement",
+        "value": "accessLevel: public; Cite as: Menard, Roger; Fisheries and Oceans Canada, Marine Environmental Data Section (2002). Global Near Real-Time Temperature and Salinity Profile Data from the GTSPP project from 2002-02-27 to 2002-04-29 (NCEI Accession 0000698). https://www.ncei.noaa.gov/archive/accession/0000698. In Fisheries and Oceans Canada, Marine Environmental Data Section (2001). Real-time profile data assembled by Fisheries and Oceans Canada (DFO) for the Global Temperature-Salinity Profile Programme (GTSPP) and submitted since 1999-10-04. [indicate subset used]. NOAA National Centers for Environmental Information. Dataset. https://www.ncei.noaa.gov/archive/accession/MEDS-GTSPP. Accessed [date].; Distribution liability: NOAA and NCEI make no warranty, expressed or implied, regarding these data, nor does the fact of distribution constitute such a warranty. NOAA and NCEI cannot assume liability for any damages caused by any errors or omissions in these data. If appropriate, NCEI can only certify that the data it distributes are an authentic copy of the records that were accepted for inclusion in the NCEI archives.; Use liability: NOAA and NCEI cannot provide any warranty as to the accuracy, reliability, or completeness of furnished data. Users assume responsibility to determine the usability of these data. The user is responsible for the results of any application of this data for other than its intended purpose."
+      },
+      {
+        "key": "spatial",
+        "value": "{\"type\": \"MultiPolygon\", \"coordinates\": [[[[42.989, -61.77], [180.0, -61.77], [180.0, 76.414], [42.989, 76.414], [42.989, -61.77]]], [[[-180.0, -61.77], [39.615, -61.77], [39.615, 76.414], [-180.0, 76.414], [-180.0, -61.77]]]]}"
+      },
+      {
+        "key": "spatialCovFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "spatialCov",
+        "value": "{\"type\": \"MultiPolygon\", \"coordinates\": [[[[42.989, -61.77], [180.0, -61.77], [180.0, 76.414], [42.989, 76.414], [42.989, -61.77]]], [[[-180.0, -61.77], [39.615, -61.77], [39.615, 76.414], [-180.0, 76.414], [-180.0, -61.77]]]]}"
+      },
+      {
+        "key": "dataBboxFormat",
+        "value": "geojson"
+      },
+      {
+        "key": "dataBbox",
+        "value": "{\"type\": \"Polygon\", \"coordinates\": [[[-180.0, -61.77], [180.0, -61.77], [180.0, 76.414], [-180.0, 76.414], [-180.0, -61.77]]]}"
+      },
+      {
+        "key": "startDateTime",
+        "value": "2002-02-27T00:00:00Z"
+      },
+      {
+        "key": "endDateTime",
+        "value": "2002-04-29T23:59:59Z"
+      },
+      {
+        "key": "temporal",
+        "value": "{\"startTime\": \"2002-02-27T00:00:00Z\", \"endTime\": \"2002-04-29T23:59:59Z\"}"
+      },
+      {
+        "key": "uploadType",
+        "value": "dataset"
+      },
+      {
+        "key": "issueDate",
+        "value": "2002-04-04"
+      },
+      {
+        "key": "lastUpdateDate",
+        "value": "2013-03-18"
+      },
+      {
+        "key": "datasetPageUrl",
+        "value": "https://www.ncei.noaa.gov/archive/accession/0000698"
+      },
+      {
+        "key": "docsURL",
+        "value": "https://www.ncei.noaa.gov/products/global-temperature-and-salinity-profile-programme"
+      },
+      {
+        "key": "documentation_urls",
+        "value": "https://www.ncei.noaa.gov/products/global-temperature-and-salinity-profile-programme; https://www.ncei.noaa.gov/archive/accession/oas/698"
+      },
+      {
+        "key": "source_format",
+        "value": "iso19115"
+      },
+      {
+        "key": "source_identifier",
+        "value": "gov.noaa.nodc:0000698"
+      }
+    ]
+  },
+  "source_format": "iso19115",
+  "external_id": "gov.noaa.nodc:0000698",
+  "warnings": [
+    "no recognizable license; license_id left unset",
+    "spatial: 2 areas combined into one MultiPolygon",
+    "1 resource(s) without a known mimetype; NDP requires it for public datasets"
+  ],
+  "unmapped": [
+    "acquisitionInformation.instrument.description",
+    "acquisitionInformation.instrument.type",
+    "dataQualityInfo.lineage.processStep.dateTime",
+    "dataQualityInfo.lineage.processStep.description",
+    "dataQualityInfo.lineage.processStep.output.sourceCitation.citedResponsibleParty.contactInfo.onlineResource.description",
+    "dataQualityInfo.lineage.processStep.output.sourceCitation.citedResponsibleParty.contactInfo.onlineResource.linkage",
+    "dataQualityInfo.lineage.processStep.output.sourceCitation.citedResponsibleParty.contactInfo.onlineResource.name",
+    "dataQualityInfo.lineage.processStep.output.sourceCitation.title",
+    "dataQualityInfo.lineage.processStep.rationale",
+    "dataQualityInfo.scope.level",
+    "dataQualityInfo.scope.levelDescription.other",
+    "distributionInfo.distributor.distributorTransferOptions.transferSize",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.description",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.linkage",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.contactInfo.onlineResource.name",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.organisationName",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.citedResponsibleParty.role",
+    "identificationInfo.aggregationInfo.aggregateDataSetName.date.date",
+    "identificationInfo.resourceMaintenance.maintenanceNote",
+    "metadataMaintenance.contact.organisationName",
+    "metadataMaintenance.contact.role",
+    "metadataMaintenance.maintenanceAndUpdateFrequency",
+    "metadataMaintenance.maintenanceNote"
+  ],
+  "errors": []
+}
