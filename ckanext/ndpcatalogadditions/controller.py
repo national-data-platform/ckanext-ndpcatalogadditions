@@ -31,7 +31,7 @@ headers = {
 site_url = os.getenv('CKAN_SITE_URL')
 email_secret = os.getenv('email_secret')
 
-NDP_API = os.getenv('NDP_API_URL', 'https://idp.nationaldataplatform.org/groups')
+NDP_KEYCLOAK_API_URL = os.getenv('NDP_KEYCLOAK_API_URL', 'https://idp.nationaldataplatform.org/api')
 TEST_CLIENT = os.getenv('NDP_CLIENT', 'NDP_CLIENT')
 SECRET = os.getenv('NDP_SECRET')
 
@@ -747,46 +747,63 @@ def list_my_reviewed_packages():
     return "Method not allowed", 405  # For unsupported methods
 
 
-def save_dataset_to_groups(allowed_groups, dataset_id):
-    logger.info(f"Save the dataset id {dataset_id} as an attribute to the groups {allowed_groups}")
-
-    ndp_admin_token = post_request(NDP_API, "/login", {
+def get_ndp_client_headers():
+    # Log in to the NDP AAI API as the CKAN client
+    ndp_client_token = post_request(NDP_KEYCLOAK_API_URL, "/client/login", {
         "client_id": TEST_CLIENT,
         "secret": SECRET,
     })["access_token"]
 
-    # logger.info('-'*70)
-    # logger.info(f"Fetch a NDP Access Token: {ndp_admin_token}")
-
-    ndp_admin_headers = {
-	"Authorization": f"Bearer {ndp_admin_token}"
+    return {
+        "Authorization": f"Bearer {ndp_client_token}"
     }
-    
+
+
+def save_dataset_to_groups(allowed_groups, dataset_id):
+    logger.info(f"Save the dataset id {dataset_id} as an attribute to the groups {allowed_groups}")
+
+    if len(allowed_groups) == 0:
+        return
+
+    ndp_client_headers = get_ndp_client_headers()
+
+    # The attribute endpoints take group paths, so resolve the group ids first
+    group_names = get_request(NDP_KEYCLOAK_API_URL, f"/group/names?groupId={','.join(allowed_groups)}", headers=ndp_client_headers)
+    logger.info(f"/group/names: {group_names}")
+
     for group_id in allowed_groups:
-        logger.info(f"Save the dataset id {dataset_id} to the group {group_id}")
-        add_attr_resp = post_request(NDP_API, f"/attributes/{group_id}", {"value": dataset_id}, headers=ndp_admin_headers)
-        logger.info(f"Add Attribute Response: {add_attr_resp}")
+        if group_id in group_names:
+            logger.info(f"Save the dataset id {dataset_id} to the group {group_names[group_id]}")
+            add_attr_resp = post_request(NDP_KEYCLOAK_API_URL, "/attributes/add", {
+                "groupName": group_names[group_id],
+                "attributeName": "ckan_dataset_ids",
+                "values": [dataset_id],
+            }, headers=ndp_client_headers)
+            logger.info(f"Add Attribute Response: {add_attr_resp}")
 
 
 def delete_dataset_from_groups(allowed_groups, dataset_id):
     logger.info(f"Delete the dataset id {dataset_id} from the groups {allowed_groups}")
 
-    ndp_admin_token = post_request(NDP_API, "/login", {
-        "client_id": TEST_CLIENT,
-        "secret": SECRET,
-    })["access_token"]
+    if len(allowed_groups) == 0:
+        return
 
-    # logger.info('-'*70)
-    # logger.info(f"Fetch a NDP Access Token: {ndp_admin_token}")
+    ndp_client_headers = get_ndp_client_headers()
 
-    ndp_admin_headers = {
-	"Authorization": f"Bearer {ndp_admin_token}"
-    }
-    
+    # The attribute endpoints take group paths, so resolve the group ids first
+    group_names = get_request(NDP_KEYCLOAK_API_URL, f"/group/names?groupId={','.join(allowed_groups)}", headers=ndp_client_headers)
+    logger.info(f"/group/names: {group_names}")
+
     for group_id in allowed_groups:
-        logger.info(f"Delete the dataset id {dataset_id} from the group {group_id}")
-        delete_attr_resp = delete_request(NDP_API, f"/attributes/{group_id}", {"value": dataset_id}, headers=ndp_admin_headers)
-        logger.info(f"Delete Attribute Response: {delete_attr_resp}")
+        if group_id in group_names:
+            logger.info(f"Delete the dataset id {dataset_id} from the group {group_names[group_id]}")
+            # "value" (singular) removes only this dataset id; without it the whole attribute is deleted
+            delete_attr_resp = delete_request(NDP_KEYCLOAK_API_URL, "/attributes/delete", {
+                "groupName": group_names[group_id],
+                "attributeName": "ckan_dataset_ids",
+                "value": dataset_id,
+            }, headers=ndp_client_headers)
+            logger.info(f"Delete Attribute Response: {delete_attr_resp}")
 
         
         
@@ -1151,62 +1168,25 @@ def get_allowed_groups(package):
             
 def is_user_in_groups(user_id, allowed_groups):
     logger.info(f"Check if {user_id} is in the groups {allowed_groups}")
+    return bool(set(allowed_groups) & set(get_user_keycloak_groups(user_id)))
 
-    ndp_admin_token = post_request(NDP_API, "/login", {
-        "client_id": TEST_CLIENT,
-        "secret": SECRET,
-    })["access_token"]
-
-    ndp_admin_headers = {
-        "Authorization": f"Bearer {ndp_admin_token}"
-    }
-
-    user_groups_resp = get_request(NDP_API, f"/users/groups?userID={user_id}", headers=ndp_admin_headers)
-    logger.info(f"User's Groups Response: {user_groups_resp}")
-
-    if 'groups' in user_groups_resp:
-        group_names = user_groups_resp['groups']
-
-        if len(group_names) > 0:
-            resolve_id_resp = post_request(NDP_API, "/resolve-ids", {"group_names": group_names}, headers=ndp_admin_headers)            
-            logger.info(f"resolve_id_resp: {resolve_id_resp}")
-
-            if 'groups' in resolve_id_resp:
-                group_ids = [group['id'] for group in resolve_id_resp.get('groups', [])]
-                logger.info(f"groups this user belongs to: {group_ids}")
-                return bool(set(allowed_groups) & set(group_ids))
-                
-    # No matches found
-    return False
-    
 
 def get_user_keycloak_groups(user_id):
     logger.info(f"get_user_keycloak_groups: {user_id}")
 
-    ndp_admin_token = post_request(NDP_API, "/login", {
-        "client_id": TEST_CLIENT,
-        "secret": SECRET,
-    })["access_token"]
+    # The NDP AAI API looks up groups from the caller's own Keycloak token, not by user id
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        bearer_token = auth_header[len('Bearer '):]
+    else:
+        raise ValueError('Missing or invalid KeyCloak token')
 
-    ndp_admin_headers = {
-        "Authorization": f"Bearer {ndp_admin_token}"
-    }
+    user_info_resp = post_request(NDP_KEYCLOAK_API_URL, "/information", {"token": bearer_token})
+    logger.info(f"/information groups: {user_info_resp.get('groups')}")
 
-    user_groups_resp = get_request(NDP_API, f"/users/groups?userID={user_id}", headers=ndp_admin_headers)
-    logger.info(f"User's Groups Response: {user_groups_resp}")
-
-    if 'groups' in user_groups_resp:
-        group_names = user_groups_resp['groups']
-
-        if len(group_names) > 0:
-            resolve_id_resp = post_request(NDP_API, "/resolve-ids", {"group_names": group_names}, headers=ndp_admin_headers)            
-            logger.info(f"resolve_id_resp: {resolve_id_resp}")
-
-            if 'groups' in resolve_id_resp:
-                group_ids = [group['id'] for group in resolve_id_resp.get('groups', [])]
-                logger.info(f"groups this user belongs to: {group_ids}")
-                return group_ids
-    return []
+    group_ids = [group['id'] for group in user_info_resp.get('groups', [])]
+    logger.info(f"groups this user belongs to: {group_ids}")
+    return group_ids
     
 
 def get_remote_user(username):
@@ -1329,25 +1309,16 @@ def validate_groups(groups):
     if len(groups) == 0:
         return True
     
-    ndp_admin_token = post_request(NDP_API, "/login", {
-        "client_id": TEST_CLIENT,
-        "secret": SECRET,
-    })["access_token"]
+    ndp_client_headers = get_ndp_client_headers()
 
-    # print('-'*70)
-    # print("Fetch a NDP Access Token:", ndp_admin_token)
+    group_names = get_request(NDP_KEYCLOAK_API_URL, f"/group/names?groupId={','.join(groups)}", headers=ndp_client_headers)
+    logger.info(f"/group/names: {group_names}")
 
-    ndp_admin_headers = {
-        "Authorization": f"Bearer {ndp_admin_token}"
-    }
-
-    resolve_id_resp = post_request(NDP_API, "/resolve-names", {"group_ids": groups}, headers=ndp_admin_headers)
-    print('Resolve Group Ids: {resolve_id_resp}')
-
-    if 'error' in resolve_id_resp.keys():
-        raise ValueError(resolve_id_resp['error'])
-    else:
-        return True
+    if 'error' in group_names:
+        raise ValueError(f"API request failed: {group_names['error']}")
+    if '__errors__' in group_names:
+        raise ValueError(str(group_names['__errors__']))
+    return True
     
     
 def process_private_setting(dataset_dict, email):
