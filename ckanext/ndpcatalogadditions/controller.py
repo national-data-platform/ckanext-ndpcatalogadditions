@@ -471,7 +471,7 @@ def add_or_update_ndp_creator_md5(dataset_json, md5_value):
 def validate_package():
     if request.method == 'POST':
         try:
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             # validate the package                                                                                                                                         
             validation_result = ndp_package_validate(json.dumps(dataset_dict))
@@ -493,7 +493,7 @@ def create_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
             if 'owner_org' in dataset_dict.keys():
                 organization = process_user_and_organization(user, dataset_dict['owner_org'])
                 dataset_dict['owner_org'] = organization.name
@@ -632,7 +632,7 @@ def update_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             # Check if the user is authorized to update the package
             package_id = dataset_dict.get('id') or dataset_dict.get('name')
@@ -666,7 +666,7 @@ def delete_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             # Check if the user is authorized to delete the package
             package_id = dataset_dict.get('id') or dataset_dict.get('name')
@@ -687,7 +687,7 @@ def purge_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
             context = {'user': user.id}
             logic.get_action('dataset_purge')(context, dataset_dict)
             return f"The package '{dataset_dict['id']}' is purged."
@@ -881,7 +881,7 @@ def approve_package():
                     return jsonify({'error': f'Error: {str(e)}'}), 500
 
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             # get the dataset with ignore_auth. Note that the reviewer may not has the permission to view this package if it is private
             context = {'ignore_auth': True}
@@ -1057,7 +1057,7 @@ def reject_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             if not user.sysadmin and not is_reviewer():
                 return "Not authorized to approve this dataset.", 401
@@ -1393,7 +1393,7 @@ def my_prekan_package():
 
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()            
+            dataset_dict = request.get_json(silent=True)            
             context = {'user': user.id}
             package = logic.get_action('package_show')(context, {"id": id})
 
@@ -1569,7 +1569,7 @@ def my_approved_packages():
 def update_my_approved_package():
     if request.method == 'POST':
         try:
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
             logger.info(f"Update package: {dataset_dict['id'] if 'id' in dataset_dict else dataset_dict['name']}")
 
             # Get CKAN username
@@ -1771,7 +1771,7 @@ def search_package():
         try:
             # Get request data
             if request.method == 'POST':
-                data_dict = request.get_json() or {}
+                data_dict = request.get_json(silent=True) or {}
             else:
                 data_dict = dict(request.args)
             logger.warning(f"search package: {data_dict}")

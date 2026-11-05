@@ -134,7 +134,7 @@ def create_group():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
             validate_group_data(group_data, username)
                 
             # disable creating organization
@@ -242,7 +242,7 @@ def update_group():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
             validate_group_data(group_data, username)
 
             # Get the ID parameter from the request
@@ -326,7 +326,7 @@ def update_group():
 def delete_group():
     if request.method == 'POST':
         try:
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
 
             # extract group_id                                                                                                                                   
             group_id = group_data.get('id', None)
@@ -388,7 +388,7 @@ def delete_group():
 def purge_group():
     if request.method == 'POST':
         try:
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
 
             # extract group_id                                                                                                                                   
             group_id = group_data.get('id', None)
@@ -454,7 +454,7 @@ def create_member():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            member_data = request.get_json()
+            member_data = request.get_json(silent=True)
 
             # extract group_id
             group_id = member_data.get('group_id', None)
@@ -533,7 +533,7 @@ def delete_member():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            member_data = request.get_json()
+            member_data = request.get_json(silent=True)
 
             # extract group_id
             group_id = member_data.get('group_id', None)
@@ -694,7 +694,7 @@ def create_subgroup():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
             context = {'user': user.name}
             
             # get the parent group
@@ -741,7 +741,7 @@ def group_package_add():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            request_data = request.get_json()
+            request_data = request.get_json(silent=True)
 
             # extract group_id
             group_id = request_data.get('group_id', None)
@@ -825,7 +825,7 @@ def group_package_delete():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            request_data = request.get_json()
+            request_data = request.get_json(silent=True)
 
             # extract group_id
             group_id = request_data.get('group_id', None)
