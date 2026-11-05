@@ -28,7 +28,7 @@ ckan_url = ckan_url.replace('catalog2', 'catalog')
 
 api_key = os.getenv('CKANEXT__NDPCATALOGADDITIONS__API_KEY')
 headers = {
-    'X-CKAN-API-Key': api_key,
+    'Authorization': api_key,
     'Content-Type': 'application/json'
 }
 
@@ -309,7 +309,7 @@ def save_remote_dataset(remote_user, dataset):
     try:
         api_url = f"{ckan_url}/api/3/action/package_create"
         new_headers = {
-            'X-CKAN-API-Key': token,
+            'Authorization': token,
             'Content-Type': 'application/json'
         }
         response = requests.post(api_url, data=json.dumps(dataset), headers=new_headers)
@@ -441,7 +441,7 @@ def start_contextual_insights_process(remote_dataset, remote_user):
                 # is broken on the formal CKAN (returns AttributeError)
                 update_url = f"{ckan_url}/api/3/action/package_update"
                 update_headers = {
-                    'X-CKAN-API-Key': api_key,
+                    'Authorization': api_key,
                     'Content-Type': 'application/json'
                 }
 
@@ -644,7 +644,7 @@ def add_or_update_ndp_creator_md5(dataset_json, md5_value):
 def validate_package():
     if request.method == 'POST':
         try:
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             # validate the package                                                                                                                                         
             validation_result = ndp_package_validate(json.dumps(dataset_dict))
@@ -666,7 +666,7 @@ def create_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
             if 'owner_org' in dataset_dict.keys():
                 organization = process_user_and_organization(user, dataset_dict['owner_org'])
                 dataset_dict['owner_org'] = organization.name
@@ -844,7 +844,7 @@ def update_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             # Check if the user is authorized to update the package
             package_id = dataset_dict.get('id') or dataset_dict.get('name')
@@ -895,7 +895,7 @@ def delete_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             # Check if the user is authorized to delete the package
             package_id = dataset_dict.get('id') or dataset_dict.get('name')
@@ -920,7 +920,7 @@ def purge_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
             context = {'user': user.id}
             logic.get_action('dataset_purge')(context, dataset_dict)
             return f"The package '{dataset_dict['id']}' is purged."
@@ -1084,7 +1084,7 @@ def approve_package():
                 try:
                     api_url = f"{ckan_url}/api/3/action/group_list_authz"
                     new_headers = {
-                        'X-CKAN-API-Key': api_key,
+                        'Authorization': api_key,
                         'Content-Type': 'application/json'
                     }
                     data_dict = {}
@@ -1114,7 +1114,7 @@ def approve_package():
                     return jsonify({'error': f'Error: {str(e)}'}), 500
 
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             # get the dataset with ignore_auth. Note that the reviewer may not has the permission to view this package if it is private
             context = {'ignore_auth': True}
@@ -1261,7 +1261,7 @@ def approve_package():
                     if old_group['type'] == 'pathfinder_catalog' or old_group['type'] == 'datahub_catalog':
                         api_url = f"{ckan_url}/api/3/action/member_create"
                         new_headers = {
-                            'X-CKAN-API-Key': api_key,
+                            'Authorization': api_key,
                             'Content-Type': 'application/json'
                         }
                         response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -1272,7 +1272,7 @@ def approve_package():
                     elif old_group['type'] == 'user_catalog':
                         api_url = f"{ckan_url}/api/3/action/member_create"
                         new_headers = {
-                            'X-CKAN-API-Key': token,
+                            'Authorization': token,
                             'Content-Type': 'application/json'
                         }
                         response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -1302,7 +1302,7 @@ def reject_package():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
 
             if not user.sysadmin and not is_reviewer():
                 return "Not authorized to approve this dataset.", 401
@@ -1638,7 +1638,7 @@ def my_prekan_package():
 
         try:
             user = get_or_create_user()
-            dataset_dict = request.get_json()            
+            dataset_dict = request.get_json(silent=True)            
             context = {'user': user.id}
             package = logic.get_action('package_show')(context, {"id": id})
 
@@ -1814,7 +1814,7 @@ def my_approved_packages():
 def update_my_approved_package():
     if request.method == 'POST':
         try:
-            dataset_dict = request.get_json()
+            dataset_dict = request.get_json(silent=True)
             logger.info(f"Update package: {dataset_dict['id'] if 'id' in dataset_dict else dataset_dict['name']}")
 
             # Get CKAN username
@@ -1826,7 +1826,7 @@ def update_my_approved_package():
                 # should we allow to change a public dataset to a private dataset?
                 api_url = f"{ckan_url}/api/3/action/package_update"
                 new_headers = {
-                    'X-CKAN-API-Key': token,
+                    'Authorization': token,
                     'Content-Type': 'application/json'
                 }
 
@@ -2044,7 +2044,7 @@ def search_package():
         try:
             # Get request data
             if request.method == 'POST':
-                data_dict = request.get_json() or {}
+                data_dict = request.get_json(silent=True) or {}
             else:
                 data_dict = dict(request.args)
             logger.warning(f"search package: {data_dict}")

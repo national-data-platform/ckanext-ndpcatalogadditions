@@ -92,7 +92,7 @@ def get_user_info_from_keycloak_token():
 def get_username(user_id):
     url = f"{ckan_url}/api/3/action/user_show"
     headers = {
-        'X-CKAN-API-Key': api_key,
+        'Authorization': api_key,
         'Content-Type': 'application/json'
     }
     data = {"id": user_id}
@@ -105,7 +105,7 @@ def get_username(user_id):
 
 def get_members(group_id):
     new_headers = {
-        'X-CKAN-API-Key': api_key,
+        'Authorization': api_key,
         'Content-Type': 'application/json'
     }
 
@@ -134,7 +134,7 @@ def create_group():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
             validate_group_data(group_data, username)
                 
             # disable creating organization
@@ -164,7 +164,7 @@ def create_group():
             try:
                 api_url = f"{ckan_url}/api/3/action/group_create"
                 new_headers = {
-                    'X-CKAN-API-Key': token,
+                    'Authorization': token,
                     'Content-Type': 'application/json'
                 }
                 response = requests.post(api_url, data=json.dumps(group_data), headers=new_headers)
@@ -200,7 +200,7 @@ def show_group():
             logger.info(f"Create a token for: {remote_user['name']}")
 
             new_headers = {
-                'X-CKAN-API-Key': token,
+                'Authorization': token,
                 'Content-Type': 'application/json'
             }
         except:
@@ -242,7 +242,7 @@ def update_group():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
             validate_group_data(group_data, username)
 
             # Get the ID parameter from the request
@@ -261,7 +261,7 @@ def update_group():
 
             try:
                 new_headers = {
-                    'X-CKAN-API-Key': api_key,
+                    'Authorization': api_key,
                     'Content-Type': 'application/json'
                 }
 
@@ -326,7 +326,7 @@ def update_group():
 def delete_group():
     if request.method == 'POST':
         try:
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
 
             # extract group_id                                                                                                                                   
             group_id = group_data.get('id', None)
@@ -345,7 +345,7 @@ def delete_group():
                 # load the group for validating its type as catalog
                 group_show_url = f'{ckan_url}/api/3/action/group_show'
                 new_headers = {
-                    'X-CKAN-API-Key': token,
+                    'Authorization': token,
                     'Content-Type': 'application/json'
                 }
                 response = requests.get(group_show_url, params={'id': group_id}, headers=new_headers)
@@ -367,7 +367,7 @@ def delete_group():
                     # delete the group by using the admin api because deleting groups by uses is disabled
                     api_url = f"{ckan_url}/api/3/action/group_delete"
                     new_headers = {
-                        'X-CKAN-API-Key': api_key,
+                        'Authorization': api_key,
                         'Content-Type': 'application/json'
                     }
                     response = requests.post(api_url, data=json.dumps(group_data), headers=new_headers)
@@ -388,7 +388,7 @@ def delete_group():
 def purge_group():
     if request.method == 'POST':
         try:
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
 
             # extract group_id                                                                                                                                   
             group_id = group_data.get('id', None)
@@ -407,7 +407,7 @@ def purge_group():
                 # load the group for validating its type as catalog
                 group_show_url = f'{ckan_url}/api/3/action/group_show'
                 new_headers = {
-                    'X-CKAN-API-Key': token,
+                    'Authorization': token,
                     'Content-Type': 'application/json'
                 }
                 response = requests.get(group_show_url, params={'id': group_id}, headers=new_headers)
@@ -429,7 +429,7 @@ def purge_group():
                     # delete the group by using the admin api because deleting groups by uses is disabled
                     api_url = f"{ckan_url}/api/3/action/group_purge"
                     new_headers = {
-                        'X-CKAN-API-Key': api_key,
+                        'Authorization': api_key,
                         'Content-Type': 'application/json'
                     }
                     response = requests.post(api_url, data=json.dumps(group_data), headers=new_headers)
@@ -454,7 +454,7 @@ def create_member():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            member_data = request.get_json()
+            member_data = request.get_json(silent=True)
 
             # extract group_id
             group_id = member_data.get('group_id', None)
@@ -487,7 +487,7 @@ def create_member():
                 # load the group for validating its type as catalog
                 group_show_url = f'{ckan_url}/api/3/action/group_show'
                 new_headers = {
-                    'X-CKAN-API-Key': token,
+                    'Authorization': token,
                     'Content-Type': 'application/json'
                 }
                 response = requests.get(group_show_url, params={'id': group_id}, headers=new_headers)
@@ -508,7 +508,7 @@ def create_member():
                 if found:
                     api_url = f"{ckan_url}/api/3/action/member_create"
                     new_headers = {
-                        'X-CKAN-API-Key': api_key,
+                        'Authorization': api_key,
                         'Content-Type': 'application/json'
                     }
                     response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -533,7 +533,7 @@ def delete_member():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            member_data = request.get_json()
+            member_data = request.get_json(silent=True)
 
             # extract group_id
             group_id = member_data.get('group_id', None)
@@ -560,7 +560,7 @@ def delete_member():
                 # load the group for validating its type as catalog
                 group_show_url = f'{ckan_url}/api/3/action/group_show'
                 new_headers = {
-                    'X-CKAN-API-Key': token,
+                    'Authorization': token,
                     'Content-Type': 'application/json'
                 }
                 response = requests.get(group_show_url, params={'id': group_id}, headers=new_headers)
@@ -581,7 +581,7 @@ def delete_member():
                 if found:
                     api_url = f"{ckan_url}/api/3/action/member_delete"
                     new_headers = {
-                        'X-CKAN-API-Key': api_key,
+                        'Authorization': api_key,
                         'Content-Type': 'application/json'
                     }
                     response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -614,7 +614,7 @@ def my_groups():
             try:
                 api_url = f"{ckan_url}/api/3/action/group_list_authz"
                 new_headers = {
-                    'X-CKAN-API-Key': token,
+                    'Authorization': token,
                     'Content-Type': 'application/json'
                 }
                 data_dict = {
@@ -647,7 +647,7 @@ def list_groups():
             
             api_url = f"{ckan_url}/api/3/action/group_list_authz"
             new_headers = {
-                'X-CKAN-API-Key': api_key,
+                'Authorization': api_key,
                 'Content-Type': 'application/json'
             }
             data_dict = {}
@@ -694,7 +694,7 @@ def create_subgroup():
     if request.method == 'POST':
         try:
             user = get_or_create_user()
-            group_data = request.get_json()
+            group_data = request.get_json(silent=True)
             context = {'user': user.name}
             
             # get the parent group
@@ -741,7 +741,7 @@ def group_package_add():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            request_data = request.get_json()
+            request_data = request.get_json(silent=True)
 
             # extract group_id
             group_id = request_data.get('group_id', None)
@@ -769,7 +769,7 @@ def group_package_add():
                 # load the group for validating its type as catalog
                 group_show_url = f'{ckan_url}/api/3/action/group_show'
                 new_headers = {
-                    'X-CKAN-API-Key': api_key,
+                    'Authorization': api_key,
                     'Content-Type': 'application/json'
                 }
                 response = requests.get(group_show_url, params={'id': group_id}, headers=new_headers)
@@ -785,7 +785,7 @@ def group_package_add():
                 if old_group['type'] == 'pathfinder_catalog' or old_group['type'] == 'datahub_catalog':
                     api_url = f"{ckan_url}/api/3/action/member_create"
                     new_headers = {
-                        'X-CKAN-API-Key': token,
+                        'Authorization': token,
                         'Content-Type': 'application/json'
                     }
                     response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -798,7 +798,7 @@ def group_package_add():
                 elif old_group['type'] == 'user_catalog':
                     api_url = f"{ckan_url}/api/3/action/member_create"
                     new_headers = {
-                        'X-CKAN-API-Key': api_key,
+                        'Authorization': api_key,
                         'Content-Type': 'application/json'
                     }
                     response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
@@ -825,7 +825,7 @@ def group_package_delete():
             username, email, roles, uid, fullname = get_user_info_from_keycloak_token()
             logger.info(f"Got CKAN username and email: {username}, {email}, {uid}, {fullname}")
 
-            request_data = request.get_json()
+            request_data = request.get_json(silent=True)
 
             # extract group_id
             group_id = request_data.get('group_id', None)
@@ -853,7 +853,7 @@ def group_package_delete():
                 # load the group for validating its type as catalog
                 group_show_url = f'{ckan_url}/api/3/action/group_show'
                 new_headers = {
-                    'X-CKAN-API-Key': api_key,
+                    'Authorization': api_key,
                     'Content-Type': 'application/json'
                 }
                 response = requests.get(group_show_url, params={'id': group_id}, headers=new_headers)
@@ -867,7 +867,7 @@ def group_package_delete():
                 
                 api_url = f"{ckan_url}/api/3/action/member_delete"
                 new_headers = {
-                    'X-CKAN-API-Key': token,
+                    'Authorization': token,
                     'Content-Type': 'application/json'
                 }
                 response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)

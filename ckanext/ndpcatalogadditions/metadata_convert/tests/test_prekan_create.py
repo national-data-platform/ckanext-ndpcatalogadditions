@@ -73,7 +73,7 @@ def fakes(monkeypatch):
     controller = types.ModuleType("ckanext.ndpcatalogadditions.controller")
     controller.get_or_create_user = lambda: FakeUser()
     controller.ckan_url = "https://ndp-test.sdsc.edu/catalog"
-    controller.headers = {"X-CKAN-API-Key": "fake-sysadmin-key"}
+    controller.headers = {"Authorization": "fake-sysadmin-key"}
 
     def fake_process_user_and_organization(user, org_name, capacity='editor'):
         calls["process_user_and_organization_args"] = (user, org_name)
