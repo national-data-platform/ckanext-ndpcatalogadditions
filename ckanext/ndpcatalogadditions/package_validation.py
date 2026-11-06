@@ -372,10 +372,12 @@ def _is_url_alive(url: str, timeout: int = 5) -> bool:
 
     ssl_error_seen = False
     last_status_code = None
+    last_cf_mitigated = None
 
     try:
         response = requests.head(url, timeout=timeout, allow_redirects=True)
         last_status_code = response.status_code
+        last_cf_mitigated = response.headers.get('cf-mitigated')
         if response.status_code < 400:
             return True
         # Some servers (e.g. our own STAC/preSTAC) don't support HEAD and
@@ -390,6 +392,7 @@ def _is_url_alive(url: str, timeout: int = 5) -> bool:
     try:
         response = requests.get(url, timeout=timeout, allow_redirects=True, stream=True)
         last_status_code = response.status_code
+        last_cf_mitigated = response.headers.get('cf-mitigated')
         if response.status_code < 400:
             return True
     except requests.exceptions.SSLError:
@@ -409,6 +412,7 @@ def _is_url_alive(url: str, timeout: int = 5) -> bool:
         response = requests.get(url, timeout=timeout, allow_redirects=True,
                                  stream=True, headers=identifying_headers)
         last_status_code = response.status_code
+        last_cf_mitigated = response.headers.get('cf-mitigated')
         if response.status_code < 400:
             return True
     except requests.exceptions.SSLError:
@@ -428,6 +432,7 @@ def _is_url_alive(url: str, timeout: int = 5) -> bool:
                                      stream=True, headers=identifying_headers,
                                      verify=False)
             last_status_code = response.status_code
+            last_cf_mitigated = response.headers.get('cf-mitigated')
             if response.status_code < 400:
                 return True
         except requests.exceptions.RequestException:
@@ -440,6 +445,16 @@ def _is_url_alive(url: str, timeout: int = 5) -> bool:
     # this on their bare endpoint URL by design, so treat 400 specifically
     # as reachable rather than dead.
     if last_status_code == 400:
+        return True
+
+    # Sites behind Cloudflare bot protection answer every non-browser client
+    # with a 403 "challenge" page that requires JavaScript to pass, so a
+    # server-side check can never get through - even though the site loads
+    # fine in a browser. Cloudflare marks these responses with the header
+    # "cf-mitigated: challenge" so clients can tell them apart from a real
+    # 403. Treat that as "can't verify" rather than "dead"; a plain 403 or
+    # one without this header still fails.
+    if last_status_code == 403 and last_cf_mitigated == 'challenge':
         return True
 
     # NDP intentionally allows registering private repos (e.g. a GitHub repo
