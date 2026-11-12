@@ -2115,6 +2115,63 @@ def get_user_api_tokens(user_id_or_name):
         return None
 
 
+POP_ENDPOINT_USER_ABOUT_PREFIX = 'Service user for POP endpoint organization '
+
+
+def is_organization_admin(user, organization):
+    """True if the user is an active admin member of the organization."""
+    member = model.Session.query(model.Member).filter(
+        model.Member.group_id == organization.id,
+        model.Member.table_id == user.id,
+        model.Member.table_name == 'user',
+        model.Member.state == 'active',
+        model.Member.capacity == 'admin'
+    ).first()
+    return member is not None
+
+
+def get_or_create_endpoint_user(organization):
+    """
+    Get or create the service user for a POP endpoint organization.
+
+    The service user has the same name as the organization (ep-<config-id>),
+    no email and a random password nobody knows; it is never used to log in.
+    Its only membership is editor of that one organization, so an API token
+    issued for it can write to that organization only.
+    """
+    about = f'{POP_ENDPOINT_USER_ABOUT_PREFIX}{organization.name}'
+    ep_user = model.User.get(organization.name)
+    if ep_user is None:
+        ep_user = model.User(name=organization.name)
+        ep_user.fullname = f'POP endpoint {organization.name}'
+        ep_user.about = about
+        ep_user.password = generate_random_password()
+        ep_user.state = model.State.ACTIVE
+        model.Session.add(ep_user)
+        model.Session.commit()
+        logger.info(f"Created POP endpoint service user: {ep_user.name}")
+    elif ep_user.about != about or ep_user.sysadmin:
+        # A user with this name exists but isn't our service user
+        raise ValueError(f'User {organization.name} is not a POP endpoint service user')
+
+    member = model.Session.query(model.Member).filter(
+        model.Member.group_id == organization.id,
+        model.Member.table_id == ep_user.id,
+        model.Member.table_name == 'user'
+    ).first()
+    if member is None:
+        member = model.Member(group=organization, table_id=ep_user.id,
+                              table_name='user', capacity='editor')
+        model.Session.add(member)
+        model.Session.commit()
+    elif member.capacity != 'editor' or member.state != 'active':
+        member.capacity = 'editor'
+        member.state = 'active'
+        model.Session.commit()
+
+    return ep_user
+
+
 def get_pop_prekan_token():
     if request.method == 'POST' or request.method == 'GET':
         try:
@@ -2146,21 +2203,20 @@ def get_pop_prekan_token():
             elif organization.description != 'Created by POP':
                 logger.warning(f"organization.description: {organization.description}")
                 return f'Error: Invalid organization {org_name}', 401
-            else:
-                logger.warning(f"fetch tokens")
-                token_names = get_user_api_tokens(user.id)
-                logger.warning(f"token_names: {token_names}")
-                if token_names:
-                    token_name = token_names[0]['name']
-                    logger.info(f"Got the first api token name: {token_name}")
-                    if not token_name.startswith(f'pop__{org_name}__{user.name}__'):
-                        return f'Error: Invalid request', 401
-                else:
-                    return f'Error: Invalid organization {org_name}', 401
+            elif not is_organization_admin(user, organization):
+                # Only an admin of an existing endpoint organization (its owner)
+                # may get a key for it
+                logger.warning(f"{user.name} is not an admin of {organization.name}")
+                return f'Error: Invalid request', 401
+
+            # Issue the key for the endpoint's own service user (editor of this
+            # organization only), not for the calling user, so the key can't
+            # write to the owner's other organizations
+            ep_user = get_or_create_endpoint_user(organization)
 
             token_dict = {
-                'name': f'pop__{org_name}__{user.name}__{int(datetime.now().timestamp())}',
-                'user': user.name
+                'name': f'pop__{org_name}__{ep_user.name}__{int(datetime.now().timestamp())}',
+                'user': ep_user.name
             }
 
             context = {'model': model, 'session': model.Session, 'user': 'ckan_admin'}
