@@ -136,6 +136,15 @@ Other input from the thread:
 
 This is the convention uploaders follow. Each file is uploaded with key/value pairs attached through Pelican's X-Pelican-Object-Metadata header (the header format is Pelican's, see its metadata-publish-design doc). Pelican copies them into the object block of the event it sends us, next to the four keys it sets itself (path, size, etag, created_at). All values arrive as strings.
 
+Uploaders do not choose the org. It comes from the namespace the event was signed for (3.2), looked up in a map the NDP operators maintain on the Prekan side. Like the extension's other settings, the map is an environment variable on the CKAN container, holding a JSON object from namespace to CKAN org name:
+
+    CKANEXT__NDPCATALOGADDITIONS__PELICAN_NAMESPACE_ORG_MAP={"/example-ns": "example-org", "/another-ns": "another-org"}
+
+- The event's namespace must equal a key exactly; there is no prefix matching. Objects under /example-ns/snow/... arrive with namespace /example-ns, which is the key to list.
+- A namespace that is not in the map gets a 422 ("unmapped namespace"), and the file is not catalogued.
+- A mapped org that does not exist in Prekan yet is created automatically (3.2): copied from the production org of the same name if there is one, otherwise as a new org titled with the name. A typo in the map therefore creates a stray org rather than failing, so check the names against production when adding entries.
+- Onboarding a namespace means adding an entry and recreating the container; no code change.
+
 Keys the receiver uses itself (not stored as dataset metadata):
 
 - dataset (required on every file): the dataset the file belongs to. The CKAN package is named <org>-<dataset>, where org is the one mapped to the namespace. Lowercase letters, digits, - and _.
@@ -176,7 +185,7 @@ Two behaviours to know about:
 - Metadata describes the dataset, not the file. A resource's name is the file name, its description is "Pelican object at <path>", and its mimetype is guessed from the extension. Uploaders cannot set per-file descriptions or formats in v1; a curator can edit them, and later events do not overwrite those edits.
 - A field CKAN itself refuses (a one-character tag, a malformed author_email) rejects that whole event with a 422, including its file. Pelican does not retry a 422, so the uploader has to fix the value and upload the file again.
 
-The examples below assume namespace /example-ns mapped to org example-org on federation osg-htc.org. Each was run against the bench with the fake Pelican, and the "In CKAN" blocks are trimmed package_show output from those runs. The service account's ndp_creator_md5 and the pelican_namespace/pelican_dataset extras, present on every package, are left out.
+The examples below assume namespace /example-ns mapped to org example-org (the first entry in the map above) on federation osg-htc.org. Each was run against the bench with the fake Pelican, and the "In CKAN" blocks are trimmed package_show output from those runs. The service account's ndp_creator_md5 and the pelican_namespace/pelican_dataset extras, present on every package, are left out.
 
 6.1 One file
 
