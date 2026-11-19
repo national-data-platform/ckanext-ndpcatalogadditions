@@ -690,11 +690,6 @@ def create_package():
             
             context = {'user': user.name}
             dataset = logic.get_action('package_create')(context, dataset_dict)
-
-            # remove the user as an editor in the organization
-            if 'owner_org' in dataset_dict.keys():
-               remove_member(user, organization)
-
             return dataset
         except Exception as e:
             traceback.print_exc()
@@ -806,40 +801,6 @@ def check_package_ownership(user, package_id):
         return False, 'You are not authorized to view this package.', 403
 
 
-def remove_member(user, organization):
-    """
-    Remove a user from an organization by deleting their membership record.
-
-    Args:
-        user: The user object to be removed from the organization
-        organization: The organization object from which to remove the user
-
-    Returns:
-        bool: True if member was successfully removed, False if member was not found
-    """
-    try:
-        # Find the member record for this user in this organization
-        member = model.Session.query(model.Member).filter(
-            model.Member.group_id == organization.id,
-            model.Member.table_id == user.id,
-            model.Member.table_name == 'user'
-        ).first()
-
-        if member:
-            # Delete the member record
-            model.Session.delete(member)
-            model.Session.commit()
-            return True
-        else:
-            # Member not found
-            return False
-
-    except Exception as e:
-        # Rollback in case of error
-        model.Session.rollback()
-        raise e
-
-
 def update_package():
     if request.method == 'POST':
         try:
@@ -851,13 +812,6 @@ def update_package():
             is_authorized, error_msg, status_code = check_package_ownership(user, package_id)
             if not is_authorized:
                 return f'Error: {error_msg}', status_code
-
-            # Get the existing package to check current owner_org
-            context = {'ignore_auth': True}
-            existing_package = logic.get_action('package_show')(context, {'id': package_id})
-            old_owner_org = existing_package.get('owner_org')
-            if old_owner_org:
-                old_organization = process_user_and_organization(user, old_owner_org)
 
             # Preserve ndp_creator_md5
             username, email, roles, user_id = get_username_from_keycloak_token()
@@ -872,17 +826,7 @@ def update_package():
             process_private_setting(dataset_dict, user.email)
 
             context = {'user': user.name}
-            try:
-                result = logic.get_action('package_update')(context, dataset_dict)
-            finally:
-                # remove the user as an editor in the old organization
-                if old_owner_org:
-                    remove_member(user, old_organization)
-
-                # remove the user as an editor in the new organization
-                if 'owner_org' in dataset_dict.keys():
-                    remove_member(user, organization)
-
+            result = logic.get_action('package_update')(context, dataset_dict)
             return result
         except Exception as e:
             traceback.print_exc()

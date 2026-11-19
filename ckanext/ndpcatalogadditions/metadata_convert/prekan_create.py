@@ -14,10 +14,21 @@ duplicated on purpose, not shared. What IS shared, unchanged, by direct
 import: every one of its building blocks (get_or_create_user,
 process_user_and_organization, process_private_setting,
 get_username_from_keycloak_token, add_or_update_ndp_creator_md5,
-calculate_md5, remove_member, ckan_url, headers) and the single genuinely
-new thing - calling `logic.get_action('package_create')` - is a plain
-in-process CKAN action call, never an HTTP request, so there's no threading
-dependency here at all.
+calculate_md5, ckan_url, headers) and the single genuinely new thing -
+calling `logic.get_action('package_create')` - is a plain in-process CKAN
+action call, never an HTTP request, so there's no threading dependency
+here at all.
+
+Note: an earlier version of this module also called remove_member() to
+revoke the temporary editor grant right after creating the dataset,
+mirroring a dev-only change to create_package() at the time. That
+remove_member() mechanism never existed on main, and has since been
+removed from controller.py: it caused a real bug (editing/saving an
+approved dataset later lost local Prekan org access, since the
+membership it was meant to restore temporarily was never restored by
+anything else before being revoked). This module no longer revokes the
+grant either, matching create_package()'s current (main-aligned)
+behavior.
 
 KEEP IN SYNC: if controller.create_package()'s own logic changes, this
 function's mirrored sequence (below) should be re-checked against it.
@@ -50,7 +61,6 @@ def create_in_prekan(ckan_json: dict) -> dict:
         headers,
         process_private_setting,
         process_user_and_organization,
-        remove_member,
     )
 
     try:
@@ -86,9 +96,6 @@ def create_in_prekan(ckan_json: dict) -> dict:
 
         context = {'user': user.name}
         dataset = logic.get_action('package_create')(context, dataset_dict)
-
-        if organization is not None:
-            remove_member(user, organization)
 
         return {"created": True, "package": dataset}
 

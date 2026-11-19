@@ -40,7 +40,7 @@ def fakes(monkeypatch):
     """Registers fake ckan/ckan.logic/ckan.lib.munge/ckanext.ndpcatalogadditions.controller
     modules, with mutable call-recording so each test can assert on them.
     """
-    calls = {"remove_member": [], "package_create_args": None,
+    calls = {"package_create_args": None,
              "process_user_and_organization_args": None}
 
     # -- fake ckan.logic --
@@ -89,7 +89,6 @@ def fakes(monkeypatch):
         return dataset_json
 
     controller.add_or_update_ndp_creator_md5 = fake_add_or_update_ndp_creator_md5
-    controller.remove_member = lambda user, organization: calls["remove_member"].append((user, organization))
     monkeypatch.setitem(sys.modules, "ckanext.ndpcatalogadditions.controller", controller)
 
     # -- the collision check itself uses the real `requests` module --
@@ -104,7 +103,6 @@ def test_create_in_prekan_success_with_owner_org(fakes, monkeypatch):
 
     assert out == {"created": True, "package": created_dataset}
     assert calls["process_user_and_organization_args"][1] == "BurnPro3D"
-    assert len(calls["remove_member"]) == 1  # removed after create, since owner_org was set
     context, dataset_dict = calls["package_create_args"]
     assert dataset_dict["owner_org"] == "BurnPro3D"  # organization.name (from the fake), not a copy of the input dict
     assert any(e["key"] == "ndp_creator_md5" for e in dataset_dict["extras"])
@@ -116,7 +114,6 @@ def test_create_in_prekan_without_owner_org_skips_org_handling(fakes):
 
     assert out["created"] is True
     assert calls["process_user_and_organization_args"] is None
-    assert calls["remove_member"] == []
 
 
 def test_create_in_prekan_derives_name_when_missing(fakes):
