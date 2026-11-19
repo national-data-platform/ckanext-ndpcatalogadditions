@@ -1795,6 +1795,15 @@ def update_my_approved_package():
                     if existing_ndp_creator_md5 and existing_ndp_creator_md5 == calculate_md5(id):
                         ensure_creator_can_edit(username, package)
 
+                        # If this edit is also moving the dataset to a different org, the
+                        # creator needs editor rights there too, or CKAN's own package_update
+                        # rejects the owner_org change under their token ("You cannot add a
+                        # dataset to this organization") - they're usually not already a
+                        # member of an org they've never used before.
+                        new_owner_org = dataset_dict.get('owner_org')
+                        if new_owner_org and new_owner_org != package.get('owner_org'):
+                            ensure_creator_can_edit(username, {'id': package['id'], 'owner_org': new_owner_org})
+
                     # Remove any ndp_creator_md5 from incoming data
                     if 'extras' in dataset_dict:
                         dataset_dict['extras'] = [
