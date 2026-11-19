@@ -41,6 +41,7 @@ import json
 from datetime import datetime
 from ckanext.ndpcatalogadditions.swagger_ui import swagger_ui, openapi_spec
 from ckanext.ndpcatalogadditions.daily_metrics import daily_metrics, daily_metrics_json, dataset_access_json
+from ckanext.ndpcatalogadditions.pelican_metadata import pelican_metadata_publish
 
 def jupyterhub_endpoint():
     value = toolkit.config.get('ckanext.ndp.jupyterhub_endpoint')
@@ -385,6 +386,25 @@ class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
             u'/ndp/metadata_convert',
             u'metadata_convert',
             metadata_convert_view,
+            methods=['POST']
+        )
+
+        blueprint.add_url_rule(
+            u'/ndp/pelican_metadata_publish',
+            u'pelican_metadata_publish',
+            pelican_metadata_publish,
+            methods=['POST']
+        )
+
+        # Pelican was told the bare site URL (no path) for this webhook, so
+        # it POSTs straight to "/" - same view bound to a second rule rather
+        # than only the one above, since CKAN's own "/" route is GET-only
+        # and reconfiguring the already-deployed Pelican side isn't an
+        # option here.
+        blueprint.add_url_rule(
+            u'/',
+            u'pelican_metadata_publish',
+            pelican_metadata_publish,
             methods=['POST']
         )
 

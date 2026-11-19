@@ -144,7 +144,11 @@ def process_user_and_organization(user, org_name, capacity='editor'):
     if not organization:
         # Check remote site                                                                                                                                                  
         data = { 'id': org_name }
-        response = requests.post(f'{ckan_url}/api/3/action/organization_show', headers=headers, json=data)
+        # Bounded: with no timeout an unreachable remote (firewalled host,
+        # stopped instance) blocks this worker until the OS gives up on the
+        # connection - minutes, not seconds. A timeout raises, which the
+        # callers already treat as a failed request.
+        response = requests.post(f'{ckan_url}/api/3/action/organization_show', headers=headers, json=data, timeout=10)
         if response.status_code == 200:
             remote_organization = response.json()['result']
             organization = model.Group.get(remote_organization['name'])

@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 metadata_convert/.venv/
+DECISIONS.md
+.fake_pelican/
+.DS_Store

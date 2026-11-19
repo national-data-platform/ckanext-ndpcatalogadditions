@@ -1,0 +1,536 @@
+"""
+Pelican object-commit metadata publish receiver.
+
+Implements the catalog side of Pelican's webhook contract (see
+docs/metadata-publish-design.md in the Pelican repo, pinned at commit
+6fac86f061a0c816d07fb4d41e7bebc3fbcf6897) and the NDP-specific design
+decisions recorded in docs/pelican-metadata-publish-design.md in this repo.
+
+v1 scope: object.committed only, json body only. See that doc for why
+object.updated / object.deleted and the multipart/blob variant are deferred.
+"""
+
+import json
+import logging
+import mimetypes
+import os
+import re
+import time
+from datetime import datetime, timezone
+from urllib.parse import urlparse
+
+import ckan.logic as logic
+import ckan.model as model
+from ckan.lib.munge import munge_title_to_name
+from jose import jwt
+from jose.exceptions import JWTError
+from flask import request
+
+from ckanext.ndpcatalogadditions import controller
+from ckanext.ndpcatalogadditions.controller import (
+    add_or_update_ndp_creator_md5,
+    calculate_md5,
+    generate_random_password,
+    process_user_and_organization,
+)
+from ckanext.ndpcatalogadditions.package_validation import ndp_package_validate
+
+import requests
+
+logger = logging.getLogger(__name__)
+
+# Reserved keys Pelican itself writes onto event["object"]; everything else
+# in that dict is uploader-supplied custom metadata. See design doc 3.4.
+PELICAN_RESERVED_OBJECT_KEYS = {"path", "size", "etag", "created_at"}
+
+# Our own protocol keys, layered on top of Pelican's custom-field mechanism.
+# "dataset" picks the package within the namespace's org; "expected_count"
+# is the completion signal. Neither is a CKAN package field.
+DATASET_FIELD_KEY = "dataset"
+EXPECTED_COUNT_FIELD_KEY = "expected_count"
+
+# Custom fields that map onto top-level CKAN package fields rather than
+# becoming extras. These are the only CKAN core fields an uploader may set;
+# the rest (name, owner_org, private, state, maintainer, version, ...) are
+# protected - see is_protected_field. Values go through CKAN's own
+# validators, so e.g. a malformed author_email is a ValidationError (422).
+TOP_LEVEL_PACKAGE_FIELDS = {"title", "notes", "tags", "license_id", "author", "author_email"}
+
+# Extras with meaning elsewhere in this extension: ownership fingerprint,
+# review state, restricted-access groups. Never settable from an event.
+PROTECTED_EXTRA_KEYS = {"ndp_creator_md5", "approval_status", "existingGroupIds"}
+
+SERVICE_USER_NAME = os.getenv(
+    "CKANEXT__NDPCATALOGADDITIONS__PELICAN_SERVICE_USER", "pelican-ingest-bot"
+)
+SERVICE_USER_EMAIL = os.getenv(
+    "CKANEXT__NDPCATALOGADDITIONS__PELICAN_SERVICE_USER_EMAIL",
+    "pelican-ingest-bot@nationaldataplatform.org",
+)
+# Fixed, not derived per upload - there is no per-upload identity. See
+# design doc 3.8.
+SERVICE_USER_NDP_CREATOR_MD5 = calculate_md5(SERVICE_USER_NAME)
+
+TRUSTED_FEDERATION = os.getenv("CKANEXT__NDPCATALOGADDITIONS__PELICAN_TRUSTED_FEDERATION")
+WEBHOOK_URL = os.getenv("CKANEXT__NDPCATALOGADDITIONS__PELICAN_WEBHOOK_URL")
+
+REGISTRY_CACHE_TTL = 3600
+JWKS_CACHE_TTL = 600
+
+_registry_cache = {}
+_jwks_cache = {}
+
+NAMESPACE_PATTERN = re.compile(r"^/[A-Za-z0-9._\-/]*$")
+
+
+class PelicanAuthError(Exception):
+    """Event failed authentication/verification - maps to a 401 response."""
+
+
+class PelicanRejectError(Exception):
+    """Event is permanently unprocessable - maps to a 422 response."""
+
+
+def get_namespace_org_map():
+    raw = os.getenv("CKANEXT__NDPCATALOGADDITIONS__PELICAN_NAMESPACE_ORG_MAP", "{}")
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        logger.error("CKANEXT__NDPCATALOGADDITIONS__PELICAN_NAMESPACE_ORG_MAP is not valid json")
+        return {}
+
+
+def discover_registry(federation):
+    cached = _registry_cache.get(federation)
+    if cached and time.time() - cached["fetched_at"] < REGISTRY_CACHE_TTL:
+        return cached["registry"]
+
+    response = requests.get(f"{federation}/.well-known/pelican-configuration", timeout=10)
+    response.raise_for_status()
+    registry = response.json()["namespace_registration_endpoint"]
+    _registry_cache[federation] = {"registry": registry, "fetched_at": time.time()}
+    return registry
+
+
+def fetch_namespace_jwks(registry, namespace):
+    cached = _jwks_cache.get((registry, namespace))
+    if cached and time.time() - cached["fetched_at"] < JWKS_CACHE_TTL:
+        return cached["jwks"]
+
+    url = f"{registry}/api/v1.0/registry{namespace}/.well-known/issuer.jwks"
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    keys = response.json()["keys"]
+    _jwks_cache[(registry, namespace)] = {"jwks": keys, "fetched_at": time.time()}
+    return keys
+
+
+def verify_pelican_event(token, event_federation, namespace):
+    """
+    Verify a Pelican metadata-publish webhook JWT.
+
+    Raises PelicanAuthError on any verification failure. Returns the
+    decoded claims on success.
+    """
+    if not TRUSTED_FEDERATION:
+        raise RuntimeError(
+            "CKANEXT__NDPCATALOGADDITIONS__PELICAN_TRUSTED_FEDERATION is not configured"
+        )
+    if not WEBHOOK_URL:
+        raise RuntimeError("CKANEXT__NDPCATALOGADDITIONS__PELICAN_WEBHOOK_URL is not configured")
+
+    # federation/namespace on the event are untrusted until the signature
+    # checks out. Only ever follow our own configured, trusted federation
+    # for key discovery - never the event's own federation url. See design
+    # doc 3.2 and the Pelican doc's "Trust anchor" note.
+    if event_federation != TRUSTED_FEDERATION:
+        raise PelicanAuthError(f"untrusted federation: {event_federation}")
+
+    if not NAMESPACE_PATTERN.match(namespace or ""):
+        raise PelicanAuthError(f"malformed namespace: {namespace}")
+
+    try:
+        registry = discover_registry(TRUSTED_FEDERATION)
+        keys = fetch_namespace_jwks(registry, namespace)
+    except requests.RequestException as e:
+        raise PelicanAuthError(f"key discovery failed: {e}")
+
+    try:
+        header = jwt.get_unverified_header(token)
+        matching_keys = [k for k in keys if k.get("kid") == header.get("kid")]
+        if not matching_keys:
+            raise PelicanAuthError("no matching key for token kid")
+
+        claims = jwt.decode(
+            token,
+            matching_keys[0],
+            algorithms=["RS256", "ES256"],
+            audience=WEBHOOK_URL,
+            options={"verify_signature": True},
+        )
+    except JWTError as e:
+        raise PelicanAuthError(f"token verification failed: {e}")
+
+    required_scope = f"pelican.metadata:{namespace}"
+    scopes = (claims.get("scope") or "").split()
+    if required_scope not in scopes:
+        raise PelicanAuthError(f"token missing required scope: {required_scope}")
+
+    return claims
+
+
+def get_or_create_service_user():
+    user = model.User.by_email(SERVICE_USER_EMAIL)
+    if user:
+        return user
+
+    user = model.User(name=SERVICE_USER_NAME, email=SERVICE_USER_EMAIL)
+    user.fullname = "Pelican Ingest Service"
+    user.password = generate_random_password()
+    user.state = model.State.ACTIVE
+    model.Session.add(user)
+    model.Session.commit()
+    return user
+
+
+def set_extra(package, key, value):
+    package.setdefault("extras", [])
+    for extra in package["extras"]:
+        if extra.get("key") == key:
+            extra["value"] = value
+            return package
+    package["extras"].append({"key": key, "value": value})
+    return package
+
+
+def get_extra(package, key, default=None):
+    for extra in package.get("extras", []):
+        if extra.get("key") == key:
+            return extra.get("value")
+    return default
+
+
+def normalize_tags(value):
+    if isinstance(value, str):
+        names = [t.strip() for t in value.split(",") if t.strip()]
+    elif isinstance(value, list):
+        names = [str(t).strip() for t in value if str(t).strip()]
+    else:
+        names = []
+    return [{"name": name} for name in names]
+
+
+def is_protected_field(key):
+    """
+    Keys uploader metadata must never set. Custom fields are unauthenticated
+    as to who uploaded them (design doc 3.2), so they can't be allowed to
+    touch ownership (ndp_creator_md5 backs the per-creator edit check),
+    review/access state, our own pelican_* bookkeeping, or CKAN's core
+    package fields (as extras those are rejected by CKAN outright).
+    """
+    if key in TOP_LEVEL_PACKAGE_FIELDS:
+        return False
+    if key in PROTECTED_EXTRA_KEYS or key.startswith("pelican_"):
+        return True
+    return key in core_package_fields()
+
+
+def core_package_fields():
+    from ckan.logic.schema import default_create_package_schema
+
+    return set(default_create_package_schema().keys())
+
+
+def merge_custom_fields(package, custom_fields):
+    """Apply an event's custom fields onto a package dict, last write wins."""
+    for key, value in custom_fields.items():
+        if key in (DATASET_FIELD_KEY, EXPECTED_COUNT_FIELD_KEY):
+            continue
+        if is_protected_field(key):
+            logger.warning(f"pelican event: ignoring protected metadata field {key!r}")
+            continue
+        if key == "tags":
+            package["tags"] = normalize_tags(value)
+        elif key in TOP_LEVEL_PACKAGE_FIELDS:
+            package[key] = value
+        else:
+            set_extra(package, key, value)
+    return package
+
+
+def resource_url_for(federation, path):
+    """
+    pelican://<federation-host><path> - the form the Pelican client accepts
+    and the one existing catalog entries use (pelican://osg-htc.org/...).
+    path is already federation-rooted (it starts with the namespace), so the
+    namespace is not prepended again. See design doc 3.7.
+    """
+    host = urlparse(federation or "").netloc
+    if not host:
+        raise PelicanRejectError(f"event federation is missing or not a url: {federation!r}")
+    return f"pelican://{host}{path}"
+
+
+def guess_mimetype(name):
+    # ndp_package_validate requires a mimetype on every resource of a public
+    # dataset; the object name is all we have to go on.
+    return mimetypes.guess_type(name)[0] or "application/octet-stream"
+
+
+def normalize_resource_timestamp(value):
+    """
+    CKAN's own date validator (ckan.lib.helpers.date_str_to_datetime) cannot
+    parse a UTC offset or timezone suffix at all, including a bare "Z" -
+    Pelican's created_at is RFC3339 and commonly has one. Parse it and
+    re-emit a naive ISO string CKAN can actually validate, converting to UTC
+    first if it carried an offset.
+    """
+    if not value:
+        return value
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return value
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt.isoformat()
+
+
+def upsert_resource(package, federation, obj):
+    url = resource_url_for(federation, obj["path"])
+    name = obj["path"].rsplit("/", 1)[-1] or obj["path"]
+    # Facts about the object itself - always refreshed from the event.
+    resource = {
+        "url": url,
+        "name": name,
+        "description": f"Pelican object at {obj['path']}",
+        "size": obj.get("size"),
+        "hash": (obj.get("etag") or "").strip('"'),
+        "last_modified": normalize_resource_timestamp(obj.get("created_at")),
+    }
+    # Fields an ordinary NDP submission carries (and public validation
+    # requires); defaults only, so a curator's correction survives a
+    # redelivered event.
+    defaults = {"status": "active", "mimetype": guess_mimetype(name)}
+
+    package.setdefault("resources", [])
+    for existing in package["resources"]:
+        if existing.get("url") == url:
+            existing.update(resource)
+            for key, value in defaults.items():
+                if not existing.get(key):
+                    existing[key] = value
+            return package
+
+    package["resources"].append({**resource, **defaults})
+    return package
+
+
+def name_taken_in_catalog(package_name):
+    """
+    True if an active dataset with this name is already published in the
+    NDP (production) catalog. Network errors propagate - the caller turns
+    them into a 500 so Pelican retries rather than staging a collision.
+    """
+    response = requests.post(
+        f"{controller.ckan_url}/api/3/action/package_show",
+        headers=controller.headers,
+        json={"id": package_name},
+        timeout=10,
+    )
+    if response.status_code != 200:
+        return False
+    return response.json().get("result", {}).get("state") == "active"
+
+
+def get_or_create_pelican_package(org_name, namespace, dataset, service_user):
+    package_name = munge_title_to_name(f"{org_name}-{dataset}")
+
+    try:
+        package = logic.get_action("package_show")({"ignore_auth": True}, {"id": package_name})
+    except logic.NotFound:
+        package = None
+
+    if package is not None:
+        if package.get("state") != "active":
+            # Approval (and rejection) delete the Prekan copy. Updating that
+            # deleted copy would answer 2xx while the file never reaches the
+            # published dataset, so refuse instead. Adding files to a
+            # reviewed dataset is a curator action in v1.
+            status = get_extra(package, "approval_status") or package.get("state")
+            raise PelicanRejectError(
+                f"dataset {package_name} has already been reviewed ({status}); "
+                "new files for it must be added by a curator"
+            )
+        return package, False
+
+    # Same rule ordinary submissions follow (controller.create_package):
+    # don't stage a name that's already published, or approval will collide.
+    if name_taken_in_catalog(package_name):
+        raise PelicanRejectError(f"dataset name is already used in the NDP catalog: {package_name}")
+
+    organization = process_user_and_organization(service_user, org_name)
+    package = {
+        "name": package_name,
+        "owner_org": organization.name,
+        # Public, like an ordinary submission. In NDP "private" means
+        # restricted to the Keycloak groups in an existingGroupIds extra,
+        # not "draft" - Prekan itself is the review queue. Restricted
+        # Pelican data is a follow-up. See design doc 3.1.
+        "private": False,
+        "resources": [],
+        "extras": [],
+    }
+    set_extra(package, "pelican_namespace", namespace)
+    set_extra(package, "pelican_dataset", dataset)
+    package = add_or_update_ndp_creator_md5(package, SERVICE_USER_NDP_CREATOR_MD5)
+
+    context = {"user": service_user.name}
+    package = logic.get_action("package_create")(context, package)
+    return package, True
+
+
+def maybe_finalize(package):
+    """
+    Once enough objects have landed, run full NDP validation and mark the
+    package's ingest status. See design doc 3.4 for the completion signal
+    and why there is no automatic handling of a count that is never
+    reached or is exceeded - that is left to a human.
+    """
+    expected_count = get_extra(package, "pelican_expected_count")
+    if expected_count is None:
+        return package
+
+    try:
+        expected_count = int(expected_count)
+    except (TypeError, ValueError):
+        return package
+
+    if len(package.get("resources", [])) < expected_count:
+        return package
+
+    result = ndp_package_validate(json.dumps(package))
+    if result["errors"]:
+        set_extra(package, "pelican_ingest_status", "incomplete")
+        set_extra(package, "pelican_ingest_errors", json.dumps(result["errors"]))
+    else:
+        set_extra(package, "pelican_ingest_status", "ready")
+        set_extra(package, "pelican_ingest_errors", json.dumps([]))
+
+    return package
+
+
+def process_pelican_event(event):
+    """
+    Process one already-authenticated object-commit event: resolve namespace
+    to org, create or update the target package, merge in this event's custom
+    fields, upsert the resource, and finalize if the dataset is now complete.
+
+    Pelican's own JWT verification (verify_pelican_event) is a separate,
+    earlier step and is not part of this function - this is everything that
+    happens once an event is trusted. Kept separate from the Flask view so it
+    can be called directly, e.g. from a test, without going through request
+    parsing or auth at all.
+
+    Raises PelicanRejectError for anything permanently unprocessable (maps to
+    422 at the HTTP layer). Returns the resulting package dict.
+    """
+    event_type = event.get("type")
+    if event_type != "object.committed":
+        # object.updated / object.deleted are deferred to a follow-up.
+        raise PelicanRejectError(f"unsupported event type: {event_type}")
+
+    namespace = event.get("namespace")
+    obj = event.get("object") or {}
+
+    namespace_org_map = get_namespace_org_map()
+    org_name = namespace_org_map.get(namespace)
+    if not org_name:
+        raise PelicanRejectError(f"unknown or unmapped namespace: {namespace}")
+
+    custom_fields = {
+        k: v for k, v in obj.items() if k not in PELICAN_RESERVED_OBJECT_KEYS
+    }
+    dataset = custom_fields.get(DATASET_FIELD_KEY)
+    if not dataset:
+        raise PelicanRejectError("missing required custom metadata field: dataset")
+
+    if "path" not in obj:
+        raise PelicanRejectError("missing required field: object.path")
+
+    # The token's pelican.metadata scope only vouches for this namespace
+    # (design doc 3.2), so the object must live under it.
+    if not obj["path"].startswith(namespace.rstrip("/") + "/"):
+        raise PelicanRejectError(f"object path {obj['path']} is outside namespace {namespace}")
+
+    # Fail on a bad federation before anything is created.
+    federation = event.get("federation")
+    resource_url_for(federation, obj["path"])
+
+    service_user = get_or_create_service_user()
+    package, created = get_or_create_pelican_package(
+        org_name, namespace, dataset, service_user
+    )
+
+    package = merge_custom_fields(package, custom_fields)
+    package = upsert_resource(package, federation, obj)
+
+    if EXPECTED_COUNT_FIELD_KEY in custom_fields:
+        set_extra(package, "pelican_expected_count", custom_fields[EXPECTED_COUNT_FIELD_KEY])
+
+    package = maybe_finalize(package)
+
+    context = {"user": service_user.name}
+    return logic.get_action("package_update")(context, package)
+
+
+def pelican_metadata_publish():
+    if request.method != "POST":
+        return "Method not allowed", 405
+
+    if not request.is_json:
+        # v1 is json-only; the multipart/blob variant is deferred. See
+        # design doc 3.5. This will never succeed on retry.
+        return "Unsupported content type, expected application/json", 422
+
+    # silent=True matches the rest of the extension (CKAN 2.11 / newer Flask
+    # raise on a bad body otherwise); a body that parses but isn't a json
+    # object (e.g. "null", a list) is just as permanently unprocessable.
+    event = request.get_json(silent=True)
+    if not isinstance(event, dict):
+        return "Malformed json body, expected a json object", 422
+
+    namespace = event.get("namespace")
+    federation = event.get("federation")
+
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return "Missing or invalid Authorization header", 401
+    token = auth_header[len("Bearer "):]
+
+    try:
+        verify_pelican_event(token, federation, namespace)
+    except PelicanAuthError as e:
+        logger.warning(f"pelican event auth failed: {e}")
+        return f"Unauthorized: {e}", 401
+    except RuntimeError as e:
+        # Our own misconfiguration (trusted federation / webhook url unset).
+        # Deliberately not a 422: once config is fixed the same event is
+        # fine, so let Pelican keep retrying rather than drop it.
+        logger.error(f"pelican receiver misconfigured: {e}")
+        return "Receiver not configured", 500
+
+    try:
+        process_pelican_event(event)
+    except (PelicanRejectError, ValueError) as e:
+        return f"Unprocessable: {e}", 422
+    except logic.ValidationError as e:
+        # CKAN refused the data itself (e.g. an invalid tag) - retrying the
+        # same event can't succeed, so tell Pelican to stop.
+        logger.warning(f"pelican event rejected by CKAN validation: {e.error_dict}")
+        return f"Unprocessable: {e.error_dict}", 422
+    except Exception as e:
+        logger.exception("pelican metadata publish failed")
+        return f"Error: {e}", 500
+
+    return "Accepted"
