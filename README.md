@@ -111,6 +111,47 @@ To install ckanext-ndpcatalogadditions:
 
      sudo service apache2 reload
 
+## Configuration
+
+All settings are environment variables on the CKAN container, read when the
+extension loads. None come from `ckan.ini`. Change a value by updating the
+environment and recreating the container.
+
+This extension runs on the Prekan (staging) instance and talks to a separate
+production CKAN, which curator approval publishes to.
+
+### Core
+
+| Variable | Required | Default | What it does |
+| --- | --- | --- | --- |
+| `CKANEXT__KEYCLOAK__REDIRECT_URI` | yes | none | The Keycloak SSO redirect URI, e.g. `https://ndp-test.sdsc.edu/catalog2/user/sso_login`. The production CKAN URL is derived from it by dropping `/user/sso_login` and replacing `catalog2` with `catalog`; org and user lookups, the published-name check and approval all go there. CKAN fails to start if it is unset. |
+| `CKANEXT__NDPCATALOGADDITIONS__API_KEY` | yes | none | API token for the production CKAN, sent in the `Authorization` header on every call to it. |
+| `CKANEXT__KEYCLOAK__SERVER_URL` | yes | none | Keycloak server used to verify bearer tokens on API requests. |
+| `CKANEXT__KEYCLOAK__REALM_NAME` | yes | none | Keycloak realm for the same check. |
+| `NDP_KEYCLOAK_API_URL` | no | `https://idp.nationaldataplatform.org/api` | NDP identity API: user information from a token, group names, and group attributes for restricted datasets. |
+| `NDP_CLIENT` | for restricted datasets | `NDP_CLIENT` | Client id used to log in to the NDP identity API. |
+| `NDP_SECRET` | for restricted datasets | none | Secret for that client. |
+| `CKAN_SITE_URL` | yes | none (`https://ndp-test.sdsc.edu` for metrics) | Base URL of the NDP site. Approval and rejection emails are sent through `<CKAN_SITE_URL>/workspaces-api/email/send_email`, and the daily metrics page links to it. Also CKAN core's own site URL setting. |
+| `email_secret` | for emails | none | Shared secret sent with each email request. Note the lowercase name. |
+| `SOLR_INDEX_URL` | no | `http://awesome-compute.sdsc.edu:8081/v1/ckan-api/secure/add_to_index` | External search-index service called for each dataset approved into production. |
+| `CKANEXT__NDPCATALOGADDITIONS__POP_SECRET_TOKEN` | for `/ndp/get_ep_prekan_token` | none | Shared secret callers of that endpoint send in the `X-Secret-Token` header. |
+
+### Pelican metadata publish
+
+These settings configure the receiver for Pelican `object.committed` webhooks
+(`POST /ndp/pelican_metadata_publish`, also accepted at `POST /`). Leave them
+unset to disable it: every event then gets a 500 and Pelican keeps retrying.
+See [the design doc](docs/pelican-metadata-publish-design.md), section 6, for
+the uploader metadata convention.
+
+| Variable | Required | Default | What it does |
+| --- | --- | --- | --- |
+| `CKANEXT__NDPCATALOGADDITIONS__PELICAN_TRUSTED_FEDERATION` | yes | none | URL of the only Pelican federation whose events are accepted, e.g. `https://osg-htc.org`. Signing keys are discovered from it. Events from any other federation get a 401. |
+| `CKANEXT__NDPCATALOGADDITIONS__PELICAN_WEBHOOK_URL` | yes | none | This receiver's URL exactly as configured in Pelican. Tokens must name it as their audience. |
+| `CKANEXT__NDPCATALOGADDITIONS__PELICAN_NAMESPACE_ORG_MAP` | yes | `{}` | JSON object mapping each Pelican namespace to a CKAN org name, e.g. `{"/example-ns": "example-org"}`. Exact match only. Events for a namespace not in the map get a 422 and are dropped. A mapped org missing from Prekan is created automatically, so check names against production. If the value is not valid JSON, it is logged and treated as empty. |
+| `CKANEXT__NDPCATALOGADDITIONS__PELICAN_SERVICE_USER` | no | `pelican-ingest-bot` | CKAN user that creates and owns Pelican datasets. Created on first use. |
+| `CKANEXT__NDPCATALOGADDITIONS__PELICAN_SERVICE_USER_EMAIL` | no | `pelican-ingest-bot@nationaldataplatform.org` | Email for that user. |
+
 ## Developer installation
 
 To install ckanext-ndpcatalogadditions for development, activate your CKAN virtualenv and
