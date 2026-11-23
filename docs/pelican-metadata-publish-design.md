@@ -1,7 +1,7 @@
 Pelican Metadata Publish Integration - Design
 
 Owner: Rich
-Status: Approved by Kai (2026-10-26). v1 receiver implemented and bench tested; Kai's code review (2026-11-20) addressed (section 5). Real-origin testing on ndp-test started 2026-11-23; it showed Pelican only allows lowercase metadata keys, so NDP's camelCase extras are now sent in snake_case (section 6).
+Status: Approved by Kai (2026-10-26). v1 receiver implemented and bench tested; Kai's code review (2026-11-20) addressed (section 5). Real-origin testing on ndp-test started 2026-11-23; it showed Pelican only allows lowercase metadata keys, so NDP's camelCase extras are now sent in snake_case (3.10, section 6).
 Reviewers: Kai, Katie, Ismael, Dan. Replies from Kai and Ismael (2026-10-14 to 2026-10-26) are folded into the sections below; section 5 tracks what each question got back.
 
 1. Summary
@@ -62,7 +62,7 @@ My first version of this had the first object.committed event for a new dataset 
 
 The fix: treat every event's custom fields as an incremental contribution instead of a one-shot declaration. The first object.committed for a new (namespace, dataset) pair creates the package using only what CKAN needs at minimum (a name built from the mapped org and the dataset field, <org>-<dataset>), without running the full ndp_package_validate yet. Every event after that merges whatever dataset-level fields it carries into the package - last write wins when the same field shows up more than once across events.
 
-Completion is signaled by an expected_count field the uploader duplicates identically across every file's metadata for that dataset, so losing any one file does not lose the count. Once the number of resources on the package reaches expected_count, we run the full ndp_package_validate - if it passes, the dataset is ready for the normal curator review queue like anything else; if required fields are still missing at that point, it sits as a visibly incomplete draft (pelican_ingest_status and pelican_ingest_errors on the package) until it is fixed. Validation re-runs on every later event for the dataset, so the uploader can fix it by re-uploading any of its files with the missing keys attached (section 6.3). Otherwise it is fixed by hand, and in practice that means a sysadmin: the package's creator is the service account (3.8), and the per-creator ownership check lets only the creator or a sysadmin edit it through our endpoints. Reviewers can still approve or reject it as it stands.
+Completion is signaled by an expected_count field the uploader duplicates identically across every file's metadata for that dataset, so losing any one file does not lose the count. Once the number of resources on the package reaches expected_count, we run the full ndp_package_validate - if it passes, the dataset is ready for the normal curator review queue like anything else; if required fields are still missing at that point, it sits as a visibly incomplete draft (pelican_ingest_status and pelican_ingest_errors on the package) until it is fixed. Validation re-runs on every later event for the dataset, so the uploader can fix it by sending the missing keys on a later event - re-uploading one of its files, or, on origins that refuse overwrites, uploading a new small file (section 6.3). Otherwise it is fixed by hand, and in practice that means a sysadmin: the package's creator is the service account (3.8), and the per-creator ownership check lets only the creator or a sysadmin edit it through our endpoints. Reviewers can still approve or reject it as it stands.
 
 Because packages are public (3.1), "required" means the public field set ndp_package_validate checks: title, notes, tags, and the extras uploadType, lastUpdateDate, pocName and pocEmail, plus a name, description, status and mimetype on every resource. The receiver fills the resource fields itself (status active, mimetype guessed from the object name); the dataset-level ones have to come from uploader metadata. That makes the uploader convention concrete: dataset and expected_count for us, title, notes, tags, license_id, author and author_email as CKAN fields, and every other key stored as a package extra; the four extras above are sent as upload_type, last_update_date, poc_name and poc_email because Pelican only allows lowercase keys (section 6). If the real file count ends up short of expected_count (a lost upload, a bad estimate), there is no automatic timeout - a human can manually move it forward regardless of the count. Going over the declared count is not specially handled for now - additional files beyond expected_count are just accepted.
 
@@ -116,13 +116,19 @@ Following Pelican's contract as specified: 2xx once our package_create or packag
 
 Routes. The receiver answers at POST /ndp/pelican_metadata_publish. It is also bound to POST / on Prekan, because the test origin was given the bare site URL as its webhook. That shares Prekan's site root: CKAN's own / route is GET-only, so nothing is displaced, and JWT verification still guards it, but it is easy to miss in later maintenance (Kai's review 2.2). The / rule should be removed once origins are configured with the specific path (section 4).
 
+3.10 metadata keys are lowercase; NDP's camelCase extras are sent in snake_case
+
+Requirement: every metadata key an uploader sends must be lowercase - letters a-z, digits, _, -, . and *, starting with a letter or *. This is Pelican's rule, not ours: the X-Pelican-Object-Metadata header is an RFC 8941 structured-field dictionary, and the Pelican client refuses any other key before the upload starts ("the character U isn't allowed in a key"). It applies to every key, including free-form extras.
+
+NDP's own extras are camelCase (uploadType, pocEmail, docsURL, ...), so uploaders send a fixed snake_case spelling of each (upload_type, poc_email, docs_url, ...) and the receiver stores it under NDP's name. The mapping is an explicit table, not a rule, because some names don't round-trip (docsURL, datasetPageUrl). Section 6 lists every key in the spelling to send, with the stored name alongside. Found in the first real upload on ndp-test (2026-11-23); the fake Pelican used for bench testing now enforces the same rule.
+
 4. Open items
 
 - object.updated and object.deleted handling, for whenever we want full lifecycle coverage.
 - the multipart/blob variant, if a project ends up needing to attach an opaque manifest.
 - a pre-existing, unrelated authz gap in process_user_and_organization (controller.py) that lets any authenticated user join any org through the existing /ndp/package_create endpoint. Found this while working through 3.2. Should get its own fix, independent of this feature. The per-creator ownership check limits the damage to the membership grant (see 3.2); Kai is confirming the check covers every update/delete path.
 - restricted Pelican data: packages are public by default (3.1). Some namespaces hold restricted data (the existing catalog has osdf:///ndp/private/... entries). Supporting that means accepting private plus existingGroupIds from uploader metadata and validating the groups against Keycloak like ordinary submissions do - but those values would arrive unauthenticated as to the uploader, the same trust question as the org in 3.2. Not in v1.
-- incomplete drafts can only be fixed by hand by a sysadmin (3.4), because the service account is the creator. Uploaders can still fix missing metadata by re-uploading a file with it attached (6.3), so this mostly matters for fixes that metadata can't make. Fine while volumes are small; per-uploader ownership (below) would let the uploader edit their own.
+- incomplete drafts can only be fixed by hand by a sysadmin (3.4), because the service account is the creator. Uploaders can still fix missing metadata by sending it on a later upload (6.3; on origins that refuse overwrites, a new file rather than a re-upload), so this mostly matters for fixes that metadata can't make. Fine while volumes are small; per-uploader ownership (below) would let the uploader edit their own.
 - folder resources: some existing catalog entries point at a folder (for example .../ucr_seis/Data_Salton, .../BCZO_SnowOn05/). Addressed by the optional "resource" key (3.6) when the uploader sets it. A folder resource has no total size or file count.
 - one object in several datasets: the existing catalog has objects registered under more than one dataset. An event carries a single dataset field, so one upload lands in exactly one dataset; a second listing would have to be added by hand.
 - finalized data versus testing (Ismael, 2026-10-22): how do we tell a finished data product from someone testing, and are there namespaces known to hold finalized products? Curator review in Prekan is the backstop, but test uploads to a mapped namespace will still create Prekan records. Options include only mapping namespaces that hold finalized data, or an explicit uploader flag; not decided.
@@ -157,7 +163,7 @@ Kai's code review of the implementation (2026-11-20), and what was done:
 - 3.5 ".." segments: empty, "." and ".." segments are rejected in the namespace (401, with the other namespace checks), the object path and the resource folder (422).
 - 3.6 branch based on main: rebased onto dev and tested there.
 - Section 5, logical units: optional "resource", "format" and "resource_description" keys, path-relative names, path-ordered insertion (3.6).
-- Open question 3, does put -r attach --metadata-file to every file: yes. Pelican's client (WithObjectMetadata, at the pinned commit) propagates the metadata map to every file of a recursive upload. So each put -r carries one record. A "resource" key in it groups the whole upload, so run one put -r per logical unit. The same code allows number and boolean values; the receiver stores them as text (true/false for booleans).
+- Open question 3, does put -r attach --metadata-file to every file: it is meant to, but today it doesn't. The doc comment on WithObjectMetadata (client/handle_http.go) says the map "is propagated to every transferFile produced by a recursive upload", and the first answer here relied on that. The code doesn't do it: walkDirUpload builds each file's transfer without copying objectMetadata (or objectMetadataBlob), so a recursive upload sends no metadata and every event gets a 422 for the missing dataset key. Found on ndp-test (2026-11-23), confirmed in the source at Pelican main c530d1a. The fix is upstream (two fields in walkDirUpload's two transferFile literals). Until then, upload each file with its own pelican object put --metadata-file (section 6). Once fixed, each put -r carries one record, and a "resource" key in it groups the whole upload. The same code allows number and boolean values; the receiver stores them as text (true/false for booleans).
 - Still open: which publish mode the origins will run (eventual or transactional), and whether the webhook URL can be changed to /ndp/pelican_metadata_publish.
 
 Other input from the thread:
@@ -169,7 +175,17 @@ Other input from the thread:
 
 6. Uploader metadata reference and examples
 
-This is the convention uploaders follow. Each file is uploaded with key/value pairs attached through Pelican's X-Pelican-Object-Metadata header (the header format is Pelican's, see its metadata-publish-design doc). Pelican copies them into the object block of the event it sends us, next to the four keys it sets itself (path, size, etag, created_at). Pelican allows string, number and boolean values; the receiver stores them as text (booleans as true/false). With pelican object put --metadata-file, the keys are the top-level fields of a JSON file. In a recursive upload (put -r) every file gets the same metadata.
+This is the convention uploaders follow. Requirement: every key must be lowercase (3.10). The keys below are the exact spellings to send; where NDP stores a field under a camelCase name, that name is shown in brackets and is not itself sendable.
+
+Each file is uploaded with key/value pairs attached through Pelican's X-Pelican-Object-Metadata header (the header format is Pelican's, see its metadata-publish-design doc). Pelican copies them into the object block of the event it sends us, next to the four keys it sets itself (path, size, etag, created_at). Pelican allows string, number and boolean values; the receiver stores them as text (booleans as true/false). With pelican object put --metadata-file, the keys are the top-level fields of a JSON file.
+
+Known issue: pelican object put -r currently sends no metadata at all (a Pelican client bug, section 5, open question 3), so every file is rejected for the missing dataset key. Until it is fixed, upload each file with its own put, for example:
+
+    for f in data/*; do
+      pelican object put --metadata-file record.json "$f" pelican://<federation-host>/<namespace>/<folder>/$(basename "$f")
+    done
+
+The examples below say "put -r" where that is the natural command once the fix lands; the loop above produces the same events.
 
 Uploaders do not choose the org. It comes from the namespace the event was signed for (3.2), looked up in a map the NDP operators maintain on the Prekan side. Like the extension's other settings, the map is an environment variable on the CKAN container, holding a JSON object from namespace to CKAN org name:
 
@@ -187,7 +203,7 @@ Keys the receiver uses itself (not stored as dataset metadata):
 
 Keys that describe the file's resource rather than the dataset (optional, never stored as dataset metadata; see 3.6):
 
-- resource: a folder path under the namespace, for example /example-ns/gis/roads. Every file with the same value lands on one resource pointing at that folder, instead of one resource per file. The file must sit inside the folder. Because put -r attaches the same metadata to every file, run one put -r per logical unit.
+- resource: a folder path under the namespace, for example /example-ns/gis/roads. Every file with the same value lands on one resource pointing at that folder, instead of one resource per file. The file must sit inside the folder. Every file of the unit carries the same record, so one put -r per logical unit (or one loop of single puts, while put -r drops metadata) is the natural shape.
 - format: the resource format, for example shapefile, zarr, parquet. CKAN normalizes names it knows (shapefile becomes SHP). Without it, CKAN fills format from the mimetype.
 - resource_description: the resource's description. Without it, a file gets "Pelican object at <path>" and a folder "Pelican folder <path>/ - browse and fetch its files with Pelican tools".
 
@@ -226,7 +242,7 @@ Keys that are dropped and logged: ndp_creator_md5, approval_status, existingGrou
 Three behaviours to know about:
 
 - Apart from the three resource keys, metadata describes the dataset, not the file. A per-file resource is named by its path relative to the namespace (salton/readings.csv), and its mimetype is guessed from the extension. Name, description, mimetype and status are defaults, so a curator can edit them and later events do not overwrite those edits. An explicit format or resource_description from a later event does overwrite.
-- A field CKAN itself refuses (a one-character tag, a malformed author_email) rejects that whole event with a 422, including its file. Pelican does not retry a 422, so the uploader has to fix the value and upload the file again.
+- A field CKAN itself refuses (a one-character tag, a malformed author_email) rejects that whole event with a 422, including its file. Pelican does not retry a 422, so the uploader has to fix the value and upload the file again. In eventual mode (the default) the file itself did land on the origin - the 422 is about the catalog entry, not the upload - so on an origin that refuses overwrites the corrected upload has to use a new path (6.3).
 - Files of one dataset are applied one at a time (3.4). When many arrive at once, some get a 503 and Pelican retries them; this is normal in Pelican's default eventual mode.
 
 The examples below assume namespace /example-ns mapped to org example-org (the first entry in the map above) on federation osg-htc.org. Each was run against the bench with the fake Pelican, and the "In CKAN" blocks are trimmed package_show output from those runs. The service account's ndp_creator_md5 and the pelican_namespace/pelican_dataset extras, present on every package, are left out.
@@ -287,7 +303,7 @@ The first event creates the package and brings it to its expected count in the s
 
 6.2 Several files, same metadata on each
 
-The simplest pattern for a multi-file dataset: attach the identical record to every file. That is what pelican object put -r --metadata-file record.json does. Order doesn't matter and losing any one file loses nothing but that file. The three events may arrive at once; they are applied one at a time (3.4), and the resources are listed in path order whatever order they arrive in.
+The simplest pattern for a multi-file dataset: attach the identical record to every file. That is what pelican object put -r --metadata-file record.json is meant to do (today, the loop of single puts above). Order doesn't matter and losing any one file loses nothing but that file. The three events may arrive at once; they are applied one at a time (3.4), and the resources are listed in path order whatever order they arrive in.
 
     /example-ns/station7/2026-01.csv
     /example-ns/station7/2026-02.csv
@@ -386,6 +402,8 @@ The same pattern with a required field never sent. Two files, expected_count=2; 
     pelican_ingest_errors:  ["Missing required field for public dataset: extras:pocEmail"]
 
 Validation re-runs on every event once the count is reached, so the uploader can fix this without help: upload any file of the dataset again with poc_email attached. Re-uploading an existing path updates that resource rather than adding one, so the count stays at 2, and the package turns ready (checked on the bench). Otherwise a sysadmin fixes the draft in Prekan by hand, or a reviewer rejects it (3.4). Either way this only works before review; after approval or rejection the event gets a 422.
+
+Note: origins that refuse overwrites. Re-uploading an existing path only works where the origin allows overwriting. The NDP test origin (itb-ndp-metadata-origin.osdf-dev.chtc.io) does not: a put to an existing path fails in the client with "405 Method Not Allowed", the origin publishes nothing, and the receiver never hears of it (confirmed on ndp-test, 2026-11-23). On such an origin the fix is to upload a new file to the dataset with the missing key attached - for example a small README or metadata-notes file. That adds a resource, so the count goes past expected_count, which is fine: validation runs whenever the count is at or above expected_count, and the package turns ready. The extra file stays in the dataset; a curator can delete it in Prekan before approval if it isn't wanted. The same limit applies to fixing a value CKAN rejected with a 422 (the second behaviour in section 6): the corrected file has to go to a new path.
 
 6.4 A logical unit plus a file listed on its own
 
