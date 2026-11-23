@@ -152,11 +152,28 @@ def test_body_not_a_json_object(app, fake, raw_body):
     assert status == 422
 
 
-def test_unmapped_namespace_with_valid_token(app, fake, monkeypatch):
+def test_unmapped_namespace_with_valid_token(app, fake, monkeypatch, caplog):
     monkeypatch.setenv("CKANEXT__NDPCATALOGADDITIONS__PELICAN_NAMESPACE_ORG_MAP", "{}")
-    status, text = post(app, event(fake), fake.mint_token(NAMESPACE))
+    body = event(fake)
+    status, text = post(app, body, fake.mint_token(NAMESPACE))
     assert status == 422
     assert "unmapped namespace" in text
+    # Pelican drops a 422 for good, so the reason must reach our log.
+    assert f"pelican event rejected: unknown or unmapped namespace: {NAMESPACE}" in caplog.text
+    assert body["object"]["path"] in caplog.text
+
+
+def test_accepted_event_is_logged(app, fake, caplog):
+    import logging
+
+    caplog.set_level(logging.INFO, logger="ckanext.ndpcatalogadditions.pelican_metadata")
+    body = event(fake, title="Logged", expected_count=5)
+    status, _ = post(app, body, fake.mint_token(NAMESPACE))
+    assert status == 200
+    assert (
+        f"pelican event accepted: {ORG_NAME}-webhook-dataset <- {body['object']['path']}"
+        " (1 resources, status pending)"
+    ) in caplog.text
 
 
 def test_missing_dataset_field_with_valid_token(app, fake):

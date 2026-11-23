@@ -720,6 +720,7 @@ def pelican_metadata_publish():
     if not request.is_json:
         # v1 is json-only; the multipart/blob variant is deferred. See
         # design doc 3.5. This will never succeed on retry.
+        logger.warning(f"pelican event rejected: unsupported content type {request.content_type!r}")
         return "Unsupported content type, expected application/json", 422
 
     # silent=True matches the rest of the extension (CKAN 2.11 / newer Flask
@@ -727,6 +728,7 @@ def pelican_metadata_publish():
     # object (e.g. "null", a list) is just as permanently unprocessable.
     event = request.get_json(silent=True)
     if not isinstance(event, dict):
+        logger.warning("pelican event rejected: body is not a json object")
         return "Malformed json body, expected a json object", 422
 
     namespace = event.get("namespace")
@@ -749,9 +751,13 @@ def pelican_metadata_publish():
         logger.error(f"pelican receiver misconfigured: {e}")
         return "Receiver not configured", 500
 
+    # Pelican drops a 422 for good, so every outcome is logged with enough
+    # to find the upload again.
+    object_path = (event.get("object") or {}).get("path")
     try:
-        process_pelican_event(event)
+        package = process_pelican_event(event)
     except PelicanRejectError as e:
+        logger.warning(f"pelican event rejected: {e} (namespace {namespace}, path {object_path})")
         return f"Unprocessable: {e}", 422
     except PelicanBusyError as e:
         # Another event for this dataset is mid-save; Pelican retries.
@@ -760,10 +766,17 @@ def pelican_metadata_publish():
     except logic.ValidationError as e:
         # CKAN refused the data itself (e.g. an invalid tag) - retrying the
         # same event can't succeed, so tell Pelican to stop.
-        logger.warning(f"pelican event rejected by CKAN validation: {e.error_dict}")
+        logger.warning(
+            f"pelican event rejected by CKAN validation: {e.error_dict} (namespace {namespace}, path {object_path})"
+        )
         return f"Unprocessable: {e.error_dict}", 422
     except Exception as e:
-        logger.exception("pelican metadata publish failed")
+        logger.exception(f"pelican metadata publish failed (namespace {namespace}, path {object_path})")
         return f"Error: {e}", 500
 
+    logger.info(
+        f"pelican event accepted: {package['name']} <- {object_path}"
+        f" ({len(package.get('resources') or [])} resources,"
+        f" status {get_extra(package, 'pelican_ingest_status') or 'pending'})"
+    )
     return "Accepted"
