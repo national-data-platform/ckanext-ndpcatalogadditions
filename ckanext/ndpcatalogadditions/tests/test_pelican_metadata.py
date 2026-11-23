@@ -641,3 +641,38 @@ def test_every_alias_is_a_valid_pelican_key():
 def test_fake_pelican_refuses_keys_real_pelican_refuses():
     with pytest.raises(ValueError, match="lowercase"):
         make_event(f"{NAMESPACE}/a.csv", dataset="x", uploadType="dataset")
+
+
+@pytest.mark.parametrize("created_at, expected", [
+    # Go's RFC3339Nano, as real Pelican sends it: nine fraction digits
+    ("2026-11-23T20:22:11.123456789Z", "2026-11-23T20:22:11.123456"),
+    ("2026-11-23T20:22:11.5Z", "2026-11-23T20:22:11.500000"),
+    ("2026-11-23T20:22:11Z", "2026-11-23T20:22:11"),
+    ("2026-11-23T14:22:11.123456789-06:00", "2026-11-23T20:22:11.123456"),
+    ("2026-11-23T20:22:11+0000", "2026-11-23T20:22:11"),
+    ("2026-11-23T20:22:11", "2026-11-23T20:22:11"),
+    (1795465331, "2026-11-23T20:22:11"),
+    ("not a date", None),
+    ("", None),
+    (None, None),
+])
+def test_normalize_resource_timestamp(created_at, expected):
+    assert pelican_metadata.normalize_resource_timestamp(created_at) == expected
+
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_go_nanosecond_created_at_is_accepted(monkeypatch):
+    # First real upload on ndp-test: CKAN rejected the whole event because
+    # created_at had nine fraction digits.
+    _map_namespace(monkeypatch)
+    event = make_event(f"{NAMESPACE}/a.csv", dataset="nanos", title="Nanos", notes="n")
+    event["object"]["created_at"] = "2026-11-23T20:22:11.123456789Z"
+    package = pelican_metadata.process_pelican_event(event)
+    assert package["resources"][0]["last_modified"] == "2026-11-23T20:22:11.123456"
+
+    # an unreadable timestamp costs the field, not the file
+    event = make_event(f"{NAMESPACE}/b.csv", dataset="nanos")
+    event["object"]["created_at"] = "yesterday-ish"
+    package = pelican_metadata.process_pelican_event(event)
+    assert len(package["resources"]) == 2

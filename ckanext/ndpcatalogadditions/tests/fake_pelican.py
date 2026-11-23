@@ -197,7 +197,8 @@ class FakePelican:
                 "path": path,
                 "size": 1024,
                 "etag": f'"{uuid.uuid4().hex}"',
-                "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                # Go's RFC3339Nano, as real Pelican writes it: nine digits.
+                "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f") + "123Z",
                 **custom,
             },
         }

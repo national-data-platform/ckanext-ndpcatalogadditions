@@ -359,23 +359,47 @@ def guess_mimetype(name):
     return mimetypes.guess_type(name)[0] or "application/octet-stream"
 
 
+RFC3339_PATTERN = re.compile(
+    r"^(\d{4}-\d{2}-\d{2})[Tt ](\d{2}:\d{2}:\d{2})(?:\.(\d+))?([Zz]|[+-]\d{2}:?\d{2})?$"
+)
+
+
 def normalize_resource_timestamp(value):
     """
-    CKAN's own date validator (ckan.lib.helpers.date_str_to_datetime) cannot
-    parse a UTC offset or timezone suffix at all, including a bare "Z" -
-    Pelican's created_at is RFC3339 and commonly has one. Parse it and
-    re-emit a naive ISO string CKAN can actually validate, converting to UTC
-    first if it carried an offset.
+    A naive UTC ISO string CKAN can validate, or None.
+
+    CKAN's date validator (ckan.lib.helpers.date_str_to_datetime) can't
+    parse a UTC offset or a "Z". Pelican's created_at is RFC3339 written by
+    Go, so it usually has both and up to nine fraction digits (nanoseconds),
+    which Python 3.10's fromisoformat also refuses. So parse it by hand:
+    keep microseconds, convert any offset to UTC. A number is taken as Unix
+    seconds. Anything else is logged and dropped - a bad timestamp must not
+    cost the uploader the whole file (CKAN would reject the event).
     """
-    if not value:
-        return value
+    if value in (None, ""):
+        return None
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        try:
+            return datetime.fromtimestamp(value, timezone.utc).replace(tzinfo=None).isoformat()
+        except (OverflowError, OSError, ValueError):
+            logger.warning(f"pelican event: ignoring unreadable created_at {value!r}")
+            return None
+    match = RFC3339_PATTERN.match(str(value).strip())
+    if not match:
+        logger.warning(f"pelican event: ignoring unreadable created_at {value!r}")
+        return None
+    date, time_of_day, fraction, offset = match.groups()
+    micro = (fraction or "")[:6].ljust(6, "0")
+    if offset in (None, "Z", "z"):
+        offset = "+00:00"
+    elif ":" not in offset:
+        offset = f"{offset[:3]}:{offset[3:]}"
     try:
-        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        dt = datetime.fromisoformat(f"{date}T{time_of_day}.{micro}{offset}")
     except ValueError:
-        return value
-    if dt.tzinfo is not None:
-        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
-    return dt.isoformat()
+        logger.warning(f"pelican event: ignoring unreadable created_at {value!r}")
+        return None
+    return dt.astimezone(timezone.utc).replace(tzinfo=None).isoformat()
 
 
 def parse_timestamp(value):
@@ -435,8 +459,9 @@ def upsert_resource(package, federation, obj, namespace, custom_fields=None):
             "url": url,
             "size": obj.get("size"),
             "hash": (obj.get("etag") or "").strip('"'),
-            "last_modified": last_modified,
         }
+        if last_modified:
+            refreshed["last_modified"] = last_modified
         defaults = {
             # Path relative to the namespace, so run-1/data.csv and
             # run-2/data.csv stay distinguishable.
@@ -483,7 +508,7 @@ def upsert_resource(package, federation, obj, namespace, custom_fields=None):
             return package
 
     new_resource = {**defaults, **refreshed, **explicit}
-    if folder is not None:
+    if folder is not None and last_modified:
         new_resource["last_modified"] = last_modified
     insert_in_path_order(package["resources"], new_resource)
     return package
