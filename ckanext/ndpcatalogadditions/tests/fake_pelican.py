@@ -25,6 +25,9 @@ Two ways to use it:
       python -m ckanext.ndpcatalogadditions.tests.fake_pelican serve &
       python -m ckanext.ndpcatalogadditions.tests.fake_pelican send \\
           --path /fake-namespace/a.csv --meta dataset=demo --meta expected_count=1
+      # a recursive upload: several files of one dataset at once
+      python -m ckanext.ndpcatalogadditions.tests.fake_pelican send --parallel \\
+          --path /fake-namespace/a.csv --path /fake-namespace/b.csv --meta dataset=demo
 
 Only imports jose/ecdsa/requests (no ckan), so the CLI starts instantly. The
 CLI keeps its signing key in a gitignored .fake_pelican/ at the repo root so
@@ -273,7 +276,14 @@ def main(argv=None):
         help="token audience (default: the receiver's PELICAN_WEBHOOK_URL env)",
     )
     p_send.add_argument("--namespace", default=DEFAULT_NAMESPACE)
-    p_send.add_argument("--path", help="object path, must start with the namespace")
+    p_send.add_argument(
+        "--path", action="append",
+        help="object path, must start with the namespace; repeat to send several files",
+    )
+    p_send.add_argument(
+        "--parallel", action="store_true",
+        help="send all --path events at once (like a recursive upload), not one after another",
+    )
     p_send.add_argument("--meta", action="append", metavar="KEY=VALUE", help="custom object metadata, repeatable")
     p_send.add_argument("--event-federation", help="override the event's federation field")
     p_send.add_argument("--scope", help="override the token scope")
@@ -291,9 +301,6 @@ def main(argv=None):
     if not args.aud:
         raise SystemExit("no audience: pass --aud or set CKANEXT__NDPCATALOGADDITIONS__PELICAN_WEBHOOK_URL")
 
-    event = fake.make_event(
-        args.namespace, args.path, federation=args.event_federation, **parse_meta(args.meta)
-    )
     token = fake.mint_token(
         args.namespace,
         audience=args.aud,
@@ -301,20 +308,39 @@ def main(argv=None):
         lifetime=-60 if args.expired else 300,
         private_pem=generate_private_pem() if args.bad_signature else None,
     )
+    meta = parse_meta(args.meta)
+    events = [
+        fake.make_event(args.namespace, path, federation=args.event_federation, **meta)
+        for path in (args.path or [None])
+    ]
 
     if args.dry_run:
-        print(json.dumps(event, indent=2))
+        for event in events:
+            print(json.dumps(event, indent=2))
         print(token)
         return 0
 
-    response = requests.post(
-        args.url,
-        json=event,
-        headers={"Authorization": f"Bearer {token}"},
-        timeout=30,
-    )
-    print(f"{response.status_code} {response.text.strip()}")
-    return 0 if response.ok else 1
+    def send(event):
+        response = requests.post(
+            args.url,
+            json=event,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=30,
+        )
+        return event["object"]["path"], response
+
+    if args.parallel:
+        from concurrent.futures import ThreadPoolExecutor
+
+        with ThreadPoolExecutor(max_workers=len(events)) as pool:
+            results = list(pool.map(send, events))
+    else:
+        results = [send(event) for event in events]
+
+    for path, response in results:
+        prefix = f"{path}: " if len(results) > 1 else ""
+        print(f"{prefix}{response.status_code} {response.text.strip()}")
+    return 0 if all(response.ok for _, response in results) else 1
 
 
 if __name__ == "__main__":

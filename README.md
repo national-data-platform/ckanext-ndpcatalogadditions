@@ -113,9 +113,10 @@ To install ckanext-ndpcatalogadditions:
 
 ## Configuration
 
-All settings are environment variables on the CKAN container, read when the
-extension loads. None come from `ckan.ini`. Change a value by updating the
-environment and recreating the container.
+All settings but one are environment variables on the CKAN container, read
+when the extension loads. Change a value by updating the environment and
+recreating the container. The exception, `ckanext.ndp.jupyterhub_endpoint`, is
+a `ckan.ini` option (below).
 
 This extension runs on the Prekan (staging) instance and talks to a separate
 production CKAN, which curator approval publishes to.
@@ -135,12 +136,27 @@ production CKAN, which curator approval publishes to.
 | `email_secret` | for emails | none | Shared secret sent with each email request. Note the lowercase name. |
 | `SOLR_INDEX_URL` | no | `http://awesome-compute.sdsc.edu:8081/v1/ckan-api/secure/add_to_index` | External search-index service called for each dataset approved into production. |
 | `CKANEXT__NDPCATALOGADDITIONS__POP_SECRET_TOKEN` | for `/ndp/get_ep_prekan_token` | none | Shared secret callers of that endpoint send in the `X-Secret-Token` header. |
+| `CONTEXTUAL_INSIGHTS_URL` | no | `https://vdc-192.chpc.utah.edu/testddapi/pipelines/trigger` | Pipeline triggered after approval for datasets with the extra `enable_contextual_insight` set to `true`. |
+| `CONTEXTUAL_INSIGHTS_USERNAME` | no | `utah_university` | Basic-auth user for that pipeline. |
+| `CONTEXTUAL_INSIGHTS_PASSWORD` | for contextual insights | none | Basic-auth password for that pipeline. |
+
+`ckan.ini` option:
+
+| Option | Required | Default | What it does |
+| --- | --- | --- | --- |
+| `ckanext.ndp.jupyterhub_endpoint` | no | none | JupyterHub URL exposed to templates through the `ndp_jupyterhub_endpoint` helper. |
 
 ### Pelican metadata publish
 
 These settings configure the receiver for Pelican `object.committed` webhooks
-(`POST /ndp/pelican_metadata_publish`, also accepted at `POST /`). Leave them
-unset to disable it: every event then gets a 500 and Pelican keeps retrying.
+at `POST /ndp/pelican_metadata_publish`. Leave them unset to disable it: every
+event then gets a 500 and Pelican keeps retrying.
+
+The receiver is also bound to `POST /`, Prekan's site root, because the test
+origin was configured with the bare site URL. Any POST to `/` goes to the
+receiver (CKAN's own `/` is GET-only, and the receiver rejects anything without
+a valid Pelican token). Remove that rule in `plugin.py` once origins use the
+specific path.
 See [the design doc](docs/pelican-metadata-publish-design.md), section 6, for
 the uploader metadata convention.
 

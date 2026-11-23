@@ -207,3 +207,42 @@ def test_ckan_validation_error_is_422(app, fake):
     status, text = post(app, event(fake, tags="not!a!valid!tag"), fake.mint_token(NAMESPACE))
     assert status == 422
     assert "tags" in text.lower() or "tag" in text.lower()
+
+
+# ---- response codes from Kai's review (3.1, 3.2, 2.1) -----------------------
+
+def test_unexpected_value_error_is_500_not_422(app, fake, monkeypatch):
+    # e.g. a malformed JSON reply from production during the org lookup:
+    # our side failed, so Pelican should retry rather than drop the event.
+    def broken(*args, **kwargs):
+        raise ValueError("Expecting value: line 1 column 1 (char 0)")
+
+    monkeypatch.setattr(pelican_metadata, "get_or_create_pelican_package", broken)
+    status, _ = post(app, event(fake), fake.mint_token(NAMESPACE))
+    assert status == 500
+
+
+def test_production_outage_during_name_check_is_500(app, fake, monkeypatch):
+    def outage(name):
+        raise RuntimeError("production catalog name check failed: HTTP 503")
+
+    monkeypatch.setattr(pelican_metadata, "name_taken_in_catalog", outage)
+    status, _ = post(app, event(fake), fake.mint_token(NAMESPACE))
+    assert status == 500
+
+
+def test_busy_dataset_is_503(app, fake, monkeypatch):
+    monkeypatch.setattr(pelican_metadata, "DATASET_LOCK_WAIT_SECONDS", 0.2)
+    name = pelican_metadata.pelican_package_name(ORG_NAME, "webhook-dataset")
+    with pelican_metadata.dataset_lock(name):
+        status, text = post(app, event(fake), fake.mint_token(NAMESPACE))
+    assert status == 503
+    assert "busy" in text
+
+
+@pytest.mark.parametrize("namespace", ["/fake-namespace/..", "/fake-namespace//x", "/./fake-namespace"])
+def test_namespace_with_bad_segments_is_rejected(app, fake, namespace):
+    body = fake.make_event(namespace, path=f"{namespace}/a.csv", dataset="x")
+    status, text = post(app, body, fake.mint_token(namespace))
+    assert status == 401
+    assert "malformed namespace" in text

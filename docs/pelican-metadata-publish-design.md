@@ -1,7 +1,7 @@
 Pelican Metadata Publish Integration - Design
 
 Owner: Rich
-Status: Approved by Kai (2026-10-26). v1 receiver implemented and bench tested; real-origin testing pending.
+Status: Approved by Kai (2026-10-26). v1 receiver implemented and bench tested; Kai's code review (2026-11-20) addressed (section 5); real-origin testing pending.
 Reviewers: Kai, Katie, Ismael, Dan. Replies from Kai and Ismael (2026-10-14 to 2026-10-26) are folded into the sections below; section 5 tracks what each question got back.
 
 1. Summary
@@ -70,17 +70,31 @@ Kai called expected_count a promising approach (2026-10-19). He also pointed out
 
 Approval and rejection both delete the Prekan copy. An event that arrives for a dataset after that is rejected with a 422 ("already been reviewed"), rather than quietly updating the deleted copy and answering 2xx while the file never reaches the published dataset. Adding files to a reviewed dataset is a curator action in v1.
 
+Approval copies the package to production as is, so it strips the receiver's Prekan-only bookkeeping first: pelican_ingest_status, pelican_ingest_errors and pelican_expected_count. pelican_namespace and pelican_dataset stay on the published dataset as provenance (decided after Kai's code review, 2026-11-20).
+
+Concurrent events. Kai's code review (2026-11-20) pointed out that concurrent events for one dataset are the normal case, not an edge case: a recursive upload (pelican object put -r) transfers about five files at once (Client.WorkerCount), and the origin makes a synchronous publish attempt as each file commits. Every event reads the whole package, adds its resource and saves the whole package back, and Prekan runs several workers. Two events at once would both save N+1 resources, one file would silently drop out with a 2xx, and the dataset could never reach expected_count. Two first events would both try to create the package, and the second would get a 422 and be lost. CKAN's resource_create does not avoid this; it does the same read-modify-write internally.
+
+So each event holds a per-dataset lock from the read (or create) through the save: a PostgreSQL advisory lock keyed on the package name, taken on its own database connection because CKAN actions commit mid-request. An event that can't get the lock within 5 seconds gets a 503 and Pelican retries it. The wait is kept short because a waiting request holds a web worker. A test with five concurrent appends lost four of the five resources without the lock and none with it.
+
+The cost is throughput. Saves for one dataset now run one at a time, and each save rewrites the whole package and reindexes it in Solr, so it gets slower as the dataset grows. Timings on the laptop bench (CKAN 2.10, one event, including about 0.3 s of client start-up): about 0.5 to 1 s with 50 to 200 resources, about 3.5 s with 1000. That is roughly 3 ms per resource, so Pelican's 10-second per-attempt timeout would be reached around 3000 resources; Prekan's numbers will differ. Ten files of one dataset sent at once on the bench: six were accepted within the 5-second wait, four got a 503, and all ten were in place after one retry, in path order.
+
+In Pelican's default eventual mode that is acceptable. Uploads succeed regardless of the catalog, non-2xx answers are retried in the background, and processing is idempotent by resource url (3.6), so a retry, or an attempt that timed out after its save completed, just reapplies the same state. In transactional mode (Origin.Metadata.Mode), a 503 or a timeout would fail the upload itself, so this design is not suitable for transactional origins as it stands. Logical-unit resources (3.6) cut the resource count, and with it the save time, for datasets with many files. If that is not enough, the next step is accept-and-queue: verify and check the event, put it on a durable queue, answer 2xx, and apply events per dataset in batches with one save. It is not built yet (section 4).
+
 3.5 v1 scope: object.committed only, json body only
 
 Pelican's spec defines three lifecycle events (object.committed, object.updated, object.deleted) plus a multipart variant for attaching an opaque metadata blob alongside the json event. I'm scoping v1 to object.committed with a plain json body only. object.updated and object.deleted both require Pelican's own local object-tracking subsystem to be turned on at the origin, and have different delivery semantics (always asynchronous, best effort) - more moving parts than I want to take on for a first version. The multipart/blob variant is deferred too - nothing in our metadata schema currently needs an attached binary manifest.
 
-3.6 resource identity is keyed by the object path, not the event id
+3.6 resource identity is keyed by the resource url, not the event id; files can be grouped into one resource
 
-Pelican's delivery is at-least-once, and their doc says to dedup on the event id. Rather than stand up a new table just to track which event ids we have already seen - this extension deliberately keeps no local database today, everything lives in the two CKAN instances' postgres and solr, per our own design doc - I decided to make processing naturally idempotent instead. When an object.committed event comes in, look for an existing resource on the target package whose path matches the event's object path, and update it in place rather than append a new one. A redelivered event just reapplies the same state, so there is no separate bookkeeping needed, and the extension stays stateless.
+Pelican's delivery is at-least-once, and their doc says to dedup on the event id. Rather than stand up a new table just to track which event ids we have already seen - this extension deliberately keeps no local database today, everything lives in the two CKAN instances' postgres and solr, per our own design doc - I decided to make processing naturally idempotent instead. When an object.committed event comes in, look for an existing resource on the target package whose path matches the event's object path, and update it in place rather than append a new one. A redelivered event just reapplies the same state, so there is no separate bookkeeping needed, and the extension stays stateless. In the code, the match is on the resource url (3.7), which is built from the object path.
+
+Logical units. Kai's code review (2026-11-20, section 5) argued that one resource per file is often the wrong unit. A shapefile is three to eight files that are only usable together, a Zarr store is thousands of chunk files, a partitioned Parquet table is many part files, and existing Pelican entries in the catalog are often registered as folders. A dataset with thousands of per-file resources is hard to browse and slow to save (3.4). So the uploader can optionally group files: every file carrying the same "resource" key (a folder path under the namespace) updates one resource that points at the folder. Its name is the folder path relative to the namespace, its mimetype is inode/directory, and its last_modified is the newest file seen. It has no size or hash, because one event per file cannot keep a total without double-counting redeliveries; a manifest file listed as its own resource covers per-file sizes and checksums. Files without the key stay per-file resources, which suits small datasets and files worth listing on their own, such as a README or data dictionary. Two more optional keys, "format" and "resource_description", set those fields on the file's resource, grouped or not (section 6).
+
+Names and order. A per-file resource is named by its path relative to the namespace (run-1/data.csv), not the bare file name, so files with the same name in different folders stay distinguishable. A new resource is inserted in path order among the existing Pelican resources instead of appended, so the list follows the tree rather than arrival order. Existing resources are never moved, and name, description, mimetype and status are only defaults, so a curator's edits survive later events.
 
 3.7 resource url format
 
-Resources in CKAN are pointers only - this catalog never stores the underlying bytes, which is true everywhere else in this extension too. The resource url for a Pelican object is pelican://<federation-host><path>, with the host taken from the event's federation url and the path from the event's object. The path is already federation-rooted - it starts with the namespace - so the namespace is not prepended a second time; in the osg-htc.org federation, an object at /my-namespace/run-1/data.csv becomes pelican://osg-htc.org/my-namespace/run-1/data.csv. That is the form the Pelican client accepts directly and the pelican:// form already used in the catalog (Kai's list, 2026-10-19). An event whose federation is missing or not a url is rejected before anything is created. package_validation.py already recognizes the pelican:// scheme specifically and skips its url-liveness check for it, which makes sense since a pelican:// uri is not something our validator can http-get directly. This reuses existing, already-correct behavior instead of adding a new special case.
+Resources in CKAN are pointers only - this catalog never stores the underlying bytes, which is true everywhere else in this extension too. The resource url for a Pelican object is pelican://<federation-host><path>, with the host taken from the event's federation url and the path from the event's object. The path is already federation-rooted - it starts with the namespace - so the namespace is not prepended a second time; in the osg-htc.org federation, an object at /my-namespace/run-1/data.csv becomes pelican://osg-htc.org/my-namespace/run-1/data.csv. That is the form the Pelican client accepts directly and the pelican:// form already used in the catalog (Kai's list, 2026-10-19). A grouped resource (3.6) points at its folder, with a trailing slash: pelican://osg-htc.org/my-namespace/gis/roads/. An event whose federation is missing or not a url is rejected before anything is created. package_validation.py already recognizes the pelican:// scheme specifically and skips its url-liveness check for it, which makes sense since a pelican:// uri is not something our validator can http-get directly. This reuses existing, already-correct behavior instead of adding a new special case.
 
 Most existing catalog entries use the other scheme, osdf:///<path>, which only names a path and relies on the client knowing the OSDF federation. pelican:// with the host is the self-describing one, and it works for any federation, not only OSDF.
 
@@ -92,12 +106,15 @@ Ismael raised the alternative (2026-10-22): since each Pelican origin has its ow
 
 3.9 response contract
 
-Following Pelican's contract as specified: 2xx once our package_create or package_update call actually succeeds, 422 for anything permanently unprocessable, and anything else treated as a plain failure so Pelican retries with backoff instead of us claiming a false success. In practice that splits into four cases:
+Following Pelican's contract as specified: 2xx once our package_create or package_update call actually succeeds, 422 for anything permanently unprocessable, and anything else treated as a plain failure so Pelican retries with backoff instead of us claiming a false success. In practice that splits into five cases:
 
 - 2xx: the event was applied. This includes the case where the dataset has reached expected_count but fails ndp_package_validate. Per 3.4 that is not a rejection of the event - the file itself landed fine - so the dataset is marked incomplete (pelican_ingest_status and pelican_ingest_errors on the package) and the event is still accepted. Returning 422 there would just make Pelican drop an event that was processed correctly.
-- 422: the event itself can never succeed - a namespace not in our mapping, a missing dataset field, a missing object path or one outside the namespace, a federation that is not a url, an unsupported event type, a body that is not a json object, a dataset that has already been reviewed, a dataset name already published in production, or data CKAN itself refuses (for example an invalid tag). Protected metadata keys (3.2) are dropped, not rejected.
+- 422: the event itself can never succeed - a namespace not in our mapping, a missing dataset field, a missing object path, one outside the namespace or with empty, "." or ".." segments, a "resource" folder outside the namespace or not containing the object, a federation that is not a url, an unsupported event type, a body that is not a json object, a dataset that has already been reviewed, a dataset name already published in production, or data CKAN itself refuses (for example an invalid tag). Protected metadata keys (3.2) are dropped, not rejected.
 - 401: the token did not verify - missing or malformed, expired, bad signature, wrong audience, missing pelican.metadata scope for the namespace, an untrusted federation, or signing keys that could not be fetched from the registry. Pelican retries these, which is the right outcome for the last one in particular, since a registry outage is transient.
-- 500: our own side failed - the receiver is not configured (no trusted federation or webhook url) or something downstream errored, such as the remote org lookup timing out. Pelican retries, and the same event succeeds once the problem is fixed.
+- 503: another event for the same dataset held the lock for more than 5 seconds (3.4). Pelican retries.
+- 500: our own side failed - the receiver is not configured (no trusted federation or webhook url) or something downstream errored, such as the remote org lookup timing out, or the production name check getting anything but a clear answer (an outage's 502 is not "name available"). Unexpected errors land here too, rather than as a 422, so they are retried. Pelican retries, and the same event succeeds once the problem is fixed.
+
+Routes. The receiver answers at POST /ndp/pelican_metadata_publish. It is also bound to POST / on Prekan, because the test origin was given the bare site URL as its webhook. That shares Prekan's site root: CKAN's own / route is GET-only, so nothing is displaced, and JWT verification still guards it, but it is easy to miss in later maintenance (Kai's review 2.2). The / rule should be removed once origins are configured with the specific path (section 4).
 
 4. Open items
 
@@ -106,12 +123,15 @@ Following Pelican's contract as specified: 2xx once our package_create or packag
 - a pre-existing, unrelated authz gap in process_user_and_organization (controller.py) that lets any authenticated user join any org through the existing /ndp/package_create endpoint. Found this while working through 3.2. Should get its own fix, independent of this feature. The per-creator ownership check limits the damage to the membership grant (see 3.2); Kai is confirming the check covers every update/delete path.
 - restricted Pelican data: packages are public by default (3.1). Some namespaces hold restricted data (the existing catalog has osdf:///ndp/private/... entries). Supporting that means accepting private plus existingGroupIds from uploader metadata and validating the groups against Keycloak like ordinary submissions do - but those values would arrive unauthenticated as to the uploader, the same trust question as the org in 3.2. Not in v1.
 - incomplete drafts can only be fixed by hand by a sysadmin (3.4), because the service account is the creator. Uploaders can still fix missing metadata by re-uploading a file with it attached (6.3), so this mostly matters for fixes that metadata can't make. Fine while volumes are small; per-uploader ownership (below) would let the uploader edit their own.
-- folder resources: some existing catalog entries point at a folder (for example .../ucr_seis/Data_Salton, .../BCZO_SnowOn05/). Pelican events are per object, so this receiver will only ever create per-file resources; a dataset that is curated as "this folder" today cannot be reproduced from events.
+- folder resources: some existing catalog entries point at a folder (for example .../ucr_seis/Data_Salton, .../BCZO_SnowOn05/). Addressed by the optional "resource" key (3.6) when the uploader sets it. A folder resource has no total size or file count.
 - one object in several datasets: the existing catalog has objects registered under more than one dataset. An event carries a single dataset field, so one upload lands in exactly one dataset; a second listing would have to be added by hand.
 - finalized data versus testing (Ismael, 2026-10-22): how do we tell a finished data product from someone testing, and are there namespaces known to hold finalized products? Curator review in Prekan is the backstop, but test uploads to a mapped namespace will still create Prekan records. Options include only mapping namespaces that hold finalized data, or an explicit uploader flag; not decided.
 - per-uploader ownership (Ismael, 2026-10-22): link Pelican origin identities to NDP Keycloak users instead of the single service account (see 3.8).
 - no story yet for a namespace spanning more than one org. Current design assumes strict one-to-one and does not degrade gracefully if that stops being true.
 - JWT verification is implemented (trusted federation from config, registry discovery and jwks fetched from the trusted federation only, both cached with a ttl) but not written up in detail here. This doc covers the data model and trust boundary decisions, not the verification code.
+- accept-and-queue (3.4): needed if Prekan's save times make per-dataset serialization too slow, and for any origin running in transactional mode. Needs a durable queue and a worker on Prekan; CKAN-level rejections could then no longer be reported back to Pelican as 422s.
+- remove the POST / route (3.9) once origins use /ndp/pelican_metadata_publish.
+- transactional publish mode: not supported as it stands (3.4). Which mode the origins will run is an open question for the Pelican side.
 - no automatic handling yet for a dataset that never reaches its expected_count (relies entirely on a human noticing and manually moving it forward) or for one that goes over it (extra files are just accepted with no alert).
 
 5. Questions to Kai, Katie, Ismael, and Dan, and what came back
@@ -125,6 +145,21 @@ Following Pelican's contract as specified: 2xx once our package_create or packag
 - Any concern with a single dedicated service account owning all Pelican-sourced Prekan records, or is there a reason to want something more granular.
   Answer: Ismael would rather link Pelican origin identities to NDP Keycloak users so records are not all one account (2026-10-22). Kept the service account for v1; see 3.8 and open items.
 
+Kai's code review of the implementation (2026-11-20), and what was done:
+
+- 2.1 concurrent events lose resources or the first file: fixed with a per-dataset lock and a 503 on timeout (3.4). Tests cover concurrent first events and concurrent appends; the append test fails without the lock.
+- 2.2 POST / shares Prekan's site root: kept for now and documented (3.9, README, a comment in plugin.py). It goes once origins can use the specific path, which is open question 4 below.
+- 2.3 event rate against save time: measured on the bench and written up in 3.4. Eventual mode is fine; transactional mode isn't supported yet. Accept-and-queue is the documented next step.
+- 3.1 ValueError caught as 422: only PelicanRejectError is a 422 now. Unexpected errors are 500s.
+- 3.2 any non-200 from production treated as "name available": only a 404 counts as available now. Anything else is a 500, so the event is retried.
+- 3.3 pelican_* extras published on approval: bookkeeping extras stripped, provenance kept (3.4).
+- 3.4 full-package save per event: serialized by the lock, reduced by logical-unit resources. Batching is part of accept-and-queue.
+- 3.5 ".." segments: empty, "." and ".." segments are rejected in the namespace (401, with the other namespace checks), the object path and the resource folder (422).
+- 3.6 branch based on main: rebased onto dev and tested there.
+- Section 5, logical units: optional "resource", "format" and "resource_description" keys, path-relative names, path-ordered insertion (3.6).
+- Open question 3, does put -r attach --metadata-file to every file: yes. Pelican's client (WithObjectMetadata, at the pinned commit) propagates the metadata map to every file of a recursive upload. So each put -r carries one record. A "resource" key in it groups the whole upload, so run one put -r per logical unit. The same code allows number and boolean values; the receiver stores them as text (true/false for booleans).
+- Still open: which publish mode the origins will run (eventual or transactional), and whether the webhook URL can be changed to /ndp/pelican_metadata_publish.
+
 Other input from the thread:
 
 - Kai (2026-10-14): agreed with the overall approach, with one concern - the per-file event problem that led to the progressive merge in 3.4 (expected_count was my proposal back, 2026-10-19). Also the per-creator ownership check noted in 3.2.
@@ -134,7 +169,7 @@ Other input from the thread:
 
 6. Uploader metadata reference and examples
 
-This is the convention uploaders follow. Each file is uploaded with key/value pairs attached through Pelican's X-Pelican-Object-Metadata header (the header format is Pelican's, see its metadata-publish-design doc). Pelican copies them into the object block of the event it sends us, next to the four keys it sets itself (path, size, etag, created_at). All values arrive as strings.
+This is the convention uploaders follow. Each file is uploaded with key/value pairs attached through Pelican's X-Pelican-Object-Metadata header (the header format is Pelican's, see its metadata-publish-design doc). Pelican copies them into the object block of the event it sends us, next to the four keys it sets itself (path, size, etag, created_at). Pelican allows string, number and boolean values; the receiver stores them as text (booleans as true/false). With pelican object put --metadata-file, the keys are the top-level fields of a JSON file. In a recursive upload (put -r) every file gets the same metadata.
 
 Uploaders do not choose the org. It comes from the namespace the event was signed for (3.2), looked up in a map the NDP operators maintain on the Prekan side. Like the extension's other settings, the map is an environment variable on the CKAN container, holding a JSON object from namespace to CKAN org name:
 
@@ -149,6 +184,12 @@ Keys the receiver uses itself (not stored as dataset metadata):
 
 - dataset (required on every file): the dataset the file belongs to. The CKAN package is named <org>-<dataset>, where org is the one mapped to the namespace. Lowercase letters, digits, - and _.
 - expected_count (send the same value on every file): how many resources the dataset should end up with. When the package reaches that many, full NDP validation runs. Non-Pelican resources a submitter adds by hand count too.
+
+Keys that describe the file's resource rather than the dataset (optional, never stored as dataset metadata; see 3.6):
+
+- resource: a folder path under the namespace, for example /example-ns/gis/roads. Every file with the same value lands on one resource pointing at that folder, instead of one resource per file. The file must sit inside the folder. Because put -r attaches the same metadata to every file, run one put -r per logical unit.
+- format: the resource format, for example shapefile, zarr, parquet. CKAN normalizes names it knows (shapefile becomes SHP). Without it, CKAN fills format from the mimetype.
+- resource_description: the resource's description. Without it, a file gets "Pelican object at <path>" and a folder "Pelican folder <path>/ - browse and fetch its files with Pelican tools".
 
 Keys that become CKAN package fields:
 
@@ -176,14 +217,17 @@ Optional extras that NDP validates when present:
 - startDateTime, endDateTime: date/time
 - temporal: {"startTime": "<ISO8601>", "endTime": "<ISO8601>"}
 
+Extras with behaviour attached: enable_contextual_insight=true makes approval trigger the Contextual Insights pipeline on the published dataset, as it does for ordinary submissions.
+
 Any other key is stored as an extra without checks. Keys are case-sensitive, so a misspelled required key (pocemail) is stored under the wrong name and the dataset then fails validation for the missing one.
 
 Keys that are dropped and logged: ndp_creator_md5, approval_status, existingGroupIds, anything starting with pelican_, and every other CKAN core field (name, owner_org, private, state, type, id, url, version, maintainer, maintainer_email, groups, resources, extras, tag_string). The rest of the event is still applied.
 
-Two behaviours to know about:
+Three behaviours to know about:
 
-- Metadata describes the dataset, not the file. A resource's name is the file name, its description is "Pelican object at <path>", and its mimetype is guessed from the extension. Uploaders cannot set per-file descriptions or formats in v1; a curator can edit them, and later events do not overwrite those edits.
+- Apart from the three resource keys, metadata describes the dataset, not the file. A per-file resource is named by its path relative to the namespace (salton/readings.csv), and its mimetype is guessed from the extension. Name, description, mimetype and status are defaults, so a curator can edit them and later events do not overwrite those edits. An explicit format or resource_description from a later event does overwrite.
 - A field CKAN itself refuses (a one-character tag, a malformed author_email) rejects that whole event with a 422, including its file. Pelican does not retry a 422, so the uploader has to fix the value and upload the file again.
+- Files of one dataset are applied one at a time (3.4). When many arrive at once, some get a 503 and Pelican retries them; this is normal in Pelican's default eventual mode.
 
 The examples below assume namespace /example-ns mapped to org example-org (the first entry in the map above) on federation osg-htc.org. Each was run against the bench with the fake Pelican, and the "In CKAN" blocks are trimmed package_show output from those runs. The service account's ndp_creator_md5 and the pelican_namespace/pelican_dataset extras, present on every package, are left out.
 
@@ -236,14 +280,14 @@ In CKAN (Prekan), package example-org-salton-readings:
                   pelican_expected_count=1,
                   pelican_ingest_status=ready, pelican_ingest_errors=[]
     resources:
-      readings.csv  pelican://osg-htc.org/example-ns/salton/readings.csv
-                    text/csv, status active, size 1024, hash 0979c8a0...
+      salton/readings.csv  pelican://osg-htc.org/example-ns/salton/readings.csv
+                           text/csv, status active, size 1024, hash 0979c8a0...
 
 The first event creates the package and brings it to its expected count in the same step, so validation runs right away and the dataset is ready for curator review.
 
 6.2 Several files, same metadata on each
 
-The simplest pattern for a multi-file dataset: attach the identical record to every file. Order doesn't matter and losing any one file loses nothing but that file.
+The simplest pattern for a multi-file dataset: attach the identical record to every file. That is what pelican object put -r --metadata-file record.json does. Order doesn't matter and losing any one file loses nothing but that file. The three events may arrive at once; they are applied one at a time (3.4), and the resources are listed in path order whatever order they arrive in.
 
     /example-ns/station7/2026-01.csv
     /example-ns/station7/2026-02.csv
@@ -276,9 +320,9 @@ In CKAN:
                   pocName=Jane Doe, pocEmail=jane@example.org,
                   pelican_expected_count=3, pelican_ingest_status=ready
     resources:
-      2026-01.csv  pelican://osg-htc.org/example-ns/station7/2026-01.csv  text/csv
-      2026-02.csv  pelican://osg-htc.org/example-ns/station7/2026-02.csv  text/csv
-      2026-03.csv  pelican://osg-htc.org/example-ns/station7/2026-03.csv  text/csv
+      station7/2026-01.csv  pelican://osg-htc.org/example-ns/station7/2026-01.csv  text/csv
+      station7/2026-02.csv  pelican://osg-htc.org/example-ns/station7/2026-02.csv  text/csv
+      station7/2026-03.csv  pelican://osg-htc.org/example-ns/station7/2026-03.csv  text/csv
 
 6.3 Several files, metadata spread across them
 
@@ -330,9 +374,9 @@ In CKAN:
                   pocName=Sam Lee, pocEmail=sam@example.org,
                   pelican_expected_count=3, pelican_ingest_status=ready
     resources:
-      README.md      pelican://osg-htc.org/example-ns/snow/README.md      text/markdown
-      depths.csv     pelican://osg-htc.org/example-ns/snow/depths.csv     text/csv
-      sites.geojson  pelican://osg-htc.org/example-ns/snow/sites.geojson  application/geo+json
+      snow/README.md      pelican://osg-htc.org/example-ns/snow/README.md      text/markdown
+      snow/depths.csv     pelican://osg-htc.org/example-ns/snow/depths.csv     text/csv
+      snow/sites.geojson  pelican://osg-htc.org/example-ns/snow/sites.geojson  application/geo+json
 
 "Later wins" means later to arrive at the receiver, not later in upload order. Pelican does not guarantee delivery order, so if two files carry different values for the same key, either could end up in CKAN. Send a key once, or send the same value every time.
 
@@ -342,6 +386,56 @@ The same pattern with a required field never sent. Two files, expected_count=2; 
     pelican_ingest_errors:  ["Missing required field for public dataset: extras:pocEmail"]
 
 Validation re-runs on every event once the count is reached, so the uploader can fix this without help: upload any file of the dataset again with pocEmail attached. Re-uploading an existing path updates that resource rather than adding one, so the count stays at 2, and the package turns ready (checked on the bench). Otherwise a sysadmin fixes the draft in Prekan by hand, or a reviewer rejects it (3.4). Either way this only works before review; after approval or rejection the event gets a 422.
+
+6.4 A logical unit plus a file listed on its own
+
+A shapefile is four files that are only useful together, so they share one resource. The README is listed separately so readers find it. expected_count is 2 because the dataset has two resources, not five files. In practice this is two uploads: a put -r of the roads folder with one metadata file, then a put of the README with another.
+
+    /example-ns/gis/roads/roads.shp
+    /example-ns/gis/roads/roads.shx
+    /example-ns/gis/roads/roads.dbf
+    /example-ns/gis/roads/roads.prj
+      each with:
+      dataset=county-roads
+      expected_count=2
+      resource=/example-ns/gis/roads
+      format=shapefile
+      resource_description=Road centrelines, one shapefile
+      title=County Roads
+      notes=Road network for the county.
+      tags=roads,gis
+      license_id=cc-by
+      uploadType=dataset
+      lastUpdateDate=2026-11-21
+      pocName=Jane Doe
+      pocEmail=jane@example.org
+
+    /example-ns/gis/README.md
+      the same dataset fields, without resource and format, and
+      resource_description=Start here: sources and field definitions
+
+What happens:
+
+- the four shapefile parts (sent at once, as put -r would): the first creates the package and the roads resource; the other three update that same resource. 1 of 2 resources.
+- README.md: second resource, inserted before gis/roads in path order. 2 of 2, validation runs and passes.
+
+In CKAN:
+
+    title:        County Roads
+    license_id:   cc-by
+    tags:         gis, roads
+    extras:       uploadType=dataset, lastUpdateDate=2026-11-21,
+                  pocName=Jane Doe, pocEmail=jane@example.org,
+                  pelican_expected_count=2, pelican_ingest_status=ready
+    resources:
+      gis/README.md  pelican://osg-htc.org/example-ns/gis/README.md
+                     text/markdown, "Start here: sources and field definitions"
+      gis/roads      pelican://osg-htc.org/example-ns/gis/roads/
+                     format SHP, mimetype inode/directory, no size,
+                     "Road centrelines, one shapefile",
+                     last_modified = newest of the four files
+
+A unit counts toward expected_count as soon as its first file lands, so a dataset can turn ready before every file of a unit is in. Curator review is the backstop for that.
 
 References
 

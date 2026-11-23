@@ -348,3 +348,260 @@ def test_incomplete_draft_fixed_by_reuploading_a_file(monkeypatch):
     )
     assert pelican_metadata.get_extra(package, "pelican_ingest_status") == "ready"
     assert len(package["resources"]) == 1
+
+
+# ---- concurrency (Kai's review 2.1) -----------------------------------------
+
+def _run_concurrently(app, events, monkeypatch, delay=0.2):
+    """
+    Process events in parallel threads, each with its own app context and
+    db session (as separate web workers would). upsert_resource is slowed
+    down to widen the read-modify-write window, so an unserialized run
+    reliably loses updates.
+    """
+    import threading
+    from ckan import model
+
+    real_upsert = pelican_metadata.upsert_resource
+
+    def slow_upsert(*args, **kwargs):
+        import time
+        time.sleep(delay)
+        return real_upsert(*args, **kwargs)
+
+    monkeypatch.setattr(pelican_metadata, "upsert_resource", slow_upsert)
+    errors = []
+    start = threading.Barrier(len(events))
+
+    def worker(event):
+        with app.flask_app.test_request_context():
+            try:
+                start.wait()
+                pelican_metadata.process_pelican_event(event)
+            except Exception as e:  # collected and asserted on below
+                errors.append(e)
+            finally:
+                model.Session.remove()
+
+    threads = [threading.Thread(target=worker, args=(e,)) for e in events]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    return errors
+
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_concurrent_events_for_one_dataset_lose_nothing(app, monkeypatch):
+    # Covers both of Kai's cases: several first events racing to create the
+    # package, and concurrent appends to it. Without the lock this loses
+    # resources and/or raises "URL already in use".
+    _map_namespace(monkeypatch)
+    paths = [f"{NAMESPACE}/concurrent/part-{i}.csv" for i in range(5)]
+    events = [make_event(p, dataset="concurrent", title="Concurrent") for p in paths]
+
+    errors = _run_concurrently(app, events, monkeypatch)
+
+    assert errors == []
+    package = test_helpers.call_action("package_show", id=f"{ORG_NAME}-concurrent")
+    assert sorted(r["url"].split("/")[-1] for r in package["resources"]) == [
+        f"part-{i}.csv" for i in range(5)
+    ]
+
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_concurrent_appends_to_existing_dataset_lose_nothing(app, monkeypatch):
+    # The lost-update case on its own: the package already exists, and each
+    # event reads it, adds its resource and saves the whole thing back.
+    _map_namespace(monkeypatch)
+    pelican_metadata.process_pelican_event(
+        make_event(f"{NAMESPACE}/appends/part-0.csv", dataset="appends", title="Appends")
+    )
+    events = [
+        make_event(f"{NAMESPACE}/appends/part-{i}.csv", dataset="appends") for i in range(1, 6)
+    ]
+
+    errors = _run_concurrently(app, events, monkeypatch)
+
+    assert errors == []
+    package = test_helpers.call_action("package_show", id=f"{ORG_NAME}-appends")
+    assert len(package["resources"]) == 6
+
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_event_gives_up_when_dataset_stays_locked(monkeypatch):
+    _map_namespace(monkeypatch)
+    monkeypatch.setattr(pelican_metadata, "DATASET_LOCK_WAIT_SECONDS", 0.2)
+    name = pelican_metadata.pelican_package_name(ORG_NAME, "locked")
+
+    with pelican_metadata.dataset_lock(name):
+        with pytest.raises(pelican_metadata.PelicanBusyError):
+            pelican_metadata.process_pelican_event(make_event(f"{NAMESPACE}/a.csv", dataset="locked"))
+
+    # released afterwards
+    pelican_metadata.process_pelican_event(make_event(f"{NAMESPACE}/a.csv", dataset="locked"))
+
+
+# ---- logical-unit resources, naming, order (Kai's review section 5) ---------
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_files_sharing_a_resource_folder_become_one_resource(monkeypatch):
+    _map_namespace(monkeypatch)
+    folder = f"{NAMESPACE}/gis/roads"
+    parts = ["roads.shp", "roads.shx", "roads.dbf", "roads.prj"]
+    for i, part in enumerate(parts):
+        fields = dict(dataset="gis", resource=folder, format="shapefile")
+        if i == 1:
+            fields["resource_description"] = "Road centrelines"
+        event = make_event(f"{folder}/{part}", **fields)
+        event["object"]["created_at"] = f"2026-10-26T00:00:0{i}Z"
+        package = pelican_metadata.process_pelican_event(event)
+
+    assert len(package["resources"]) == 1
+    resource = package["resources"][0]
+    assert resource["url"] == f"pelican://example-federation.test{folder}/"
+    assert resource["name"] == "gis/roads"
+    assert resource["format"] == "SHP"  # CKAN normalizes known format names
+    assert resource["mimetype"] == "inode/directory"
+    assert resource["status"] == "active"
+    assert resource["description"] == "Road centrelines"
+    assert resource["last_modified"].startswith("2026-10-26T00:00:03")
+    # resource-level keys never become dataset extras
+    for key in ("resource", "format", "resource_description"):
+        assert pelican_metadata.get_extra(package, key) is None
+
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_grouped_and_single_files_mix_and_count(monkeypatch):
+    _map_namespace(monkeypatch)
+    common = dict(dataset="mixed", title="Mixed", notes="n", expected_count="2", **PUBLIC_FIELDS)
+    pelican_metadata.process_pelican_event(
+        make_event(f"{NAMESPACE}/mixed/zarr/0.0", resource=f"{NAMESPACE}/mixed/zarr/", format="zarr", **common)
+    )
+    pelican_metadata.process_pelican_event(make_event(f"{NAMESPACE}/mixed/zarr/0.1", resource=f"{NAMESPACE}/mixed/zarr", **common))
+    package = pelican_metadata.process_pelican_event(make_event(f"{NAMESPACE}/mixed/README.md", **common))
+
+    assert [r["name"] for r in package["resources"]] == ["mixed/README.md", "mixed/zarr"]
+    assert pelican_metadata.get_extra(package, "pelican_ingest_status") == "ready"
+
+
+@pytest.mark.parametrize("folder, path", [
+    (f"{NAMESPACE}/gis/roads", f"{NAMESPACE}/gis/rivers/rivers.shp"),  # file outside its folder
+    ("/other-namespace/roads", "/other-namespace/roads/a.shp"),       # folder outside namespace
+    (f"{NAMESPACE}/gis/../roads", f"{NAMESPACE}/gis/../roads/a.shp"),  # dot-dot
+])
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_bad_resource_folder_is_rejected_before_anything_is_created(monkeypatch, folder, path):
+    _map_namespace(monkeypatch)
+    with pytest.raises(pelican_metadata.PelicanRejectError):
+        pelican_metadata.process_pelican_event(make_event(path, dataset="badfolder", resource=folder))
+    with pytest.raises(pelican_metadata.logic.NotFound):
+        test_helpers.call_action("package_show", id=f"{ORG_NAME}-badfolder")
+
+
+@pytest.mark.parametrize("path", [
+    f"{NAMESPACE}/../escape.csv",
+    f"{NAMESPACE}/./a.csv",
+    f"{NAMESPACE}//a.csv",
+    f"{NAMESPACE}/dir/",
+])
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_object_path_with_bad_segments_is_rejected(monkeypatch, path):
+    _map_namespace(monkeypatch)
+    with pytest.raises(pelican_metadata.PelicanRejectError):
+        pelican_metadata.process_pelican_event(make_event(path, dataset="segments"))
+
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_same_file_name_in_different_folders_stays_distinct_and_ordered(monkeypatch):
+    _map_namespace(monkeypatch)
+    for run in ("run-3", "run-1", "run-2"):
+        package = pelican_metadata.process_pelican_event(
+            make_event(f"{NAMESPACE}/{run}/data.csv", dataset="runs")
+        )
+    # named by path, inserted in tree order rather than arrival order
+    assert [r["name"] for r in package["resources"]] == [
+        "run-1/data.csv", "run-2/data.csv", "run-3/data.csv",
+    ]
+
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_curator_name_and_description_survive_redelivery(monkeypatch):
+    _map_namespace(monkeypatch)
+    event = make_event(f"{NAMESPACE}/data.csv", dataset="curated2")
+    package = pelican_metadata.process_pelican_event(event)
+    test_helpers.call_action(
+        "resource_patch", id=package["resources"][0]["id"], name="Main table", description="Curated"
+    )
+    package = pelican_metadata.process_pelican_event(event)
+    assert package["resources"][0]["name"] == "Main table"
+    assert package["resources"][0]["description"] == "Curated"
+
+
+# ---- production name check and approval (Kai's review 3.2, 3.3) ------------
+
+class _Response:
+    def __init__(self, status_code, body=None):
+        self.status_code = status_code
+        self._body = body or {}
+
+    def json(self):
+        return self._body
+
+
+@pytest.mark.parametrize("status, body, expected", [
+    (404, {"success": False, "error": {"__type": "Not Found Error"}}, False),
+    (200, {"result": {"state": "active"}}, True),
+    (200, {"result": {"state": "deleted"}}, False),
+])
+def test_name_taken_in_catalog_answers(monkeypatch, status, body, expected):
+    monkeypatch.undo()  # drop the autouse stub of this very function
+    monkeypatch.setattr(pelican_metadata.requests, "post", lambda *a, **k: _Response(status, body))
+    assert pelican_metadata.name_taken_in_catalog("x") is expected
+
+
+@pytest.mark.parametrize("status", [403, 500, 502, 503])
+def test_name_taken_in_catalog_raises_when_production_cannot_answer(monkeypatch, status):
+    monkeypatch.undo()
+    monkeypatch.setattr(pelican_metadata.requests, "post", lambda *a, **k: _Response(status))
+    with pytest.raises(RuntimeError):
+        pelican_metadata.name_taken_in_catalog("x")
+
+
+def test_strip_pelican_bookkeeping_keeps_provenance():
+    dataset = {"extras": [
+        {"key": k, "value": "v"} for k in (
+            "pelican_ingest_status", "pelican_ingest_errors", "pelican_expected_count",
+            "pelican_namespace", "pelican_dataset", "pocName",
+        )
+    ]}
+    pelican_metadata.strip_pelican_bookkeeping(dataset)
+    assert [e["key"] for e in dataset["extras"]] == ["pelican_namespace", "pelican_dataset", "pocName"]
+
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_number_and_boolean_metadata_values_become_text(monkeypatch):
+    # Pelican's --metadata-file allows string, number and boolean values.
+    _map_namespace(monkeypatch)
+    event = make_event(
+        f"{NAMESPACE}/a.csv", dataset="typed", title="Typed", notes="n",
+        expected_count=1, finalProduct=True, version_number=2.5,
+        **{k: v for k, v in PUBLIC_FIELDS.items()},
+    )
+    package = pelican_metadata.process_pelican_event(event)
+
+    get = lambda key: pelican_metadata.get_extra(package, key)
+    assert get("pelican_expected_count") == "1"
+    assert get("finalProduct") == "true"
+    assert get("version_number") == "2.5"
+    assert get("pelican_ingest_status") == "ready"

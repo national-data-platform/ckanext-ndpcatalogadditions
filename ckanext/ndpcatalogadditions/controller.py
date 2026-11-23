@@ -1128,6 +1128,12 @@ def approve_package():
             migrate_prestac_resources(dataset, logger)
             # ==== End preSTAC migration ====
 
+            # Pelican ingest status/errors/expected count only mean something
+            # in Prekan; keep pelican_namespace/pelican_dataset as provenance.
+            # Imported here: pelican_metadata imports this module.
+            from ckanext.ndpcatalogadditions.pelican_metadata import strip_pelican_bookkeeping
+            strip_pelican_bookkeeping(dataset)
+
             # save the dataset to the remote CKAN
             remote_dataset = save_remote_dataset(remote_user, dataset)
 

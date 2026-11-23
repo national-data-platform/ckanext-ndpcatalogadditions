@@ -16,8 +16,11 @@ import mimetypes
 import os
 import re
 import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from urllib.parse import urlparse
+
+import sqlalchemy as sa
 
 import ckan.logic as logic
 import ckan.model as model
@@ -48,6 +51,22 @@ PELICAN_RESERVED_OBJECT_KEYS = {"path", "size", "etag", "created_at"}
 # is the completion signal. Neither is a CKAN package field.
 DATASET_FIELD_KEY = "dataset"
 EXPECTED_COUNT_FIELD_KEY = "expected_count"
+
+# Resource-level keys: they describe the file's resource, not the dataset,
+# so they are never merged into the package. "resource" groups files into
+# one logical-unit resource (a folder); see design doc 3.6 and section 6.
+RESOURCE_GROUP_KEY = "resource"
+RESOURCE_FORMAT_KEY = "format"
+RESOURCE_DESCRIPTION_KEY = "resource_description"
+RESOURCE_FIELD_KEYS = {RESOURCE_GROUP_KEY, RESOURCE_FORMAT_KEY, RESOURCE_DESCRIPTION_KEY}
+
+# A grouped resource points at a folder, not a file.
+FOLDER_MIMETYPE = "inode/directory"
+
+# How long an event waits for another event on the same dataset before
+# giving up with a 503 (Pelican retries). Kept short: a waiting request
+# holds a web worker, and Pelican's own per-attempt timeout is 10s.
+DATASET_LOCK_WAIT_SECONDS = 5
 
 # Custom fields that map onto top-level CKAN package fields rather than
 # becoming extras. These are the only CKAN core fields an uploader may set;
@@ -89,6 +108,34 @@ class PelicanAuthError(Exception):
 
 class PelicanRejectError(Exception):
     """Event is permanently unprocessable - maps to a 422 response."""
+
+
+class PelicanBusyError(Exception):
+    """Another event for the same dataset holds the lock - maps to 503, retried."""
+
+
+def metadata_value_to_text(value):
+    """
+    Pelican allows string, number and boolean metadata values (its
+    --metadata-file help and WithObjectMetadata); CKAN fields and extras
+    are text. Booleans use JSON spelling.
+    """
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    return value
+
+
+def has_bad_segments(path):
+    """
+    True if a slash-rooted path has empty, "." or ".." segments. These end up
+    in resource urls and registry lookups, and could step outside the
+    namespace the token vouches for.
+    """
+    if not isinstance(path, str) or not path.startswith("/"):
+        return True
+    return any(segment in ("", ".", "..") for segment in path.split("/")[1:])
 
 
 def get_namespace_org_map():
@@ -146,7 +193,7 @@ def verify_pelican_event(token, event_federation, namespace):
     if event_federation != TRUSTED_FEDERATION:
         raise PelicanAuthError(f"untrusted federation: {event_federation}")
 
-    if not NAMESPACE_PATTERN.match(namespace or ""):
+    if not NAMESPACE_PATTERN.match(namespace or "") or has_bad_segments(namespace.rstrip("/") or "/x"):
         raise PelicanAuthError(f"malformed namespace: {namespace}")
 
     try:
@@ -189,7 +236,14 @@ def get_or_create_service_user():
     user.password = generate_random_password()
     user.state = model.State.ACTIVE
     model.Session.add(user)
-    model.Session.commit()
+    try:
+        model.Session.commit()
+    except sa.exc.IntegrityError:
+        # Several first-ever events at once: another worker created it.
+        model.Session.rollback()
+        user = model.User.by_email(SERVICE_USER_EMAIL)
+        if user is None:
+            raise
     return user
 
 
@@ -244,7 +298,7 @@ def core_package_fields():
 def merge_custom_fields(package, custom_fields):
     """Apply an event's custom fields onto a package dict, last write wins."""
     for key, value in custom_fields.items():
-        if key in (DATASET_FIELD_KEY, EXPECTED_COUNT_FIELD_KEY):
+        if key in (DATASET_FIELD_KEY, EXPECTED_COUNT_FIELD_KEY) or key in RESOURCE_FIELD_KEYS:
             continue
         if is_protected_field(key):
             logger.warning(f"pelican event: ignoring protected metadata field {key!r}")
@@ -296,41 +350,156 @@ def normalize_resource_timestamp(value):
     return dt.isoformat()
 
 
-def upsert_resource(package, federation, obj):
-    url = resource_url_for(federation, obj["path"])
-    name = obj["path"].rsplit("/", 1)[-1] or obj["path"]
-    # Facts about the object itself - always refreshed from the event.
-    resource = {
-        "url": url,
-        "name": name,
-        "description": f"Pelican object at {obj['path']}",
-        "size": obj.get("size"),
-        "hash": (obj.get("etag") or "").strip('"'),
-        "last_modified": normalize_resource_timestamp(obj.get("created_at")),
-    }
-    # Fields an ordinary NDP submission carries (and public validation
-    # requires); defaults only, so a curator's correction survives a
-    # redelivered event.
-    defaults = {"status": "active", "mimetype": guess_mimetype(name)}
+def parse_timestamp(value):
+    try:
+        return datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def resource_group_folder(namespace, obj, custom_fields):
+    """
+    The folder named by the optional "resource" key, without a trailing
+    slash, or None for an ordinary per-file resource. The folder must sit
+    under the namespace and the object under the folder.
+    """
+    value = custom_fields.get(RESOURCE_GROUP_KEY)
+    if value in (None, ""):
+        return None
+    folder = value.rstrip("/") if isinstance(value, str) else value
+    if has_bad_segments(folder) or not folder.startswith(namespace.rstrip("/") + "/"):
+        raise PelicanRejectError(f"resource folder {value!r} is not a folder under namespace {namespace}")
+    if not obj["path"].startswith(folder + "/"):
+        raise PelicanRejectError(f"object path {obj['path']} is outside its resource folder {folder}/")
+    return folder
+
+
+def insert_in_path_order(resources, new_resource):
+    """
+    Put a new Pelican resource before the first Pelican resource whose url
+    sorts after it, so files land in tree order rather than arrival order.
+    Existing resources are never moved - a curator's ordering survives.
+    """
+    for index, existing in enumerate(resources):
+        url = existing.get("url") or ""
+        if url.startswith("pelican://") and url > new_resource["url"]:
+            resources.insert(index, new_resource)
+            return
+    resources.append(new_resource)
+
+
+def upsert_resource(package, federation, obj, namespace, custom_fields=None):
+    """
+    Add or refresh the resource for one object. Identity is the resource
+    url: the object's own url, or its folder's url when the uploader set the
+    "resource" key, so every file of a logical unit lands on one resource.
+    """
+    custom_fields = custom_fields or {}
+    namespace_prefix = namespace.rstrip("/") + "/"
+    folder = resource_group_folder(namespace, obj, custom_fields)
+    last_modified = normalize_resource_timestamp(obj.get("created_at"))
+
+    if folder is None:
+        url = resource_url_for(federation, obj["path"])
+        relative = obj["path"][len(namespace_prefix):]
+        # Facts about the object itself - always refreshed from the event.
+        refreshed = {
+            "url": url,
+            "size": obj.get("size"),
+            "hash": (obj.get("etag") or "").strip('"'),
+            "last_modified": last_modified,
+        }
+        defaults = {
+            # Path relative to the namespace, so run-1/data.csv and
+            # run-2/data.csv stay distinguishable.
+            "name": relative,
+            "description": f"Pelican object at {obj['path']}",
+            "mimetype": guess_mimetype(obj["path"]),
+        }
+    else:
+        url = resource_url_for(federation, folder + "/")
+        # No size or hash: one event per file can't keep a total without
+        # double-counting redeliveries. A manifest file covers that need.
+        refreshed = {"url": url}
+        defaults = {
+            "name": folder[len(namespace_prefix):],
+            "description": f"Pelican folder {folder}/ - browse and fetch its files with Pelican tools",
+            "mimetype": FOLDER_MIMETYPE,
+        }
+    # Fields an ordinary NDP submission carries (public validation requires
+    # status and mimetype). Defaults only, so a curator's correction
+    # survives a redelivered event.
+    defaults["status"] = "active"
+
+    # Explicit uploader values win over defaults, last write wins.
+    explicit = {}
+    if custom_fields.get(RESOURCE_FORMAT_KEY):
+        explicit["format"] = custom_fields[RESOURCE_FORMAT_KEY]
+    if custom_fields.get(RESOURCE_DESCRIPTION_KEY):
+        explicit["description"] = custom_fields[RESOURCE_DESCRIPTION_KEY]
 
     package.setdefault("resources", [])
     for existing in package["resources"]:
         if existing.get("url") == url:
-            existing.update(resource)
+            existing.update(refreshed)
+            if folder is not None:
+                # newest file seen in the folder
+                current = parse_timestamp(existing.get("last_modified"))
+                incoming = parse_timestamp(last_modified)
+                if incoming and (current is None or incoming > current):
+                    existing["last_modified"] = last_modified
             for key, value in defaults.items():
                 if not existing.get(key):
                     existing[key] = value
+            existing.update(explicit)
             return package
 
-    package["resources"].append({**resource, **defaults})
+    new_resource = {**defaults, **refreshed, **explicit}
+    if folder is not None:
+        new_resource["last_modified"] = last_modified
+    insert_in_path_order(package["resources"], new_resource)
     return package
+
+
+@contextmanager
+def dataset_lock(package_name, wait_seconds=None):
+    """
+    Serialize events for one dataset across web workers (design doc 3.4).
+    Each event reads the whole package and saves it back, so two at once
+    would lose a resource, and two first events would both try to create
+    it.
+
+    Uses a PostgreSQL session-level advisory lock on its own connection,
+    not CKAN's session: CKAN actions commit mid-request, which would end a
+    transaction-scoped lock early, and the session may switch pooled
+    connections between transactions.
+    """
+    wait_seconds = DATASET_LOCK_WAIT_SECONDS if wait_seconds is None else wait_seconds
+    key = f"pelican-dataset:{package_name}"
+    connection = model.meta.engine.connect()
+    try:
+        deadline = time.monotonic() + wait_seconds
+        while not connection.execute(
+            sa.text("SELECT pg_try_advisory_lock(hashtext(:key))"), {"key": key}
+        ).scalar():
+            if time.monotonic() >= deadline:
+                raise PelicanBusyError(f"dataset {package_name} is busy with another event")
+            time.sleep(0.05)
+        try:
+            yield
+        finally:
+            connection.execute(sa.text("SELECT pg_advisory_unlock(hashtext(:key))"), {"key": key})
+    finally:
+        connection.close()
 
 
 def name_taken_in_catalog(package_name):
     """
     True if an active dataset with this name is already published in the
-    NDP (production) catalog. Network errors propagate - the caller turns
-    them into a 500 so Pelican retries rather than staging a collision.
+    NDP (production) catalog. Only a definite "not found" counts as free:
+    network errors and any other response (a 502 during an outage, say)
+    raise, and the caller turns that into a 500 so Pelican retries rather
+    than staging a name that might collide.
     """
     response = requests.post(
         f"{controller.ckan_url}/api/3/action/package_show",
@@ -338,13 +507,37 @@ def name_taken_in_catalog(package_name):
         json={"id": package_name},
         timeout=10,
     )
-    if response.status_code != 200:
+    if response.status_code == 404:
         return False
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"production catalog name check failed: HTTP {response.status_code}"
+        )
     return response.json().get("result", {}).get("state") == "active"
 
 
+# Receiver bookkeeping that only means something in Prekan. Approval strips
+# these; pelican_namespace and pelican_dataset stay as provenance on the
+# published dataset. See design doc 3.4.
+PRODUCTION_STRIPPED_EXTRAS = {"pelican_ingest_status", "pelican_ingest_errors", "pelican_expected_count"}
+
+
+def strip_pelican_bookkeeping(dataset):
+    """Remove Prekan-only Pelican extras from a dataset dict, in place."""
+    if dataset.get("extras"):
+        dataset["extras"] = [
+            extra for extra in dataset["extras"]
+            if extra.get("key") not in PRODUCTION_STRIPPED_EXTRAS
+        ]
+    return dataset
+
+
+def pelican_package_name(org_name, dataset):
+    return munge_title_to_name(f"{org_name}-{dataset}")
+
+
 def get_or_create_pelican_package(org_name, namespace, dataset, service_user):
-    package_name = munge_title_to_name(f"{org_name}-{dataset}")
+    package_name = pelican_package_name(org_name, dataset)
 
     try:
         package = logic.get_action("package_show")({"ignore_auth": True}, {"id": package_name})
@@ -449,7 +642,7 @@ def process_pelican_event(event):
         raise PelicanRejectError(f"unknown or unmapped namespace: {namespace}")
 
     custom_fields = {
-        k: v for k, v in obj.items() if k not in PELICAN_RESERVED_OBJECT_KEYS
+        k: metadata_value_to_text(v) for k, v in obj.items() if k not in PELICAN_RESERVED_OBJECT_KEYS
     }
     dataset = custom_fields.get(DATASET_FIELD_KEY)
     if not dataset:
@@ -460,28 +653,34 @@ def process_pelican_event(event):
 
     # The token's pelican.metadata scope only vouches for this namespace
     # (design doc 3.2), so the object must live under it.
-    if not obj["path"].startswith(namespace.rstrip("/") + "/"):
+    if has_bad_segments(obj["path"]) or not obj["path"].startswith(namespace.rstrip("/") + "/"):
         raise PelicanRejectError(f"object path {obj['path']} is outside namespace {namespace}")
+    # A bad "resource" folder is rejected before anything is created, too.
+    resource_group_folder(namespace, obj, custom_fields)
 
     # Fail on a bad federation before anything is created.
     federation = event.get("federation")
     resource_url_for(federation, obj["path"])
 
     service_user = get_or_create_service_user()
-    package, created = get_or_create_pelican_package(
-        org_name, namespace, dataset, service_user
-    )
 
-    package = merge_custom_fields(package, custom_fields)
-    package = upsert_resource(package, federation, obj)
+    # Read-modify-write of the whole package: hold the dataset's lock from
+    # the read (or create) through the save. See dataset_lock.
+    with dataset_lock(pelican_package_name(org_name, dataset)):
+        package, created = get_or_create_pelican_package(
+            org_name, namespace, dataset, service_user
+        )
 
-    if EXPECTED_COUNT_FIELD_KEY in custom_fields:
-        set_extra(package, "pelican_expected_count", custom_fields[EXPECTED_COUNT_FIELD_KEY])
+        package = merge_custom_fields(package, custom_fields)
+        package = upsert_resource(package, federation, obj, namespace, custom_fields)
 
-    package = maybe_finalize(package)
+        if EXPECTED_COUNT_FIELD_KEY in custom_fields:
+            set_extra(package, "pelican_expected_count", custom_fields[EXPECTED_COUNT_FIELD_KEY])
 
-    context = {"user": service_user.name}
-    return logic.get_action("package_update")(context, package)
+        package = maybe_finalize(package)
+
+        context = {"user": service_user.name}
+        return logic.get_action("package_update")(context, package)
 
 
 def pelican_metadata_publish():
@@ -522,8 +721,12 @@ def pelican_metadata_publish():
 
     try:
         process_pelican_event(event)
-    except (PelicanRejectError, ValueError) as e:
+    except PelicanRejectError as e:
         return f"Unprocessable: {e}", 422
+    except PelicanBusyError as e:
+        # Another event for this dataset is mid-save; Pelican retries.
+        logger.info(f"pelican event deferred: {e}")
+        return f"Busy: {e}", 503
     except logic.ValidationError as e:
         # CKAN refused the data itself (e.g. an invalid tag) - retrying the
         # same event can't succeed, so tell Pelican to stop.

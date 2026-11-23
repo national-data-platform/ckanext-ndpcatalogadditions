@@ -396,11 +396,12 @@ class NdpcatalogadditionsPlugin(plugins.SingletonPlugin):
             methods=['POST']
         )
 
-        # Pelican was told the bare site URL (no path) for this webhook, so
-        # it POSTs straight to "/" - same view bound to a second rule rather
-        # than only the one above, since CKAN's own "/" route is GET-only
-        # and reconfiguring the already-deployed Pelican side isn't an
-        # option here.
+        # NOTE: this shares Prekan's site root. Every POST to "/" lands in
+        # the Pelican receiver (CKAN's own "/" route is GET-only, so nothing
+        # else is displaced, and JWT verification still guards it). It
+        # exists because the test origin was given the bare site URL as its
+        # webhook. Remove this rule once origins are configured with
+        # /ndp/pelican_metadata_publish - see design doc 3.9.
         blueprint.add_url_rule(
             u'/',
             u'pelican_metadata_publish',
