@@ -1,7 +1,7 @@
 Pelican Metadata Publish Integration - Design
 
 Owner: Rich
-Status: Approved by Kai (2026-10-26). v1 receiver implemented and bench tested; Kai's code review (2026-11-20) addressed (section 5); real-origin testing pending.
+Status: Approved by Kai (2026-10-26). v1 receiver implemented and bench tested; Kai's code review (2026-11-20) addressed (section 5). Real-origin testing on ndp-test started 2026-11-23; it showed Pelican only allows lowercase metadata keys, so NDP's camelCase extras are now sent in snake_case (section 6).
 Reviewers: Kai, Katie, Ismael, Dan. Replies from Kai and Ismael (2026-10-14 to 2026-10-26) are folded into the sections below; section 5 tracks what each question got back.
 
 1. Summary
@@ -64,7 +64,7 @@ The fix: treat every event's custom fields as an incremental contribution instea
 
 Completion is signaled by an expected_count field the uploader duplicates identically across every file's metadata for that dataset, so losing any one file does not lose the count. Once the number of resources on the package reaches expected_count, we run the full ndp_package_validate - if it passes, the dataset is ready for the normal curator review queue like anything else; if required fields are still missing at that point, it sits as a visibly incomplete draft (pelican_ingest_status and pelican_ingest_errors on the package) until it is fixed. Validation re-runs on every later event for the dataset, so the uploader can fix it by re-uploading any of its files with the missing keys attached (section 6.3). Otherwise it is fixed by hand, and in practice that means a sysadmin: the package's creator is the service account (3.8), and the per-creator ownership check lets only the creator or a sysadmin edit it through our endpoints. Reviewers can still approve or reject it as it stands.
 
-Because packages are public (3.1), "required" means the public field set ndp_package_validate checks: title, notes, tags, and the extras uploadType, lastUpdateDate, pocName and pocEmail, plus a name, description, status and mimetype on every resource. The receiver fills the resource fields itself (status active, mimetype guessed from the object name); the dataset-level ones have to come from uploader metadata. That makes the uploader convention concrete: dataset and expected_count for us, title, notes, tags, license_id, author and author_email as CKAN fields, and every other key - including the four extras above - stored as a package extra of the same name. If the real file count ends up short of expected_count (a lost upload, a bad estimate), there is no automatic timeout - a human can manually move it forward regardless of the count. Going over the declared count is not specially handled for now - additional files beyond expected_count are just accepted.
+Because packages are public (3.1), "required" means the public field set ndp_package_validate checks: title, notes, tags, and the extras uploadType, lastUpdateDate, pocName and pocEmail, plus a name, description, status and mimetype on every resource. The receiver fills the resource fields itself (status active, mimetype guessed from the object name); the dataset-level ones have to come from uploader metadata. That makes the uploader convention concrete: dataset and expected_count for us, title, notes, tags, license_id, author and author_email as CKAN fields, and every other key stored as a package extra; the four extras above are sent as upload_type, last_update_date, poc_name and poc_email because Pelican only allows lowercase keys (section 6). If the real file count ends up short of expected_count (a lost upload, a bad estimate), there is no automatic timeout - a human can manually move it forward regardless of the count. Going over the declared count is not specially handled for now - additional files beyond expected_count are just accepted.
 
 Kai called expected_count a promising approach (2026-10-19). He also pointed out, from the Pelican resources already in the catalog, that completeness can depend on resources that never generate a Pelican event - at least one existing dataset mixes Pelican objects with a GitHub link. As implemented, the count is the number of resources on the package, whatever their source, so a non-Pelican resource a submitter adds by hand counts toward expected_count. That is workable but means expected_count is really "total resources", not "Pelican files", and uploaders need to be told which.
 
@@ -141,7 +141,7 @@ Routes. The receiver answers at POST /ndp/pelican_metadata_publish. It is also b
 - Any objection to Prekan-only for Pelican-sourced submissions, with no bypass of curator review.
   Answer: no objection. Kai agreed routing through Prekan/review is right (2026-10-14).
 - Is the custom metadata field set I'm proposing (dataset, title, notes, point of contact, etc) the right one, or is there already a convention elsewhere I should be matching instead.
-  Answer so far: no existing convention was pointed to. Kai listed the dataset-level fields a CKAN dataset typically carries - title, notes, tags, point of contact, and often spatial and temporal coverage (2026-10-14). The receiver maps title, notes, tags, license_id, author and author_email to the matching CKAN fields and stores everything else as package extras under the same name, so the convention is the field set ndp_package_validate already uses for ordinary public submissions (see 3.4 for the required ones; spatial and temporal coverage are the optional spatialCov/dataBbox and startDateTime/endDateTime extras it also validates). Section 6 is the uploader reference, with worked examples.
+  Answer so far: no existing convention was pointed to. Kai listed the dataset-level fields a CKAN dataset typically carries - title, notes, tags, point of contact, and often spatial and temporal coverage (2026-10-14). The receiver maps title, notes, tags, license_id, author and author_email to the matching CKAN fields and stores everything else as package extras (NDP's camelCase extras sent in snake_case, since Pelican keys are lowercase only), so the convention is the field set ndp_package_validate already uses for ordinary public submissions (see 3.4 for the required ones; spatial and temporal coverage are the optional spatialCov/dataBbox and startDateTime/endDateTime extras it also validates). Section 6 is the uploader reference, with worked examples.
 - Any concern with a single dedicated service account owning all Pelican-sourced Prekan records, or is there a reason to want something more granular.
   Answer: Ismael would rather link Pelican origin identities to NDP Keycloak users so records are not all one account (2026-10-22). Kept the service account for v1; see 3.8 and open items.
 
@@ -199,27 +199,27 @@ Keys that become CKAN package fields:
 - license_id: a CKAN license id, for example cc-by, cc-by-sa, cc-zero, odc-by, odc-odbl, other-open
 - author, author_email: author_email must be a valid email address
 
-Keys stored as package extras of the same name. Required for public datasets:
+Keys stored as package extras. NDP's extras are camelCase, but Pelican sends metadata in an HTTP structured-field header (RFC 8941) whose keys must be lowercase: letters a-z, digits, _, -, . and *. The client refuses anything else before uploading (for uploadType: "the character U isn't allowed in a key"). So uploaders send the snake_case spelling, and the receiver stores it under NDP's name, shown in brackets. Required for public datasets:
 
-- uploadType: one of dataset, model, service, docker-image, application, code
-- lastUpdateDate
-- pocName
-- pocEmail: must be a valid email address
+- upload_type (stored as uploadType): one of dataset, model, service, docker-image, application, code
+- last_update_date (stored as lastUpdateDate)
+- poc_name (stored as pocName)
+- poc_email (stored as pocEmail): must be a valid email address
 
 Optional extras that NDP validates when present:
 
-- publisherEmail, creatorEmail: email address
-- publisherWebsite, creatorWebsite, pocWebsite, docsURL, datasetPageUrl: url
+- publisher_email, creator_email (publisherEmail, creatorEmail): email address
+- publisher_website, creator_website, poc_website, docs_url, dataset_page_url (publisherWebsite, creatorWebsite, pocWebsite, docsURL, datasetPageUrl): url
 - doi: 10.xxxx/... or https://doi.org/10.xxxx/...
-- spatialCovFormat (text, geojson or wkt) with spatialCov; with geojson or wkt the coverage must parse
-- dataBboxFormat (string, geojson or wkt) with dataBbox; same rule
-- spatialRes: starts with a number, for example "10 meter"
-- startDateTime, endDateTime: date/time
+- spatial_cov_format (text, geojson or wkt) with spatial_cov (spatialCovFormat, spatialCov); with geojson or wkt the coverage must parse
+- data_bbox_format (string, geojson or wkt) with data_bbox (dataBboxFormat, dataBbox); same rule
+- spatial_res (spatialRes): starts with a number, for example "10 meter"
+- start_date_time, end_date_time (startDateTime, endDateTime): date/time
 - temporal: {"startTime": "<ISO8601>", "endTime": "<ISO8601>"}
 
 Extras with behaviour attached: enable_contextual_insight=true makes approval trigger the Contextual Insights pipeline on the published dataset, as it does for ordinary submissions.
 
-Any other key is stored as an extra without checks. Keys are case-sensitive, so a misspelled required key (pocemail) is stored under the wrong name and the dataset then fails validation for the missing one.
+Any other key is stored as an extra under its own name, without checks. A misspelled required key (pocemail, poc-email) is stored under the wrong name and the dataset then fails validation for the missing one.
 
 Keys that are dropped and logged: ndp_creator_md5, approval_status, existingGroupIds, anything starting with pelican_, and every other CKAN core field (name, owner_org, private, state, type, id, url, version, maintainer, maintainer_email, groups, resources, extras, tag_string). The rest of the event is still applied.
 
@@ -244,10 +244,10 @@ One upload, carrying the full dataset record and expected_count 1.
       license_id=cc-by
       author=Jane Doe
       author_email=jane@example.org
-      uploadType=dataset
-      lastUpdateDate=2026-11-19
-      pocName=Jane Doe
-      pocEmail=jane@example.org
+      upload_type=dataset
+      last_update_date=2026-11-19
+      poc_name=Jane Doe
+      poc_email=jane@example.org
 
 The event body we receive:
 
@@ -299,10 +299,10 @@ The simplest pattern for a multi-file dataset: attach the identical record to ev
       notes=Monthly exports from station 7.
       tags=seismic,station-7
       license_id=cc-by
-      uploadType=dataset
-      lastUpdateDate=2026-11-19
-      pocName=Jane Doe
-      pocEmail=jane@example.org
+      upload_type=dataset
+      last_update_date=2026-11-19
+      poc_name=Jane Doe
+      poc_email=jane@example.org
 
 What happens:
 
@@ -339,15 +339,15 @@ Each file only carries dataset and expected_count plus whatever part of the reco
       expected_count=3
       title=Snow Survey 2026
       tags=snow,hydrology
-      uploadType=dataset
+      upload_type=dataset
       author=Sam Lee
 
     /example-ns/snow/sites.geojson
       dataset=snow-survey
       expected_count=3
-      pocName=Sam Lee
-      pocEmail=sam@example.org
-      lastUpdateDate=2026-11-19
+      poc_name=Sam Lee
+      poc_email=sam@example.org
+      last_update_date=2026-11-19
       license_id=odc-by
       owner_org=someone-else
 
@@ -356,9 +356,9 @@ The package after each event:
     after README.md      title=Snow Survey (draft title), notes
                          1 of 3 resources, not validated
     after depths.csv     title=Snow Survey 2026 (later value wins), notes,
-                         tags, uploadType, author
+                         tags, upload_type, author
                          2 of 3, not validated
-    after sites.geojson  + pocName, pocEmail, lastUpdateDate, license_id;
+    after sites.geojson  + poc_name, poc_email, last_update_date, license_id;
                          owner_org dropped and logged
                          3 of 3, validation runs and passes
 
@@ -380,12 +380,12 @@ In CKAN:
 
 "Later wins" means later to arrive at the receiver, not later in upload order. Pelican does not guarantee delivery order, so if two files carry different values for the same key, either could end up in CKAN. Send a key once, or send the same value every time.
 
-The same pattern with a required field never sent. Two files, expected_count=2; between them they carry title, notes, tags, uploadType, pocName and lastUpdateDate but no pocEmail. When the second file lands, validation runs and fails, and the package sits as an incomplete draft:
+The same pattern with a required field never sent. Two files, expected_count=2; between them they carry title, notes, tags, upload_type, poc_name and last_update_date but no poc_email. When the second file lands, validation runs and fails, and the package sits as an incomplete draft:
 
     pelican_ingest_status:  incomplete
     pelican_ingest_errors:  ["Missing required field for public dataset: extras:pocEmail"]
 
-Validation re-runs on every event once the count is reached, so the uploader can fix this without help: upload any file of the dataset again with pocEmail attached. Re-uploading an existing path updates that resource rather than adding one, so the count stays at 2, and the package turns ready (checked on the bench). Otherwise a sysadmin fixes the draft in Prekan by hand, or a reviewer rejects it (3.4). Either way this only works before review; after approval or rejection the event gets a 422.
+Validation re-runs on every event once the count is reached, so the uploader can fix this without help: upload any file of the dataset again with poc_email attached. Re-uploading an existing path updates that resource rather than adding one, so the count stays at 2, and the package turns ready (checked on the bench). Otherwise a sysadmin fixes the draft in Prekan by hand, or a reviewer rejects it (3.4). Either way this only works before review; after approval or rejection the event gets a 422.
 
 6.4 A logical unit plus a file listed on its own
 
@@ -405,10 +405,10 @@ A shapefile is four files that are only useful together, so they share one resou
       notes=Road network for the county.
       tags=roads,gis
       license_id=cc-by
-      uploadType=dataset
-      lastUpdateDate=2026-11-21
-      pocName=Jane Doe
-      pocEmail=jane@example.org
+      upload_type=dataset
+      last_update_date=2026-11-21
+      poc_name=Jane Doe
+      poc_email=jane@example.org
 
     /example-ns/gis/README.md
       the same dataset fields, without resource and format, and

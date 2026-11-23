@@ -185,6 +185,7 @@ class FakePelican:
 
     def make_event(self, namespace=DEFAULT_NAMESPACE, path=None, federation=None, **custom):
         """An object.committed event as Pelican's spec shapes it."""
+        check_metadata_keys(custom)
         path = path or f"{namespace}/file-{uuid.uuid4().hex[:8]}.csv"
         return {
             "id": str(uuid.uuid4()),
@@ -249,6 +250,19 @@ def load_or_create_key(key_dir=KEY_DIR):
     return key_file.read_text()
 
 
+def check_metadata_keys(meta):
+    """
+    Refuse keys the real Pelican client refuses. It sends metadata as an
+    RFC 8941 structured-field header, whose keys are lowercase only, so a
+    camelCase key fails at upload time and never reaches us.
+    """
+    from ckanext.ndpcatalogadditions.pelican_metadata import SFV_KEY_PATTERN
+
+    bad = [key for key in meta if not SFV_KEY_PATTERN.match(key)]
+    if bad:
+        raise ValueError(f"Pelican would refuse metadata key(s) {bad}: keys must be lowercase (RFC 8941)")
+
+
 def parse_meta(pairs):
     meta = {}
     for pair in pairs or []:
@@ -256,6 +270,10 @@ def parse_meta(pairs):
             raise SystemExit(f"--meta expects key=value, got: {pair}")
         key, value = pair.split("=", 1)
         meta[key] = value
+    try:
+        check_metadata_keys(meta)
+    except ValueError as e:
+        raise SystemExit(str(e))
     return meta
 
 

@@ -16,12 +16,16 @@ import pytest
 from ckan.tests import factories, helpers as test_helpers
 
 from ckanext.ndpcatalogadditions import pelican_metadata
+from ckanext.ndpcatalogadditions.tests.fake_pelican import check_metadata_keys
 
 NAMESPACE = "/test-namespace"
 ORG_NAME = "pelican-test-org"
 
 
 def make_event(path, **object_fields):
+    # Same key rule as the real Pelican client, so tests can't use metadata
+    # an uploader couldn't actually send.
+    check_metadata_keys(object_fields)
     return {
         "type": "object.committed",
         "namespace": NAMESPACE,
@@ -45,10 +49,10 @@ def no_production_catalog(monkeypatch):
 
 PUBLIC_FIELDS = {
     "tags": "pelican,test",
-    "uploadType": "dataset",
-    "lastUpdateDate": "2026-10-26",
-    "pocName": "Test Contact",
-    "pocEmail": "contact@example.org",
+    "upload_type": "dataset",
+    "last_update_date": "2026-10-26",
+    "poc_name": "Test Contact",
+    "poc_email": "contact@example.org",
 }
 
 
@@ -69,7 +73,7 @@ def test_progressive_merge_creates_and_finalizes_package(monkeypatch):
         title="My Dataset",
         expected_count=2,
         tags=PUBLIC_FIELDS["tags"],
-        uploadType=PUBLIC_FIELDS["uploadType"],
+        upload_type=PUBLIC_FIELDS["upload_type"],
     )
     package = pelican_metadata.process_pelican_event(first)
 
@@ -93,9 +97,9 @@ def test_progressive_merge_creates_and_finalizes_package(monkeypatch):
         dataset="my-dataset",
         notes="Two-part test dataset",
         expected_count=2,
-        lastUpdateDate=PUBLIC_FIELDS["lastUpdateDate"],
-        pocName=PUBLIC_FIELDS["pocName"],
-        pocEmail=PUBLIC_FIELDS["pocEmail"],
+        last_update_date=PUBLIC_FIELDS["last_update_date"],
+        poc_name=PUBLIC_FIELDS["poc_name"],
+        poc_email=PUBLIC_FIELDS["poc_email"],
     )
     package = pelican_metadata.process_pelican_event(second)
 
@@ -260,12 +264,14 @@ def test_uploader_cannot_set_protected_fields(monkeypatch):
         title="Protected",
         ndp_creator_md5="attacker-fingerprint",
         approval_status="approved",
-        existingGroupIds='["some-group"]',
         pelican_ingest_status="ready",
         private="true",
         owner_org="some-other-org",
-        pocName="Allowed Through",
+        poc_name="Allowed Through",
     )
+    # Real Pelican can't send a camelCase key, but the receiver must not
+    # rely on that.
+    event["object"]["existingGroupIds"] = '["some-group"]'
     package = pelican_metadata.process_pelican_event(event)
 
     get = lambda key: pelican_metadata.get_extra(package, key)
@@ -336,7 +342,7 @@ def test_incomplete_draft_fixed_by_reuploading_a_file(monkeypatch):
     # reached, so re-sending an existing file with the missing key fixes the
     # draft without adding a resource.
     _map_namespace(monkeypatch)
-    fields = {k: v for k, v in PUBLIC_FIELDS.items() if k != "pocEmail"}
+    fields = {k: v for k, v in PUBLIC_FIELDS.items() if k != "poc_email"}
     common = dict(dataset="fixable", title="Fixable", notes="n", expected_count="1")
 
     package = pelican_metadata.process_pelican_event(make_event(f"{NAMESPACE}/a.csv", **common, **fields))
@@ -344,7 +350,7 @@ def test_incomplete_draft_fixed_by_reuploading_a_file(monkeypatch):
     assert "pocEmail" in pelican_metadata.get_extra(package, "pelican_ingest_errors")
 
     package = pelican_metadata.process_pelican_event(
-        make_event(f"{NAMESPACE}/a.csv", **common, pocEmail="contact@example.org")
+        make_event(f"{NAMESPACE}/a.csv", **common, poc_email="contact@example.org")
     )
     assert pelican_metadata.get_extra(package, "pelican_ingest_status") == "ready"
     assert len(package["resources"]) == 1
@@ -595,13 +601,43 @@ def test_number_and_boolean_metadata_values_become_text(monkeypatch):
     _map_namespace(monkeypatch)
     event = make_event(
         f"{NAMESPACE}/a.csv", dataset="typed", title="Typed", notes="n",
-        expected_count=1, finalProduct=True, version_number=2.5,
+        expected_count=1, final_product=True, version_number=2.5,
         **{k: v for k, v in PUBLIC_FIELDS.items()},
     )
     package = pelican_metadata.process_pelican_event(event)
 
     get = lambda key: pelican_metadata.get_extra(package, key)
     assert get("pelican_expected_count") == "1"
-    assert get("finalProduct") == "true"
+    assert get("final_product") == "true"
     assert get("version_number") == "2.5"
     assert get("pelican_ingest_status") == "ready"
+
+
+@pytest.mark.ckan_config("ckan.plugins", "ndpcatalogadditions")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+def test_snake_case_keys_become_ndp_extras(monkeypatch):
+    # Pelican's metadata header only allows lowercase keys, so NDP's
+    # camelCase extras arrive as snake_case and are stored under NDP's names.
+    _map_namespace(monkeypatch)
+    event = make_event(
+        f"{NAMESPACE}/a.csv", dataset="aliased", title="Aliased", notes="n",
+        docs_url="https://example.org/docs", spatial_res="10 meter",
+        some_custom_key="kept as is",
+    )
+    package = pelican_metadata.process_pelican_event(event)
+
+    keys = {e["key"]: e["value"] for e in package["extras"]}
+    assert keys["docsURL"] == "https://example.org/docs"
+    assert keys["spatialRes"] == "10 meter"
+    assert keys["some_custom_key"] == "kept as is"
+    assert "docs_url" not in keys and "spatial_res" not in keys
+
+
+def test_every_alias_is_a_valid_pelican_key():
+    for alias in pelican_metadata.NDP_EXTRA_ALIASES:
+        assert pelican_metadata.SFV_KEY_PATTERN.match(alias), alias
+
+
+def test_fake_pelican_refuses_keys_real_pelican_refuses():
+    with pytest.raises(ValueError, match="lowercase"):
+        make_event(f"{NAMESPACE}/a.csv", dataset="x", uploadType="dataset")

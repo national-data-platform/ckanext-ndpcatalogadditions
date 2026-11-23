@@ -75,6 +75,34 @@ DATASET_LOCK_WAIT_SECONDS = 5
 # validators, so e.g. a malformed author_email is a ValidationError (422).
 TOP_LEVEL_PACKAGE_FIELDS = {"title", "notes", "tags", "license_id", "author", "author_email"}
 
+# Pelican carries uploader metadata in its X-Pelican-Object-Metadata header,
+# an RFC 8941 structured-field dictionary, and the client refuses any key
+# that isn't lowercase (SFV_KEY_PATTERN). NDP's own extras are camelCase,
+# so uploaders send these snake_case spellings and the receiver stores them
+# under NDP's names. The camelCase forms are still accepted if they ever
+# arrive. See design doc section 6.
+SFV_KEY_PATTERN = re.compile(r"^[a-z*][a-z0-9_\-.*]*$")
+NDP_EXTRA_ALIASES = {
+    "upload_type": "uploadType",
+    "last_update_date": "lastUpdateDate",
+    "poc_name": "pocName",
+    "poc_email": "pocEmail",
+    "poc_website": "pocWebsite",
+    "publisher_email": "publisherEmail",
+    "publisher_website": "publisherWebsite",
+    "creator_email": "creatorEmail",
+    "creator_website": "creatorWebsite",
+    "docs_url": "docsURL",
+    "dataset_page_url": "datasetPageUrl",
+    "spatial_cov": "spatialCov",
+    "spatial_cov_format": "spatialCovFormat",
+    "data_bbox": "dataBbox",
+    "data_bbox_format": "dataBboxFormat",
+    "spatial_res": "spatialRes",
+    "start_date_time": "startDateTime",
+    "end_date_time": "endDateTime",
+}
+
 # Extras with meaning elsewhere in this extension: ownership fingerprint,
 # review state, restricted-access groups. Never settable from an event.
 PROTECTED_EXTRA_KEYS = {"ndp_creator_md5", "approval_status", "existingGroupIds"}
@@ -642,7 +670,9 @@ def process_pelican_event(event):
         raise PelicanRejectError(f"unknown or unmapped namespace: {namespace}")
 
     custom_fields = {
-        k: metadata_value_to_text(v) for k, v in obj.items() if k not in PELICAN_RESERVED_OBJECT_KEYS
+        NDP_EXTRA_ALIASES.get(k, k): metadata_value_to_text(v)
+        for k, v in obj.items()
+        if k not in PELICAN_RESERVED_OBJECT_KEYS
     }
     dataset = custom_fields.get(DATASET_FIELD_KEY)
     if not dataset:
