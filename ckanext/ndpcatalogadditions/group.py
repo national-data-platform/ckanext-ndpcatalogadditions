@@ -872,6 +872,8 @@ def group_package_delete():
                 }
                 response = requests.post(api_url, data=json.dumps(member_data), headers=new_headers)
                 if response.status_code == 200:
+                    # Reindex the dataset so the group association is updated in search
+                    index_approved_dataset(package_id, api_key)
                     return response.json()
                 else:
                     raise ValueError(f"Failed to add dataset: {response.text}")
