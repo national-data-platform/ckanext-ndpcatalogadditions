@@ -43,7 +43,7 @@ POP_SECRET_TOKEN = os.getenv('CKANEXT__NDPCATALOGADDITIONS__POP_SECRET_TOKEN')
 
 # Solr Indexing Configuration
 # SOLR_INDEX_URL = os.getenv('SOLR_INDEX_URL', 'http://awesome-compute.sdsc.edu:8081/v1/ckan-api/add_to_index')
-SOLR_INDEX_URL = os.getenv('SOLR_INDEX_URL', 'http://awesome-compute.sdsc.edu:8081/v1/ckan-api/secure/add_to_index')
+SOLR_INDEX_URL = os.getenv('SOLR_INDEX_URL', 'http://awesome-compute.sdsc.edu:9091/v1/ckan-api/secure/add_to_index')
 
 # Contextual Insights Pipeline Configuration
 CONTEXTUAL_INSIGHTS_URL = os.getenv(
